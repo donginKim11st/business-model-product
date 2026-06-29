@@ -1,0 +1,2616 @@
+{
+  "n_listings": 184,
+  "n_mall": 55,
+  "n_sku": 85,
+  "n_multi_mall": 10,
+  "no_code": 36,
+  "products": [
+    {
+      "code": "DD8959-001",
+      "name": "에어포스 1 '07 트리플 블랙",
+      "n_malls": 20,
+      "n_listings": 34,
+      "min": 108000,
+      "max": 305300,
+      "median": 143760,
+      "spread_pct": 183,
+      "low_mall": "BHOS",
+      "used": 33,
+      "new": 1,
+      "members": [
+        {
+          "mall": "BHOS",
+          "price": 108000,
+          "title": "나이키 에어포스 1 07 DD8959-001 103 110 111 블랙",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/13630392973",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "스탠워크",
+          "price": 114000,
+          "title": "여자에어포스, 에어포스검검 에어포스1 우먼 DD8959-001 올검 에어포스원 블랙",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/13000977763",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "4910",
+          "price": 116440,
+          "title": "[나이키] 우먼스 에어 포스 1 07 로우 블랙 여성 올블랙 올검 포스 DD8959-001",
+          "used": true,
+          "link": "https://4910.kr/goods/6477748?utm_source=web_naver-shopping&utm_medium=display&utm_campaign=web_naver-shopping&utm_content=6477748&coupon_sno=50218024",
+          "kind": "셀러",
+          "plat": "4910.kr"
+        },
+        {
+          "mall": "G마켓",
+          "price": 117520,
+          "title": "나이키 나이키 에어 포스1 07 여성 스니커즈 운동화 신발 트리플블랙 DD8959-001",
+          "used": true,
+          "link": "https://link.gmarket.co.kr/gate/pcs?item-no=4722331837&sub-id=1003&service-code=10000003&lcd=100000043",
+          "kind": "마켓",
+          "plat": "G마켓"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 118100,
+          "title": "나이키 우먼스 에어포스 1 07 로우 트리플 블랙 올블랙 올검 DD8959 001",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F58276043",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        },
+        {
+          "mall": "아 리 스",
+          "price": 118500,
+          "title": "국내매장판 나이키 우먼스 에어 포스 1 07 트리플 블랙 운동화 DD8959-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12280907094",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "RIF",
+          "price": 119000,
+          "title": "[국내매장판] 나이키 에어포스 1 07 로우 트리플 블랙 dd8959-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/13371447509",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 119100,
+          "title": "나이키 판 에어포스 1 07 로우 블랙 검정 DD8959 001",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F119259105",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        },
+        {
+          "mall": "아맛간다샵",
+          "price": 119990,
+          "title": "(국내매장판) 나이키 우먼스 에어 포스 1 07 에어포스블랙 DD8959-001 A/S가능",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/10488331633",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "네이버",
+          "price": 120000,
+          "title": "나이키 에어 포스 1 '07 DD8959 001 블랙",
+          "used": false,
+          "link": "https://search.shopping.naver.com/catalog/54744253268",
+          "kind": "가격비교",
+          "plat": "네이버 통합"
+        },
+        {
+          "mall": "롯데홈쇼핑",
+          "price": 123680,
+          "title": "나이키 나이키 우먼스 에어 포스 1 07 트리플 블랙 (DD8959-001)",
+          "used": true,
+          "link": "https://www.lotteimall.com/coop/affilGate.lotte?chl_no=141370&chl_dtl_no=2540914&returnUrl=/goods/viewGoodsDetail.lotte?goods_no=2496510311&utm_source=naver&utm_medium=affiliate&utm_campaign=price_compare",
+          "kind": "셀러",
+          "plat": "lotteimall.com"
+        },
+        {
+          "mall": "스니커매냐",
+          "price": 125000,
+          "title": "국내발송 나이키 우먼스 에어포스1 블랙 DD8959-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/10071180893",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "롯데ON",
+          "price": 127870,
+          "title": "나이키 우먼스 에어 포스 1 07 트리플 블랙 (DD8959-001)",
+          "used": true,
+          "link": "https://www.lotteon.com/p/product/LO2225520499?sitmNo=LO2225520499_2225520501&ch_no=100065&ch_dtl_no=1000030&entryPoint=pcs&dp_infw_cd=CHT",
+          "kind": "마켓",
+          "plat": "롯데ON"
+        },
+        {
+          "mall": "BHOS",
+          "price": 130000,
+          "title": "나이키 에어포스 1 07 DD8959-001 103 110 111 화이트블랙",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/13639043685",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "트렌비",
+          "price": 130000,
+          "title": "나이키 에어 포스 1 07 W 블랙 DD8959 001 우먼스 포스1 로우 트리플 38537070",
+          "used": true,
+          "link": "https://www.trenbe.com/good/38537070?utm_source=naver&inflow=naver&utm_campaign=ns&utm_medium=affiliate&utm_term={query}&utm_content=38537070&n_t_param=trenbecps&t_dt_pc",
+          "kind": "셀러",
+          "plat": "trenbe.com"
+        },
+        {
+          "mall": "브릭맨션",
+          "price": 140500,
+          "title": "나이키 우먼스 에어 포스 1 07 트리플 블랙 (DD8959-001)",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/9652779237",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "ABLY",
+          "price": 142000,
+          "title": "[나이키] 우먼스 에어 포스 1 07 로우 블랙 여성 올블랙 올검 포스 DD8959-001",
+          "used": true,
+          "link": "https://m.a-bly.com/goods/6477748?utm_source=web_naver-shopping&utm_medium=display&utm_campaign=web_naver-shopping&utm_content=6477748",
+          "kind": "셀러",
+          "plat": "a-bly.com"
+        },
+        {
+          "mall": "롯데ON",
+          "price": 145520,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP868993523",
+          "used": true,
+          "link": "https://www.lotteon.com/p/product/LO2598810605?sitmNo=LO2598810605_2598810606&ch_no=100065&ch_dtl_no=1000030&entryPoint=pcs&dp_infw_cd=CHT",
+          "kind": "마켓",
+          "plat": "롯데ON"
+        },
+        {
+          "mall": "LFmall",
+          "price": 145730,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP872175356",
+          "used": true,
+          "link": "https://www.lfmall.co.kr/app/product/DBC8XX00364?af=2000&utm_source=pc_shopping.naver&utm_medium=cps&utm_campaign=sale",
+          "kind": "셀러",
+          "plat": "lfmall.co.kr"
+        },
+        {
+          "mall": "11번가",
+          "price": 152280,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP868994120",
+          "used": true,
+          "link": "https://www.11st.co.kr/connect/Gateway.tmall?method=Xsite&prdNo=8983713483&tid=1000000061",
+          "kind": "마켓",
+          "plat": "11번가"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 164200,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP868993687",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F119962133",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        },
+        {
+          "mall": "크로켓Croket",
+          "price": 169050,
+          "title": "나이키 W 에어포스 1 07 운동화 블랙 블랙 DD8959-001",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/6a2218ec34872fc7808febc3?yg_type=naver_shopping&yg_method=6a2218ec34872fc7808febc3&utm_source=naver&utm_medium=shopping&utm_campaign=6a2218ec34872fc7808febc3&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        },
+        {
+          "mall": "4910",
+          "price": 175000,
+          "title": "[나이키] 에어 포스 블랙 여성용 스니커즈 DD8959-001",
+          "used": true,
+          "link": "https://4910.kr/goods/57011428?utm_source=web_naver-shopping&utm_medium=display&utm_campaign=web_naver-shopping&utm_content=57011428",
+          "kind": "셀러",
+          "plat": "4910.kr"
+        },
+        {
+          "mall": "ABLY",
+          "price": 175000,
+          "title": "[나이키] 에어 포스 블랙 여성용 스니커즈 DD8959-001",
+          "used": true,
+          "link": "https://m.a-bly.com/goods/57011428?utm_source=web_naver-shopping&utm_medium=display&utm_campaign=web_naver-shopping&utm_content=57011428",
+          "kind": "셀러",
+          "plat": "a-bly.com"
+        },
+        {
+          "mall": "크로켓Croket",
+          "price": 175910,
+          "title": "나이키 에어포스 1 07 로우 트리플 블랙 우먼스 여성용 315115-038 DD8959-001",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/61cd3021eaac6112df9b07c5?yg_type=naver_shopping&yg_method=61cd3021eaac6112df9b07c5&utm_source=naver&utm_medium=shopping&utm_campaign=61cd3021eaac6112df9b07c5&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        },
+        {
+          "mall": "크로켓Croket",
+          "price": 186494,
+          "title": "나이키 에어 포스 1 07 올블랙 여성용 데일리 스니커즈 운동화 DD8959-001",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/66797a0ddf9fef61e119d1ef?yg_type=naver_shopping&yg_method=66797a0ddf9fef61e119d1ef&utm_source=naver&utm_medium=shopping&utm_campaign=66797a0ddf9fef61e119d1ef&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        },
+        {
+          "mall": "트렌비",
+          "price": 201500,
+          "title": "나이키 에어 포스 1 07 W 블랙 DD8959 001 Air Force Black 26791930",
+          "used": true,
+          "link": "https://www.trenbe.com/good/26791930?utm_source=naver&inflow=naver&utm_campaign=ns&utm_medium=affiliate&utm_term={query}&utm_content=26791930&n_t_param=trenbecps&t_dt_pc",
+          "kind": "셀러",
+          "plat": "trenbe.com"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 230600,
+          "title": "나이키 우먼 WS 에어 포스 1 07 DD8959 001 블랙 11044310",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F117449581",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 230600,
+          "title": "나이키 우먼 W 에어포스 1 07 DD8959 001 블랙x블랙 11046980",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F117460353",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        },
+        {
+          "mall": "롯데ON",
+          "price": 246000,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP869055988",
+          "used": true,
+          "link": "https://www.lotteon.com/p/product/LO2598810470?sitmNo=LO2598810470_2598810471&ch_no=100065&ch_dtl_no=1000030&entryPoint=pcs&dp_infw_cd=CHT",
+          "kind": "마켓",
+          "plat": "롯데ON"
+        },
+        {
+          "mall": "LFmall",
+          "price": 251710,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP872129408",
+          "used": true,
+          "link": "https://www.lfmall.co.kr/app/product/DBC8XX00300?af=2000&utm_source=pc_shopping.naver&utm_medium=cps&utm_campaign=sale",
+          "kind": "셀러",
+          "plat": "lfmall.co.kr"
+        },
+        {
+          "mall": "신세계몰",
+          "price": 256785,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP869057118",
+          "used": true,
+          "link": "http://shinsegaemall.ssg.com/item/itemView.ssg?itemId=1000772022577&siteNo=6004&salestrNo=6005&ckwhere=s_naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        },
+        {
+          "mall": "필웨이",
+          "price": 280000,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP869054913",
+          "used": true,
+          "link": "https://www.feelway.com/gv_no_7805765734.html?cafe_mkt=naver_ks&utm_source=naver&utm_medium=cpc&utm_campaign=shopping-naver-cpc",
+          "kind": "셀러",
+          "plat": "feelway.com"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 305300,
+          "title": "나이키 블랙 에어 포스 1 07 스니커즈 DD8959 001 TP869056381",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F119961970",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "DD8959-103",
+      "name": "에어포스 1 '07 화이트 블랙",
+      "n_malls": 8,
+      "n_listings": 11,
+      "min": 118430,
+      "max": 154350,
+      "median": 130900,
+      "spread_pct": 30,
+      "low_mall": "현대Hmall",
+      "used": 10,
+      "new": 1,
+      "members": [
+        {
+          "mall": "현대Hmall",
+          "price": 118430,
+          "title": "나이키 우먼스 에어 포스 1 07 화이트 블랙 (DD8959-103)",
+          "used": true,
+          "link": "https://www.hmall.com/md/pda/itemPtc?ReferCode=429&slitmCd=2156137834&utm_source=naver&utm_medium=cps_pcs&utm_campaign=sale",
+          "kind": "셀러",
+          "plat": "hmall.com"
+        },
+        {
+          "mall": "현대Hmall",
+          "price": 122430,
+          "title": "[국내매장판] 나이키 에어포스 1 화이트 블랙 DD8959-103",
+          "used": true,
+          "link": "https://www.hmall.com/md/pda/itemPtc?ReferCode=429&slitmCd=2250252488&utm_source=naver&utm_medium=cps_pcs&utm_campaign=sale",
+          "kind": "셀러",
+          "plat": "hmall.com"
+        },
+        {
+          "mall": "네이버",
+          "price": 125140,
+          "title": "나이키 에어 포스 1 '07 DD8959 103 화이트블랙",
+          "used": false,
+          "link": "https://search.shopping.naver.com/catalog/54744249477",
+          "kind": "가격비교",
+          "plat": "네이버 통합"
+        },
+        {
+          "mall": "SSG닷컴",
+          "price": 128807,
+          "title": "나이키 우먼스 에어포스 1 07 화이트 블랙 운동화 스니커즈 (DD8959-103)",
+          "used": true,
+          "link": "http://www.ssg.com/item/itemView.ssg?itemId=1000567491579&siteNo=6001&salestrNo=6005&ckwhere=ssg_naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        },
+        {
+          "mall": "신세계몰",
+          "price": 128807,
+          "title": "나이키 우먼스 에어포스 1 07 화이트 블랙 운동화 스니커즈 (DD8959-103)",
+          "used": true,
+          "link": "http://shinsegaemall.ssg.com/item/itemView.ssg?itemId=1000567491579&siteNo=6004&salestrNo=6005&ckwhere=s_naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        },
+        {
+          "mall": "브릭맨션",
+          "price": 130900,
+          "title": "나이키 우먼스 에어 포스 1 07 화이트 블랙 (DD8959-103)",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/9507156947",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "옥션",
+          "price": 132320,
+          "title": "나이키 국내매장판 나이키 에어포스 1 화이트 블랙 DD8959-103",
+          "used": true,
+          "link": "https://link.auction.co.kr/gate/pcs?item-no=F528366227&sub-id=1&service-code=10000003",
+          "kind": "마켓",
+          "plat": "옥션"
+        },
+        {
+          "mall": "신세계몰",
+          "price": 137830,
+          "title": "[국내매장판] 나이키 에어포스 1 화이트 블랙 DD8959-103",
+          "used": true,
+          "link": "http://shinsegaemall.ssg.com/item/itemView.ssg?itemId=1000815022516&siteNo=6004&salestrNo=6005&ckwhere=s_naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        },
+        {
+          "mall": "SSG닷컴",
+          "price": 137830,
+          "title": "[국내매장판] 나이키 에어포스 1 화이트 블랙 DD8959-103",
+          "used": true,
+          "link": "http://www.ssg.com/item/itemView.ssg?itemId=1000815022516&siteNo=6001&salestrNo=6005&ckwhere=ssg_naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        },
+        {
+          "mall": "이마트몰",
+          "price": 137830,
+          "title": "[국내매장판] 나이키 에어포스 1 화이트 블랙 DD8959-103",
+          "used": true,
+          "link": "http://emart.ssg.com/item/itemView.ssg?itemId=1000815022516&siteNo=6001&ckwhere=naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        },
+        {
+          "mall": "크로켓Croket",
+          "price": 154350,
+          "title": "나이키 우먼즈 에어포스 1 07 흰검 화이트 블랙스우시 DD8959-103",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/62bc095034149105686102d4?yg_type=naver_shopping&yg_method=62bc095034149105686102d4&utm_source=naver&utm_medium=shopping&utm_campaign=62bc095034149105686102d4&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "CW2288-001",
+      "name": "에어포스 1 '07 트리플 블랙",
+      "n_malls": 4,
+      "n_listings": 7,
+      "min": 89000,
+      "max": 235700,
+      "median": 135000,
+      "spread_pct": 165,
+      "low_mall": "네이버",
+      "used": 6,
+      "new": 1,
+      "members": [
+        {
+          "mall": "네이버",
+          "price": 89000,
+          "title": "나이키 에어 포스 1 07 CW2288 001 블랙",
+          "used": false,
+          "link": "https://search.shopping.naver.com/catalog/53599047802",
+          "kind": "가격비교",
+          "plat": "네이버 통합"
+        },
+        {
+          "mall": "4910",
+          "price": 108650,
+          "title": "[나이키] 에어포스 1 07 로우 블랙 검정 CW2288-001 DD8959-001",
+          "used": true,
+          "link": "https://4910.kr/goods/64782896?utm_source=web_naver-shopping&utm_medium=display&utm_campaign=web_naver-shopping&utm_content=64782896&coupon_sno=50218024",
+          "kind": "셀러",
+          "plat": "4910.kr"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 126400,
+          "title": "나이키 에어 포스 1 07 로우 트리플 블랙 올블랙 올검 CW2288 001",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F52540581",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        },
+        {
+          "mall": "브릭맨션",
+          "price": 135000,
+          "title": "나이키 에어포스 1 07 로우 트리플 블랙 (CW2288-001)",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/10438594140",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 138000,
+          "title": "나이키 에어포스 1 07 로우 트리플 블랙 CW2288 001",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F102285459",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 148800,
+          "title": "나이키 에어 포스 1 07 로우 트리플 블랙 CW2288 001 315122 001",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F97282218",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 235700,
+          "title": "나이키 우먼 에어포스 1 07 CW2288 001 블랙 11045883",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F117456272",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "IH2034-010",
+      "name": "에어포스 1 '07 새틴",
+      "n_malls": 4,
+      "n_listings": 4,
+      "min": 86000,
+      "max": 135000,
+      "median": 110000,
+      "spread_pct": 57,
+      "low_mall": "노멀원 NOMALONE",
+      "used": 4,
+      "new": 0,
+      "members": [
+        {
+          "mall": "노멀원 NOMALONE",
+          "price": 86000,
+          "title": "나이키 여성 운동화 스니커즈 에어포스 1 로우 블랙 새틴 핑크 IH2034-010",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12286085002",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "글로벌24",
+          "price": 91000,
+          "title": "나이키 우먼스 에어포스 1 로우 블랙 새틴 핑크 IH2034-010",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12243589218",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "FACTORY507",
+          "price": 129000,
+          "title": "[국내 매장판] 나이키 에어 포스 1 로우 우먼스 블랙 사틴 IH2034-010",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/11844062734",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "11번가",
+          "price": 135000,
+          "title": "(W) 나이키 에어 포스 1 블랙 핑크 아이스 IH2034-010",
+          "used": true,
+          "link": "https://www.11st.co.kr/connect/Gateway.tmall?method=Xsite&prdNo=8315729672&tid=1000000061",
+          "kind": "마켓",
+          "plat": "11번가"
+        }
+      ]
+    },
+    {
+      "code": "IQ9965-001",
+      "name": "에어포스 1 '07 발렌타인 데이 SE",
+      "n_malls": 3,
+      "n_listings": 3,
+      "min": 286663,
+      "max": 286663,
+      "median": 286663,
+      "spread_pct": 0,
+      "low_mall": "신세계몰",
+      "used": 3,
+      "new": 0,
+      "members": [
+        {
+          "mall": "신세계몰",
+          "price": 286663,
+          "title": "나이키 블랙 에어 포스 1 07 SE 발렌타인 데이 스니커즈 IQ9965 001 TP87132",
+          "used": true,
+          "link": "http://shinsegaemall.ssg.com/item/itemView.ssg?itemId=1000791717803&siteNo=6004&salestrNo=6005&ckwhere=s_naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        },
+        {
+          "mall": "SSG닷컴",
+          "price": 286663,
+          "title": "나이키 블랙 에어 포스 1 07 SE 발렌타인 데이 스니커즈 IQ9965 001 TP87132",
+          "used": true,
+          "link": "http://www.ssg.com/item/itemView.ssg?itemId=1000791717803&siteNo=6001&salestrNo=6005&ckwhere=ssg_naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        },
+        {
+          "mall": "이마트몰",
+          "price": 286663,
+          "title": "나이키 블랙 에어 포스 1 07 SE 발렌타인 데이 스니커즈 IQ9965 001 TP87132",
+          "used": true,
+          "link": "http://emart.ssg.com/item/itemView.ssg?itemId=1000791717803&siteNo=6001&ckwhere=naver&appPopYn=n&utm_medium=PCS&utm_source=naver&utm_campaign=naver_pcs",
+          "kind": "마켓",
+          "plat": "SSG"
+        }
+      ]
+    },
+    {
+      "code": "DH9597-002",
+      "name": "에어포스 1 '07 애슬레틱 클럽 옐로우/설퍼",
+      "n_malls": 2,
+      "n_listings": 3,
+      "min": 116620,
+      "max": 283600,
+      "median": 163170,
+      "spread_pct": 143,
+      "low_mall": "크로켓Croket",
+      "used": 3,
+      "new": 0,
+      "members": [
+        {
+          "mall": "크로켓Croket",
+          "price": 116620,
+          "title": "나이키 에어포스 1 애슬레틱 클럽 블랙 다크설퍼 검노 GS 우먼스 여성용 DH9597-002",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/624854795964c6c3421e74af?yg_type=naver_shopping&yg_method=624854795964c6c3421e74af&utm_source=naver&utm_medium=shopping&utm_campaign=624854795964c6c3421e74af&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        },
+        {
+          "mall": "크로켓Croket",
+          "price": 163170,
+          "title": "나이키 에어포스 원 애슬레틱 클럽 GS 나이키 블랙 옐로우 DH9597-002",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/6865f2d0ebe7e2f05172671d?yg_type=naver_shopping&yg_method=6865f2d0ebe7e2f05172671d&utm_source=naver&utm_medium=shopping&utm_campaign=6865f2d0ebe7e2f05172671d&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        },
+        {
+          "mall": "머스트잇",
+          "price": 283600,
+          "title": "나이키 에어 포스 1 로우 GS 애슬레틱 블랙 옐로우 DH9597-002",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F42762684",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "CJ9179-200",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 2,
+      "n_listings": 2,
+      "min": 70900,
+      "max": 128000,
+      "median": 99450,
+      "spread_pct": 81,
+      "low_mall": "네이버",
+      "used": 1,
+      "new": 1,
+      "members": [
+        {
+          "mall": "네이버",
+          "price": 70900,
+          "title": "나이키 에어포스 1 07 WB 플랙스 CJ9179 200 플랙스 & 검 & 라이트 브라운 & 블랙 & 위트",
+          "used": false,
+          "link": "https://search.shopping.naver.com/catalog/54608215642",
+          "kind": "가격비교",
+          "plat": "네이버 통합"
+        },
+        {
+          "mall": "아 리 스",
+          "price": 128000,
+          "title": "국내매장판 나이키 에어 포스 1 07 WB 플랙스 된장 블랙 운동화 CJ9179 200 001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12449206532",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DH2920-001",
+      "name": "에어포스 1 '07 GS(키즈) 트리플 블랙",
+      "n_malls": 2,
+      "n_listings": 2,
+      "min": 80900,
+      "max": 115000,
+      "median": 97950,
+      "spread_pct": 42,
+      "low_mall": "KT7",
+      "used": 2,
+      "new": 0,
+      "members": [
+        {
+          "mall": "KT7",
+          "price": 80900,
+          "title": "나이키 NIKE 에어 포스1 GS 올블랙 DH2920-001",
+          "used": true,
+          "link": "https://kt7.kr/goods/view?no=1089&market=naver",
+          "kind": "셀러",
+          "plat": "kt7.kr"
+        },
+        {
+          "mall": "디아망 DIAMANT",
+          "price": 115000,
+          "title": "[국내매장판] 나이키 에어포스1 LE GS 올블랙 신발 DH2920 001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/13626279348",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FZ0627-010",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 2,
+      "n_listings": 2,
+      "min": 119000,
+      "max": 119900,
+      "median": 119450,
+      "spread_pct": 1,
+      "low_mall": "24시 아울렛",
+      "used": 2,
+      "new": 0,
+      "members": [
+        {
+          "mall": "24시 아울렛",
+          "price": 119000,
+          "title": "[무료 구매 포인트] 나이키 에어포스 1 FZ0627-010 블랙",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12076663470",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "블리에이",
+          "price": 119900,
+          "title": "나이키 에어 포스 1 07 로우 블랙 검흰 FZ0627-010",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/6258184278",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DV0788-001",
+      "name": "에어포스 1 '07 LV8 트리플 블랙",
+      "n_malls": 2,
+      "n_listings": 2,
+      "min": 129000,
+      "max": 129000,
+      "median": 129000,
+      "spread_pct": 0,
+      "low_mall": "블리에이",
+      "used": 2,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블리에이",
+          "price": 129000,
+          "title": "나이키 에어포스 1 07 LV8 범고래 화이트 블랙 흰검 DV0788 001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/7408462586",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "홍시월드",
+          "price": 129000,
+          "title": "나이키 에어포스1 블랙 화이트 범고래 올백 올검 DV0788-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/8208399282",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "CI0919-006",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 2,
+      "min": 156310,
+      "max": 203840,
+      "median": 180075,
+      "spread_pct": 30,
+      "low_mall": "크로켓Croket",
+      "used": 2,
+      "new": 0,
+      "members": [
+        {
+          "mall": "크로켓Croket",
+          "price": 156310,
+          "title": "나이키 에어포스 1 쉐도우 비비드 핑크 블랙 우먼스 CI0919-006",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/68db858b00c47962852f125a?yg_type=naver_shopping&yg_method=68db858b00c47962852f125a&utm_source=naver&utm_medium=shopping&utm_campaign=68db858b00c47962852f125a&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        },
+        {
+          "mall": "크로켓Croket",
+          "price": 203840,
+          "title": "나이키 에어포스 1 여성 운동화 쉐도우 비비드 핑크 블랙 CI0919-006",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/68f527f85213e371a95f0480?yg_type=naver_shopping&yg_method=68f527f85213e371a95f0480&utm_source=naver&utm_medium=shopping&utm_campaign=68f527f85213e371a95f0480&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "HM3694-011",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 2,
+      "min": 173000,
+      "max": 190000,
+      "median": 181500,
+      "spread_pct": 10,
+      "low_mall": "블랙래빗스토어",
+      "used": 2,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 173000,
+          "title": "나이키 에어 포스 1 우먼스 비 더 원 HM3694-011 멀티 로고",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384661186",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "블랙래빗스토어",
+          "price": 190000,
+          "title": "나이키 에어포스 1 07 LX 비 더 원 HM3694-011 우먼스",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384902941",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DZ1847-105",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 2,
+      "min": 175000,
+      "max": 180000,
+      "median": 177500,
+      "spread_pct": 3,
+      "low_mall": "블랙래빗스토어",
+      "used": 2,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 175000,
+          "title": "나이키 에어 포스 1 쉐도우 리플렉티브 DZ1847-105 크림슨 구아바",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384671998",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        },
+        {
+          "mall": "블랙래빗스토어",
+          "price": 180000,
+          "title": "나이키 에어포스 1 쉐도우 여성 신발 DZ1847-105",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384857847",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "IB6543-101",
+      "name": "에어포스 1 '07 화이트 블랙",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 149000,
+      "max": 149000,
+      "median": 149000,
+      "spread_pct": 0,
+      "low_mall": "랄라슈즈",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "랄라슈즈",
+          "price": 149000,
+          "title": "나이키 운동화 에어 포스 1 07 미니 쥬얼 여성 신발 화이트 블랙 IB6543-101",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12002972256",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "CT1990-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 210700,
+      "max": 210700,
+      "median": 210700,
+      "spread_pct": 0,
+      "low_mall": "크로켓Croket",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "크로켓Croket",
+          "price": 210700,
+          "title": "나이키 W 에어포스1 07 LX 화이트 하이퍼 로얄 블랙 운동화 CT1990-100",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/69ba99914add4331671cc530?yg_type=naver_shopping&yg_method=69ba99914add4331671cc530&utm_source=naver&utm_medium=shopping&utm_campaign=69ba99914add4331671cc530&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "IH4480-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 133000,
+      "max": 133000,
+      "median": 133000,
+      "spread_pct": 0,
+      "low_mall": "네이버",
+      "used": 0,
+      "new": 1,
+      "members": [
+        {
+          "mall": "네이버",
+          "price": 133000,
+          "title": "나이키 에어 포스 1 로우 신발 IH4480 100 화이트 & 블랙 & 화이트",
+          "used": false,
+          "link": "https://search.shopping.naver.com/catalog/56500550296",
+          "kind": "가격비교",
+          "plat": "네이버 통합"
+        }
+      ]
+    },
+    {
+      "code": "AR1708-100",
+      "name": "에어포스 1 '07 화이트 블랙",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 237100,
+      "max": 237100,
+      "median": 237100,
+      "spread_pct": 0,
+      "low_mall": "크로켓Croket",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "크로켓Croket",
+          "price": 237100,
+          "title": "나이키 에어포스 1 로우 유틸리티 화이트 블랙 우먼스 AR1708-100",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/62cce181651b1f7c2e20ad47?yg_type=naver_shopping&yg_method=62cce181651b1f7c2e20ad47&utm_source=naver&utm_medium=shopping&utm_campaign=62cce181651b1f7c2e20ad47&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "IO1259-001",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 129000,
+      "max": 129000,
+      "median": 129000,
+      "spread_pct": 0,
+      "low_mall": "i found this",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "i found this",
+          "price": 129000,
+          "title": "나이키 여성 에어 포스 1 07 프리미엄 운동화 블랙 메탈릭 골드 IO1259-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/13627516901",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "CJ1650-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 200000,
+      "max": 200000,
+      "median": 200000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 200000,
+          "title": "나이키 에어포스 1 로우 07 LX 리비얼 블랙 스우시 CJ1650-100 우먼스",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384916955",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HJ9094-012",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 200000,
+      "max": 200000,
+      "median": 200000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 200000,
+          "title": "나이키 에어 포스 1 레드토 HJ9094 012",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12390781942",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FN3501-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 188000,
+      "max": 188000,
+      "median": 188000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 188000,
+          "title": "나이키 에어 포스 1 07 FN3501-100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12390394045",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FV5948-107",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 163000,
+      "max": 163000,
+      "median": 163000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 163000,
+          "title": "나이키 에어포스 1 로우 (GS) FV5948-107",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384895780",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FV5948-105",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 225000,
+      "max": 225000,
+      "median": 225000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 225000,
+          "title": "나이키 에어포스 1 흰빨 GS FV5948-105",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385298645",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FQ7626-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 185000,
+      "max": 185000,
+      "median": 185000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 185000,
+          "title": "나이키 에어포스 1 어도비 우먼스 FQ7626-100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385084877",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FV5948-109",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 165000,
+      "max": 165000,
+      "median": 165000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 165000,
+          "title": "나이키 에어포스 1 로우 (GS) FV5948-109",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385754306",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DZ1847-106",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 195000,
+      "max": 195000,
+      "median": 195000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 195000,
+          "title": "나이키 에어 포스 1 쉐도우 DZ1847-106 카카오 검",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384665880",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DZ1847-104",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 250000,
+      "max": 250000,
+      "median": 250000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 250000,
+          "title": "나이키 에어포스 1 쉐도우 여성 신발 DZ1847-104",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385706097",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DZ1847-102",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 190000,
+      "max": 190000,
+      "median": 190000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 190000,
+          "title": "나이키 에어포스 1 쉐도우 말라카이트 화이트 DZ1847-102",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385062180",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FB2348-301",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 180000,
+      "max": 180000,
+      "median": 180000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 180000,
+          "title": "나이키 에어 포스 1 와일드 우먼스 FB2348-301 올리브",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384676527",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FV5948-106",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 155000,
+      "max": 155000,
+      "median": 155000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 155000,
+          "title": "나이키 에어 포스 1 그린 스트라이크 GS FV5948-106",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384774227",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DV3808-104",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 190000,
+      "max": 190000,
+      "median": 190000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 190000,
+          "title": "나이키 에어 포스 1 포톤 더스트 우먼스 DV3808-104",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384699057",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DV3808-001",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 225000,
+      "max": 225000,
+      "median": 225000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 225000,
+          "title": "나이키 에어 포스 1 우먼스 DV3808-001 플래티넘 바이올렛",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384685833",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "CJ1641-101",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 220000,
+      "max": 220000,
+      "median": 220000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 220000,
+          "title": "나이키 에어포스 1 쉐도우 코랄 핑크 CJ1641-101",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385103123",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FQ6948-001",
+      "name": "에어포스 1 '07 LV8 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 142000,
+      "max": 142000,
+      "median": 142000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 142000,
+          "title": "나이키 에어포스 1 LV8 로우 GS FQ6948-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385714426",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DV3808-500",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 180000,
+      "max": 180000,
+      "median": 180000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 180000,
+          "title": "나이키 에어 포스 1 베얼리 그레이프 우먼스 DV3808-500",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384718326",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HF5178-300",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 115000,
+      "max": 115000,
+      "median": 115000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 115000,
+          "title": "나이키 에어포스 1 (GS) 빈티지 그린 HF5178-300",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384883566",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DZ1847-103",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 335000,
+      "max": 335000,
+      "median": 335000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 335000,
+          "title": "나이키 에어포스 1 쉐도우 여성 신발 DZ1847-103",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385310903",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DZ2708-001",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 230000,
+      "max": 230000,
+      "median": 230000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 230000,
+          "title": "나이키 에어포스 1 뉴트럴 텍스쳐 우먼스 DZ2708-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384961019",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DV3808-102",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 175000,
+      "max": 175000,
+      "median": 175000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 175000,
+          "title": "나이키 에어 포스 1 코코넛 그린 우먼스 DV3808-102",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384713508",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DV3808-106",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 285000,
+      "max": 285000,
+      "median": 285000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 285000,
+          "title": "나이키 에어 포스 1 화이트 오일 그린 우먼스 DV3808-106",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384727259",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DR9503-201",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 290000,
+      "max": 290000,
+      "median": 290000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 290000,
+          "title": "나이키 에어포스 1 프리미엄 바체타 탄 우먼스 DR9503-201",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385221661",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FB2348-003",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 205000,
+      "max": 205000,
+      "median": 205000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 205000,
+          "title": "나이키 에어 포스 1 와일드 우먼스 FB2348-003 플래티넘 바이올렛",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384680950",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FB7402-100",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 128000,
+      "max": 128000,
+      "median": 128000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 128000,
+          "title": "나이키 에어포스 1 GS 빅텅 라임 우먼스 FB7402-100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385243287",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "CW2630-141",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 225000,
+      "max": 225000,
+      "median": 225000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 225000,
+          "title": "나이키 에어포스 1 쉐도우 다이아몬드 스우시 멀티 CW2630-141",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384799982",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FN6335-102",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 190000,
+      "max": 190000,
+      "median": 190000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 190000,
+          "title": "나이키 에어 포스 1 쉐도우 화이트 퍼플 우먼스 FN6335-102",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384794538",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FN6335-100",
+      "name": "에어포스 1 '07 쉐도우 쉐도우",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 142000,
+      "max": 142000,
+      "median": 142000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 142000,
+          "title": "나이키 에어 포스 1 쉐도우 짐레드 실버 화이트 FN6335-100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384703554",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HV3876-077",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 220000,
+      "max": 220000,
+      "median": 220000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 220000,
+          "title": "나이키 에어포스1 07 라이트 스모크 그레이 HV3876-077",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12390789581",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FB8251-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 205000,
+      "max": 205000,
+      "median": 205000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 205000,
+          "title": "나이키 에어포스 1 JDI 듀브레 화이트 우먼스 FB8251-100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384621409",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FJ4170-003",
+      "name": "에어포스 1 '07 LV8 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 180000,
+      "max": 180000,
+      "median": 180000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 180000,
+          "title": "나이키 에어포스 1 07 LV8 라이트 실버 FJ4170-003",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384922524",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "CZ0270-103",
+      "name": "에어포스 1 '07 핑크",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 150000,
+      "max": 150000,
+      "median": 150000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 150000,
+          "title": "나이키 에어포스 1 미니 스우시 러스트 핑크 CZ0270-103",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384966399",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FN4730-002",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 120000,
+      "max": 120000,
+      "median": 120000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 120000,
+          "title": "나이키 에어포스 1 GS 컬러블록 FN4730-002",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385038939",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FB8251-001",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 200000,
+      "max": 200000,
+      "median": 200000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 200000,
+          "title": "나이키 에어포스 1 JDI 듀브레 화이트 우먼스 FB8251-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384616431",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HQ3458-142",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 225000,
+      "max": 225000,
+      "median": 225000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 225000,
+          "title": "나이키 에어 포스1 로우 러브 앤 피스 우먼스 HQ3458-142",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12390842842",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HF0022-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 380000,
+      "max": 380000,
+      "median": 380000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 380000,
+          "title": "나이키 에어 포스 1 라이트 블루 우먼스 HF0022-100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384769436",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FN8540-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 180000,
+      "max": 180000,
+      "median": 180000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 180000,
+          "title": "나이키 에어 포스 1 실버 메탈 스우시 260-270 FN8540-100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384732340",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FB8251-700",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 130000,
+      "max": 130000,
+      "median": 130000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 130000,
+          "title": "나이키 에어포스 1 JDI 쥬얼 스우시 브론즈 우먼스 FB8251-700",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385097017",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FZ5529-103",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 110000,
+      "max": 110000,
+      "median": 110000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 110000,
+          "title": "나이키 에어포스 1 로우 드래곤 GS 키즈 우먼스 FZ5529-103",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385077012",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DQ7659-101",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 240000,
+      "max": 240000,
+      "median": 240000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 240000,
+          "title": "나이키 에어포스1 미드나잇 네이비 칼리지 팩 남성용 DQ7659-101",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12380282247",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HF5716-111",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 130000,
+      "max": 130000,
+      "median": 130000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 130000,
+          "title": "나이키 에어 포스 1 1972 니케 승리의 여신 HF5716-111",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384741804",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FN8918-111",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 285000,
+      "max": 285000,
+      "median": 285000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 285000,
+          "title": "나이키 에어포스 1 07 LX 여성 멀티 컬러 FN8918-111",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385777841",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DQ5079-111",
+      "name": "에어포스 1 '07 애슬레틱 클럽 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 168000,
+      "max": 168000,
+      "median": 168000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 168000,
+          "title": "나이키 에어포스 1 07 LX 애슬레틱 클럽 DQ5079-111 우먼스",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384938738",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DX2678-100",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 240000,
+      "max": 240000,
+      "median": 240000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 240000,
+          "title": "나이키 에어포스 1 화이트 파이썬 스네이크 스킨 우먼스 DX2678-100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385212763",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FN7239-410",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 153000,
+      "max": 153000,
+      "median": 153000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 153000,
+          "title": "나이키 에어포스 미드나잇 네이비 화이트 UV 컬러 체인지 GS 여성 FN7239-410",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12380289365",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HM3696-661",
+      "name": "에어포스 1 '07 핑크",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 185000,
+      "max": 185000,
+      "median": 185000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 185000,
+          "title": "나이키 에어 포스 1 핑크 베어 포 곰발바닥 HM3696-661",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385045772",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "CT1992-100",
+      "name": "에어포스 1 '07 블랙 계열 SE",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 180000,
+      "max": 180000,
+      "median": 180000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 180000,
+          "title": "나이키 에어포스 1 07 SE 3M 서밋 화이트 CT1992-100 우먼스",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384944842",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HF5721-111",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 175000,
+      "max": 175000,
+      "median": 175000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 175000,
+          "title": "나이키 에어 포스 1 네온 페인트 스우시 우먼스 260-270 HF5721-111",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384736714",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FQ8350-110",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 170000,
+      "max": 170000,
+      "median": 170000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 170000,
+          "title": "나이키 에어포스 1 빅키즈 스우시 쿠키 커터 FQ8350 110",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385070153",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FV3701-119",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 170000,
+      "max": 170000,
+      "median": 170000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 170000,
+          "title": "나이키 에어포스 1 포우 퍼 인조퍼 윈터 새일 아이보리 검 FV3701-119",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12385232955",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "FN5832-001",
+      "name": "에어포스 1 '07 LV8 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 250000,
+      "max": 250000,
+      "median": 250000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 250000,
+          "title": "나이키 에어포스 1 07 LV8 라이트 본 아이언 오어 서밋 화이트 FN5832-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12384928910",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HQ1180-001",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 139000,
+      "max": 139000,
+      "median": 139000,
+      "spread_pct": 0,
+      "low_mall": "랄라슈즈",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "랄라슈즈",
+          "price": 139000,
+          "title": "나이키 에어 포스 1 07 LX 여성 신발 블랙 메탈릭 실버 HQ1180-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12360202509",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DV1621-001",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 183750,
+      "max": 183750,
+      "median": 183750,
+      "spread_pct": 0,
+      "low_mall": "크로켓Croket",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "크로켓Croket",
+          "price": 183750,
+          "title": "나이키 에어 포스 1 로우 GS 블랙 화이트 판다 DV1621-001",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/64c230a6d1ecef002e542dad?yg_type=naver_shopping&yg_method=64c230a6d1ecef002e542dad&utm_source=naver&utm_medium=shopping&utm_campaign=64c230a6d1ecef002e542dad&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "HV5953-001",
+      "name": "에어포스 1 '07 고어텍스 고어텍스",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 199000,
+      "max": 199000,
+      "median": 199000,
+      "spread_pct": 0,
+      "low_mall": "Ns 편집매장",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "Ns 편집매장",
+          "price": 199000,
+          "title": "나이키 에어포스 1 블랙 고어텍스 비브람 HV5953 001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12889304566",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "CW1575-104",
+      "name": "에어포스 1 '07 화이트 블랙",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 204000,
+      "max": 204000,
+      "median": 204000,
+      "spread_pct": 0,
+      "low_mall": "슈즈트럭",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "슈즈트럭",
+          "price": 204000,
+          "title": "나이키 에어포스 1 화이트 블랙 흰검 스티치 CW1575-104",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/5362542842",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DJ9946-105",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 125930,
+      "max": 125930,
+      "median": 125930,
+      "spread_pct": 0,
+      "low_mall": "크로켓Croket",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "크로켓Croket",
+          "price": 125930,
+          "title": "나이키 우먼스 에어 포스 1 플랫폼 블랙 화이트 DJ9946-105",
+          "used": true,
+          "link": "https://www.croket.co.kr/seller/product/6420fe1b704955002e90a53b?yg_type=naver_shopping&yg_method=6420fe1b704955002e90a53b&utm_source=naver&utm_medium=shopping&utm_campaign=6420fe1b704955002e90a53b&utm_content={keyword}&utm_term={query}",
+          "kind": "셀러",
+          "plat": "croket.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "FQ2413-001",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 148000,
+      "max": 148000,
+      "median": 148000,
+      "spread_pct": 0,
+      "low_mall": "스니커플렉스",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "스니커플렉스",
+          "price": 148000,
+          "title": "나이키 에어 포스1 리플렉티브 블랙 GS FQ2413-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/11183959774",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HF9096-001",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 135000,
+      "max": 135000,
+      "median": 135000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 135000,
+          "title": "나이키 에어 포스 1 스플릿 블랙 화이트 GS HF9096 001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12390518008",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HF9096-100",
+      "name": "에어포스 1 '07 GS(키즈) 화이트 블랙",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 130000,
+      "max": 130000,
+      "median": 130000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 130000,
+          "title": "나이키 에어 포스 1 스플릿 화이트 블랙 GS HF9096 100",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12390523849",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "DO5215-331",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 130000,
+      "max": 130000,
+      "median": 130000,
+      "spread_pct": 0,
+      "low_mall": "블랙래빗스토어",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "블랙래빗스토어",
+          "price": 130000,
+          "title": "나이키 양털 에어포스1 로우 그린 블랙 화이트 뽀글이 GS DO5215-331 여성",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12390364096",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "IB6644-001",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 95000,
+      "max": 95000,
+      "median": 95000,
+      "spread_pct": 0,
+      "low_mall": "엠제이유니온",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "엠제이유니온",
+          "price": 95000,
+          "title": "나이키 여성 스니커즈 단화 운동화 신발 블랙 에어 포스 1 07 PRM IB6644-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/13631760760",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HV6359-001",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 168000,
+      "max": 168000,
+      "median": 168000,
+      "spread_pct": 0,
+      "low_mall": "스니커플렉스",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "스니커플렉스",
+          "price": 168000,
+          "title": "나이키 GS 에어 포스 1 블랙 팬텀 HV6359-001",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/11554380952",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "RS2610",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 213900,
+      "max": 213900,
+      "median": 213900,
+      "spread_pct": 0,
+      "low_mall": "머스트잇",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "머스트잇",
+          "price": 213900,
+          "title": "나이키 Black Air Force 1 07 Sneakers 261011F128074",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F120762505",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "RS2520",
+      "name": "에어포스 1 '07 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 117500,
+      "max": 117500,
+      "median": 117500,
+      "spread_pct": 0,
+      "low_mall": "머스트잇",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "머스트잇",
+          "price": 117500,
+          "title": "나이키 Black Air Force 1 07 Sneakers 252011F128180",
+          "used": true,
+          "link": "https://mustit.co.kr/naver_session.php?PARTNERID=mustit_partner_77&URL=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F120108240",
+          "kind": "셀러",
+          "plat": "mustit.co.kr"
+        }
+      ]
+    },
+    {
+      "code": "FV5948-101",
+      "name": "에어포스 1 '07 화이트 블랙",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 88000,
+      "max": 88000,
+      "median": 88000,
+      "spread_pct": 0,
+      "low_mall": "엠제이유니온",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "엠제이유니온",
+          "price": 88000,
+          "title": "나이키 아동 주니어 스니커즈 단화 운동화 신발 화이트 블랙 에어 포스1 FV5948-101",
+          "used": true,
+          "link": "https://smartstore.naver.com/main/products/12810330592",
+          "kind": "셀러",
+          "plat": "스마트스토어"
+        }
+      ]
+    },
+    {
+      "code": "HQ3807-001",
+      "name": "에어포스 1 '07 GS(키즈) 블랙 계열",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 132610,
+      "max": 132610,
+      "median": 132610,
+      "spread_pct": 0,
+      "low_mall": "옥션",
+      "used": 1,
+      "new": 0,
+      "members": [
+        {
+          "mall": "옥션",
+          "price": 132610,
+          "title": "나이키 나이키 에어포스1 GS 블랙 울프 HQ3807-001",
+          "used": true,
+          "link": "https://link.auction.co.kr/gate/pcs?item-no=E792706255&sub-id=1&service-code=10000003",
+          "kind": "마켓",
+          "plat": "옥션"
+        }
+      ]
+    },
+    {
+      "code": "IF1686-101",
+      "name": "에어포스 1 '07 화이트 블랙",
+      "n_malls": 1,
+      "n_listings": 1,
+      "min": 157790,
+      "max": 157790,
+      "median": 157790,
+      "spread_pct": 0,
+      "low_mall": "네이버",
+      "used": 0,
+      "new": 1,
+      "members": [
+        {
+          "mall": "네이버",
+          "price": 157790,
+          "title": "나이키 에어 포스 1 '07 LX IF1686 101 화이트블랙",
+          "used": false,
+          "link": "https://search.shopping.naver.com/catalog/54744690443",
+          "kind": "가격비교",
+          "plat": "네이버 통합"
+        }
+      ]
+    }
+  ]
+}

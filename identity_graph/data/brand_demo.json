@@ -1,0 +1,35 @@
+{
+  "_meta": {
+    "description": "BRAND-FACING DEMO data (가상 브랜드 VIORA). 네이버/11번가/쿠팡의 합성 리스팅. entity_id=정답 제품, true_seller_id=정답 사업자(평가용, 파이프라인은 무시).",
+    "brand": "VIORA (비오라)",
+    "marketplaces": ["naver", "11st", "coupang"],
+    "disclaimer": "전부 데모용 가상 데이터. 실제 브랜드/사업자와 무관."
+  },
+  "listings": [
+    {"id": "N1", "marketplace": "naver", "title": "비오라 히알루론 앰플 30ml 공식판매 정품", "seller_name": "비오라공식", "biz_reg_no": "111-11-11111", "price": 28000, "official_price": 28000, "is_official": true, "currency": "KRW", "entity_id": "P1", "true_seller_id": "S_OFFICIAL"},
+    {"id": "C1", "marketplace": "coupang", "title": "비오라 히알루론 앰플 30ml 정품 본사직영", "seller_name": "비오라공식", "biz_reg_no": "111-11-11111", "price": 28000, "official_price": 28000, "is_official": true, "currency": "KRW", "entity_id": "P1", "true_seller_id": "S_OFFICIAL"},
+    {"id": "E1", "marketplace": "11st", "title": "비오라 히알루론 앰플 30ml 정품 무료배송", "seller_name": "뷰티마켓", "biz_reg_no": "222-22-22222", "price": 24500, "official_price": 28000, "is_official": false, "currency": "KRW", "entity_id": "P1", "true_seller_id": "S_RESELLER_A"},
+    {"id": "C2", "marketplace": "coupang", "title": "비오라 히알루론 앰플 30ml 최저가 당일발송", "seller_name": "데일리코스", "biz_reg_no": "222-22-22222", "price": 23900, "official_price": 28000, "is_official": false, "currency": "KRW", "entity_id": "P1", "true_seller_id": "S_RESELLER_A"},
+    {"id": "C3", "marketplace": "coupang", "title": "[병행수입] 비오라 히알루론 앰플 30ml 면세 정품", "seller_name": "글로벌면세직구", "biz_reg_no": "333-33-33333", "price": 19900, "official_price": 28000, "is_official": false, "currency": "KRW", "entity_id": "P1", "true_seller_id": "S_GRAY"},
+
+    {"id": "N2", "marketplace": "naver", "title": "비오라 시카 진정 토너 200ml 공식 정품", "seller_name": "비오라공식", "biz_reg_no": "111-11-11111", "price": 22000, "official_price": 22000, "is_official": true, "currency": "KRW", "entity_id": "P2", "true_seller_id": "S_OFFICIAL"},
+    {"id": "E2", "marketplace": "11st", "title": "비오라 시카 진정 토너 200ml 정품", "seller_name": "코스메다이렉트", "biz_reg_no": "222-22-22222", "price": 19800, "official_price": 22000, "is_official": false, "currency": "KRW", "entity_id": "P2", "true_seller_id": "S_RESELLER_A"},
+    {"id": "C4", "marketplace": "coupang", "title": "비오라 시카 진정 토너 200ml 정품 무료배송", "seller_name": "스킨딜", "biz_reg_no": "444-44-44444", "price": 20500, "official_price": 22000, "is_official": false, "currency": "KRW", "entity_id": "P2", "true_seller_id": "S_RESELLER_B"},
+
+    {"id": "N3", "marketplace": "naver", "title": "비오라 선크림 SPF50+ 50ml 공식 정품", "seller_name": "비오라공식", "biz_reg_no": "111-11-11111", "price": 19000, "official_price": 19000, "is_official": true, "currency": "KRW", "entity_id": "P3", "true_seller_id": "S_OFFICIAL"},
+    {"id": "C5", "marketplace": "coupang", "title": "비오라 선크림 SPF50+ 50ml 본사직영 정품", "seller_name": "비오라공식", "biz_reg_no": "111-11-11111", "price": 19000, "official_price": 19000, "is_official": true, "currency": "KRW", "entity_id": "P3", "true_seller_id": "S_OFFICIAL"},
+    {"id": "E3", "marketplace": "11st", "title": "비오라 선크림 SPF50+ 50ml 정품", "seller_name": "정품샵", "biz_reg_no": "555-55-55555", "price": 18500, "official_price": 19000, "is_official": false, "currency": "KRW", "entity_id": "P3", "true_seller_id": "S_RESELLER_C"},
+    {"id": "C6", "marketplace": "coupang", "title": "[병행수입] 비오라 선크림 SPF50+ 50ml 면세", "seller_name": "글로벌면세직구", "biz_reg_no": "333-33-33333", "price": 14900, "official_price": 19000, "is_official": false, "currency": "KRW", "entity_id": "P3", "true_seller_id": "S_GRAY"},
+
+    {"id": "N4", "marketplace": "naver", "title": "비오라 콜라겐 크림 50ml 공식 정품", "seller_name": "비오라공식", "biz_reg_no": "111-11-11111", "price": 32000, "official_price": 32000, "is_official": true, "currency": "KRW", "entity_id": "P4", "true_seller_id": "S_OFFICIAL"},
+    {"id": "E4", "marketplace": "11st", "title": "비오라 콜라겐 크림 50ml 정품 무료배송", "seller_name": "뷰티마켓", "biz_reg_no": "222-22-22222", "price": 28000, "official_price": 32000, "is_official": false, "currency": "KRW", "entity_id": "P4", "true_seller_id": "S_RESELLER_A"},
+    {"id": "C7", "marketplace": "coupang", "title": "비오라 콜라겐 크림 50ml 최저가", "seller_name": "데일리코스", "biz_reg_no": "222-22-22222", "price": 27500, "official_price": 32000, "is_official": false, "currency": "KRW", "entity_id": "P4", "true_seller_id": "S_RESELLER_A"},
+
+    {"id": "N5", "marketplace": "naver", "title": "비오라 비타C 세럼 30ml 공식 정품", "seller_name": "비오라공식", "biz_reg_no": "111-11-11111", "price": 26000, "official_price": 26000, "is_official": true, "currency": "KRW", "entity_id": "P5", "true_seller_id": "S_OFFICIAL"},
+    {"id": "C8", "marketplace": "coupang", "title": "비오라 비타C 세럼 30ml 정품 무료배송", "seller_name": "스킨딜", "biz_reg_no": "444-44-44444", "price": 24000, "official_price": 26000, "is_official": false, "currency": "KRW", "entity_id": "P5", "true_seller_id": "S_RESELLER_B"},
+    {"id": "E5", "marketplace": "11st", "title": "비오라 비타C 세럼 30ml 정품", "seller_name": "코스메다이렉트", "biz_reg_no": "222-22-22222", "price": 23500, "official_price": 26000, "is_official": false, "currency": "KRW", "entity_id": "P5", "true_seller_id": "S_RESELLER_A"},
+
+    {"id": "N6", "marketplace": "naver", "title": "비오라 히알루론 앰플 50ml 대용량 공식 정품", "seller_name": "비오라공식", "biz_reg_no": "111-11-11111", "price": 42000, "official_price": 42000, "is_official": true, "currency": "KRW", "entity_id": "P6", "true_seller_id": "S_OFFICIAL"},
+    {"id": "C9", "marketplace": "coupang", "title": "비오라 히알루론 앰플 50ml 정품 최저가", "seller_name": "데일리코스", "biz_reg_no": "222-22-22222", "price": 37000, "official_price": 42000, "is_official": false, "currency": "KRW", "entity_id": "P6", "true_seller_id": "S_RESELLER_A"}
+  ]
+}

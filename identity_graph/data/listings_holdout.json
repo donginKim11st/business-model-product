@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "description": "HELD-OUT test set. Brands deliberately NOT in the demo bilingual lexicon (Bose/GoPro/Nespresso/Logitech/Philips/Garmin/LEGO). Measures whether the hybrid blocker generalizes beyond the brands its lexicon was hand-authored for.",
+    "expectation": "Pairs that share a latin SKU/model code in BOTH listings should still block (deterministic model key is brand-agnostic). Pairs whose Korean listing transliterates the brand/model (no shared latin token) should MISS — that is the lexicon's limit and the case a multilingual encoder is needed for."
+  },
+  "listings": [
+    {"id": "H1", "marketplace": "amazon", "title": "Bose QuietComfort 45 Wireless Headphones Black QC45", "brand_raw": "Bose", "price": 279, "currency": "USD", "gtin": "", "seller": "Amazon.com", "entity_id": "HE1", "note": "shared latin code QC45"},
+    {"id": "H2", "marketplace": "naver", "title": "보스 콰이어트컴포트45 무선 헤드폰 블랙 QC45 정품", "brand_raw": "", "price": 359000, "currency": "KRW", "gtin": "", "seller": "보스코리아", "entity_id": "HE1", "note": "KR but shares latin QC45 -> should block"},
+
+    {"id": "H3", "marketplace": "amazon", "title": "Bose QuietComfort 45 Wireless Headphones Blue QC45", "brand_raw": "Bose", "price": 279, "currency": "USD", "gtin": "", "seller": "Amazon.com", "entity_id": "HE2", "note": "COLOR VARIANT of HE1 - must stay separate"},
+    {"id": "H4", "marketplace": "coupang", "title": "보스 콰이어트컴포트45 블루 QC45 정품", "brand_raw": "", "price": 349000, "currency": "KRW", "gtin": "", "seller": "헤드폰샵", "entity_id": "HE2", "note": "blue variant"},
+
+    {"id": "H5", "marketplace": "amazon", "title": "GoPro HERO12 Black Action Camera", "brand_raw": "GoPro", "price": 349, "currency": "USD", "gtin": "", "seller": "Amazon.com", "entity_id": "HE3", "note": "model hero12"},
+    {"id": "H6", "marketplace": "coupang", "title": "고프로 히어로12 블랙 액션캠 정품", "brand_raw": "", "price": 459000, "currency": "KRW", "gtin": "", "seller": "액션캠스토어", "entity_id": "HE3", "note": "히어로12 transliterated -> no shared latin model -> hard miss"},
+
+    {"id": "H7", "marketplace": "amazon", "title": "Logitech MX Master 3S Wireless Mouse", "brand_raw": "Logitech", "price": 99, "currency": "USD", "gtin": "", "seller": "Amazon.com", "entity_id": "HE4", "note": "latin product-line tokens"},
+    {"id": "H8", "marketplace": "naver", "title": "로지텍 MX Master 3S 무선 마우스 정품", "brand_raw": "", "price": 119000, "currency": "KRW", "gtin": "", "seller": "로지텍코리아", "entity_id": "HE4", "note": "KR keeps latin 'MX Master 3S' -> lexical/charngram can bridge"},
+
+    {"id": "H9", "marketplace": "amazon", "title": "Nespresso Vertuo Next Coffee Machine", "brand_raw": "Nespresso", "price": 159, "currency": "USD", "gtin": "", "seller": "Amazon.com", "entity_id": "HE5", "note": "name-based, no code"},
+    {"id": "H10", "marketplace": "coupang", "title": "네스프레소 버추오 넥스트 커피머신 정품", "brand_raw": "", "price": 215000, "currency": "KRW", "gtin": "", "seller": "커피머신샵", "entity_id": "HE5", "note": "버추오/넥스트 transliterated -> hard miss"},
+
+    {"id": "H11", "marketplace": "amazon", "title": "Garmin Fenix 7 Sapphire Solar GPS Watch", "brand_raw": "Garmin", "price": 699, "currency": "USD", "gtin": "", "seller": "Amazon.com", "entity_id": "HE6", "note": "name-based"},
+    {"id": "H12", "marketplace": "naver", "title": "가민 페닉스7 사파이어 솔라 GPS 워치 정품", "brand_raw": "", "price": 899000, "currency": "KRW", "gtin": "", "seller": "가민코리아", "entity_id": "HE6", "note": "페닉스7 transliterated, shares only 'gps' -> likely miss"},
+
+    {"id": "H13", "marketplace": "amazon", "title": "Philips Sonicare DiamondClean HX9924 Toothbrush", "brand_raw": "Philips", "price": 199, "currency": "USD", "gtin": "", "seller": "Amazon.com", "entity_id": "HE7", "note": "model HX9924"},
+    {"id": "H14", "marketplace": "coupang", "title": "필립스 소닉케어 다이아몬드클린 HX9924 칫솔 정품", "brand_raw": "", "price": 259000, "currency": "KRW", "gtin": "", "seller": "전자칫솔샵", "entity_id": "HE7", "note": "shared latin HX9924 -> should block"},
+
+    {"id": "H15", "marketplace": "amazon", "title": "LEGO Star Wars Millennium Falcon 75192", "brand_raw": "LEGO", "price": 849, "currency": "USD", "gtin": "", "seller": "Amazon.com", "entity_id": "HE8", "note": "set number 75192 (digits only)"},
+    {"id": "H16", "marketplace": "naver", "title": "레고 스타워즈 밀레니엄 팔콘 75192 정품", "brand_raw": "", "price": 1090000, "currency": "KRW", "gtin": "", "seller": "레고매니아", "entity_id": "HE8", "note": "shares only numeric SKU 75192 -> charngram may bridge"}
+  ]
+}

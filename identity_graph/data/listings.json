@@ -1,0 +1,72 @@
+{
+  "_meta": {
+    "description": "Cross-marketplace product listings test set with ground-truth entity labels. Synthetic but modeled on real KR/global marketplace listing patterns.",
+    "marketplaces": ["amazon", "naver", "coupang", "11st"],
+    "ground_truth_field": "entity_id",
+    "note": "entity_id is the TRUE product identity (used only for evaluation, ignored by the pipeline). Listings with the same entity_id are the same real product. Variants (color/size/pack/model/bundle) get DIFFERENT entity_id on purpose."
+  },
+  "listings": [
+    {"id": "L001", "marketplace": "amazon", "title": "Sony WH-1000XM5 Wireless Noise Canceling Headphones - Black", "brand_raw": "Sony", "price": 398, "currency": "USD", "gtin": "0027242922907", "seller": "Amazon.com", "entity_id": "E001", "note": "authorized, EN"},
+    {"id": "L002", "marketplace": "naver", "title": "소니 WH-1000XM5 무선 블루투스 노이즈캔슬링 헤드폰 블랙 정품", "brand_raw": "소니", "price": 419000, "currency": "KRW", "gtin": "0027242922907", "seller": "소니코리아공식스토어", "entity_id": "E001", "note": "authorized, KR (cross-lingual pair with L001)"},
+    {"id": "L003", "marketplace": "coupang", "title": "[정품] 소니 WH1000XM5 헤드폰 블랙 무료배송 당일출고 사은품증정", "brand_raw": "", "price": 409000, "currency": "KRW", "gtin": "", "seller": "로켓직구", "entity_id": "E001", "note": "spam keywords, model spacing dropped (WH1000XM5)"},
+    {"id": "L004", "marketplace": "11st", "title": "Sony 소니 WH-1000XM5 노이즈캔슬링 헤드셋 블랙 병행수입 새상품", "brand_raw": "", "price": 359000, "currency": "KRW", "gtin": "", "seller": "글로벌직구마켓", "entity_id": "E001", "note": "gray-market (병행수입), lower price"},
+
+    {"id": "L005", "marketplace": "amazon", "title": "Sony WH-1000XM5 Wireless Headphones - Silver/Platinum", "brand_raw": "Sony", "price": 398, "currency": "USD", "gtin": "0027242922914", "seller": "Amazon.com", "entity_id": "E002", "note": "COLOR VARIANT of E001 - must stay separate"},
+    {"id": "L006", "marketplace": "naver", "title": "소니 WH-1000XM5 헤드폰 실버 플래티넘 정품", "brand_raw": "소니", "price": 419000, "currency": "KRW", "gtin": "0027242922914", "seller": "소니코리아공식스토어", "entity_id": "E002", "note": "color variant (silver)"},
+
+    {"id": "L007", "marketplace": "amazon", "title": "Sony WH-1000XM4 Wireless Noise Canceling Headphones Black", "brand_raw": "Sony", "price": 278, "currency": "USD", "gtin": "0027242919419", "seller": "Amazon.com", "entity_id": "E003", "note": "OLDER MODEL (XM4) - must stay separate from XM5"},
+    {"id": "L008", "marketplace": "coupang", "title": "소니 WH-1000XM4 무선 헤드폰 블랙", "brand_raw": "소니", "price": 268000, "currency": "KRW", "gtin": "", "seller": "전자나라", "entity_id": "E003", "note": "model variant (XM4)"},
+
+    {"id": "L009", "marketplace": "coupang", "title": "소니 WH-1000XM5 헤드폰 블랙 + 정품 하드케이스 풀패키지 번들 세트", "brand_raw": "소니", "price": 449000, "currency": "KRW", "gtin": "", "seller": "사운드샵", "entity_id": "E004", "note": "BUNDLE (headphone + case) - must stay separate from bare E001"},
+
+    {"id": "L010", "marketplace": "amazon", "title": "Apple AirPods Pro 2nd Generation (USB-C) MTJV3AM/A", "brand_raw": "Apple", "price": 249, "currency": "USD", "gtin": "0195949052075", "seller": "Amazon.com", "entity_id": "E009", "note": "EN"},
+    {"id": "L011", "marketplace": "naver", "title": "애플 에어팟 프로 2세대 USB-C 타입 정품 MTJV3", "brand_raw": "애플", "price": 329000, "currency": "KRW", "gtin": "0195949052075", "seller": "애플공식판매처", "entity_id": "E009", "note": "KR (cross-lingual)"},
+    {"id": "L012", "marketplace": "coupang", "title": "에어팟프로 2 유에스비씨 C타입 정품 새제품 MTJV3", "brand_raw": "", "price": 319000, "currency": "KRW", "gtin": "", "seller": "디지털프라임", "entity_id": "E009", "note": "유에스비씨 = USB-C transliterated"},
+    {"id": "L013", "marketplace": "11st", "title": "Apple 에어팟 프로 2 (USB-C) 정품 미개봉", "brand_raw": "", "price": 309000, "currency": "KRW", "gtin": "", "seller": "오픈마켓셀러", "entity_id": "E009", "note": "no model code in title"},
+    {"id": "L039", "marketplace": "coupang", "title": "애플 에어팟프로 2세대 USB-C MTJV3 정품 새상품 빠른배송", "brand_raw": "애플", "price": 318000, "currency": "KRW", "gtin": "", "seller": "가전마트", "entity_id": "E009", "note": "second coupang seller (same-marketplace merge)"},
+
+    {"id": "L014", "marketplace": "amazon", "title": "Apple AirPods Pro 2nd Generation (Lightning, MagSafe) MQD83AM/A", "brand_raw": "Apple", "price": 199, "currency": "USD", "gtin": "0194253397984", "seller": "Amazon.com", "entity_id": "E010", "note": "CONNECTOR VARIANT (Lightning) - must stay separate from USB-C E009"},
+
+    {"id": "L015", "marketplace": "coupang", "title": "삼성 갤럭시 버즈3 프로 실버 SM-R630", "brand_raw": "삼성", "price": 219000, "currency": "KRW", "gtin": "8806095493210", "seller": "삼성디지털프라자", "entity_id": "E011", "note": "distinct product, model code SM-R630"},
+    {"id": "L016", "marketplace": "amazon", "title": "Samsung Galaxy Buds3 Pro Silver SM-R630", "brand_raw": "Samsung", "price": 179, "currency": "USD", "gtin": "8806095493210", "seller": "Amazon.com", "entity_id": "E011", "note": "cross-lingual but shared model code SM-R630"},
+
+    {"id": "L017", "marketplace": "coupang", "title": "코카콜라 제로 500ml x 24펫 (1박스)", "brand_raw": "코카콜라", "price": 21900, "currency": "KRW", "gtin": "8801094319405", "seller": "코카콜라공식", "entity_id": "E005", "note": "500ml 24-pack"},
+    {"id": "L018", "marketplace": "naver", "title": "코카콜라 제로콜라 500ml 24개입 탄산음료", "brand_raw": "코카콜라", "price": 22500, "currency": "KRW", "gtin": "8801094319405", "seller": "음료도매", "entity_id": "E005", "note": "same SKU different seller"},
+    {"id": "L019", "marketplace": "11st", "title": "코카콜라 ZERO 500ml 24개 음료", "brand_raw": "", "price": 20900, "currency": "KRW", "gtin": "", "seller": "마트직송", "entity_id": "E005", "note": "ZERO romanized"},
+
+    {"id": "L020", "marketplace": "coupang", "title": "코카콜라 제로 1.5L x 12개 (1박스)", "brand_raw": "코카콜라", "price": 18900, "currency": "KRW", "gtin": "8801094319801", "seller": "코카콜라공식", "entity_id": "E006", "note": "VOLUME+PACK VARIANT (1.5L x12) - must stay separate from 500ml x24"},
+    {"id": "L021", "marketplace": "naver", "title": "코카콜라 제로 1.5리터 12펫 탄산음료", "brand_raw": "코카콜라", "price": 19500, "currency": "KRW", "gtin": "8801094319801", "seller": "음료도매", "entity_id": "E006", "note": "1.5리터 = 1.5L"},
+
+    {"id": "L022", "marketplace": "naver", "title": "다우니 어도러블 섬유유연제 2L 1개", "brand_raw": "다우니", "price": 12900, "currency": "KRW", "gtin": "8001841234567", "seller": "생활마트", "entity_id": "E007", "note": "single unit"},
+    {"id": "L023", "marketplace": "coupang", "title": "다우니 어도러블 섬유유연제 2L 6개입 (박스)", "brand_raw": "다우니", "price": 69900, "currency": "KRW", "gtin": "8001841234574", "seller": "생활도매", "entity_id": "E008", "note": "PACK-COUNT VARIANT (6-pack) - must stay separate from single"},
+    {"id": "L024", "marketplace": "11st", "title": "다우니 어도러블 2L x6 섬유유연제 대용량", "brand_raw": "", "price": 67900, "currency": "KRW", "gtin": "", "seller": "생활용품샵", "entity_id": "E008", "note": "6-pack, same as L023"},
+
+    {"id": "L025", "marketplace": "naver", "title": "대한제분 곰표 밀가루 중력분 1kg", "brand_raw": "곰표", "price": 2500, "currency": "KRW", "gtin": "8801043011501", "seller": "베이킹몰", "entity_id": "E015", "note": "1kg"},
+    {"id": "L026", "marketplace": "coupang", "title": "곰표 중력분 밀가루 3kg 대용량", "brand_raw": "곰표", "price": 6900, "currency": "KRW", "gtin": "8801043011525", "seller": "식자재마트", "entity_id": "E016", "note": "SIZE VARIANT (3kg) - must stay separate from 1kg"},
+
+    {"id": "L027", "marketplace": "coupang", "title": "닌텐도 스위치 OLED 화이트 본체 정품", "brand_raw": "닌텐도", "price": 415000, "currency": "KRW", "gtin": "0045496453435", "seller": "게임존", "entity_id": "E012", "note": "white"},
+    {"id": "L028", "marketplace": "amazon", "title": "Nintendo Switch OLED Model White", "brand_raw": "Nintendo", "price": 349, "currency": "USD", "gtin": "0045496453435", "seller": "Amazon.com", "entity_id": "E012", "note": "cross-lingual, no model code"},
+    {"id": "L029", "marketplace": "naver", "title": "닌텐도 스위치 유기LED 화이트 한국정발 정품", "brand_raw": "닌텐도", "price": 419000, "currency": "KRW", "gtin": "", "seller": "정발게임", "entity_id": "E012", "note": "유기LED = OLED synonym"},
+
+    {"id": "L030", "marketplace": "coupang", "title": "닌텐도 스위치 OLED 네온블루레드 본체", "brand_raw": "닌텐도", "price": 415000, "currency": "KRW", "gtin": "0045496453442", "seller": "게임존", "entity_id": "E013", "note": "COLOR VARIANT (neon) - must stay separate from white"},
+
+    {"id": "L031", "marketplace": "coupang", "title": "LG 그램 16 2024 16Z90S-GA56K 블랙", "brand_raw": "LG", "price": 1690000, "currency": "KRW", "gtin": "8806096123456", "seller": "엘지전자공식", "entity_id": "E017", "note": "model 16Z90S-GA56K"},
+    {"id": "L032", "marketplace": "11st", "title": "엘지 그램16 16Z90S GA56K 노트북 2024년형", "brand_raw": "", "price": 1650000, "currency": "KRW", "gtin": "", "seller": "노트북천국", "entity_id": "E017", "note": "엘지 = LG, model split"},
+
+    {"id": "L034", "marketplace": "naver", "title": "SK-II 피테라 페이셜 트리트먼트 에센스 230ml 정품", "brand_raw": "SK-II", "price": 189000, "currency": "KRW", "gtin": "4979006059120", "seller": "SK-II공식", "entity_id": "E018", "note": "230ml authorized"},
+    {"id": "L035", "marketplace": "coupang", "title": "SKII 에센스 230ml 백화점정품 사은품", "brand_raw": "", "price": 175000, "currency": "KRW", "gtin": "", "seller": "코스메틱샵", "entity_id": "E018", "note": "SKII brand obfuscation"},
+    {"id": "L036", "marketplace": "11st", "title": "SK2 피테라에센스 230ml 병행수입 면세", "brand_raw": "", "price": 139000, "currency": "KRW", "gtin": "", "seller": "면세직구", "entity_id": "E018", "note": "SK2 obfuscation + gray-market"},
+
+    {"id": "L037", "marketplace": "coupang", "title": "아이폰15 프로 투명 케이스 범퍼 충격방지", "brand_raw": "", "price": 9900, "currency": "KRW", "gtin": "8809999000011", "seller": "폰케이스마트", "entity_id": "E019", "note": "GTIN REUSE TRAP: same gtin as L038 but different product"},
+    {"id": "L038", "marketplace": "11st", "title": "갤럭시 S24 울트라 가죽 케이스 블랙", "brand_raw": "", "price": 12900, "currency": "KRW", "gtin": "8809999000011", "seller": "모바일액세서리", "entity_id": "E020", "note": "GTIN REUSE: identical gtin, must NOT auto-merge with L037"},
+
+    {"id": "L040", "marketplace": "coupang", "title": "앤커 65W 충전기 USB-C 고속충전 PD 어댑터", "brand_raw": "앤커", "price": 29900, "currency": "KRW", "gtin": "0848061096521", "seller": "앤커공식", "entity_id": "E021", "note": "65W"},
+    {"id": "L041", "marketplace": "11st", "title": "Anker 45W 충전기 USB C타입 고속충전", "brand_raw": "Anker", "price": 23900, "currency": "KRW", "gtin": "0848061096538", "seller": "스마트액세서리", "entity_id": "E022", "note": "WATTAGE VARIANT (45W) - must stay separate from 65W"},
+
+    {"id": "L042", "marketplace": "amazon", "title": "Dyson V15 Detect Cordless Vacuum Cleaner", "brand_raw": "Dyson", "price": 749, "currency": "USD", "gtin": "0885609025841", "seller": "Amazon.com", "entity_id": "E023", "note": "EN, model V15"},
+    {"id": "L043", "marketplace": "coupang", "title": "다이슨 V15 디텍트 무선청소기 정품", "brand_raw": "다이슨", "price": 899000, "currency": "KRW", "gtin": "", "seller": "다이슨공식", "entity_id": "E023", "note": "디텍트 = Detect, 다이슨 = Dyson (cross-lingual)"},
+    {"id": "L044", "marketplace": "naver", "title": "다이슨 V15 디텍트 무선 청소기 한국정품", "brand_raw": "다이슨", "price": 920000, "currency": "KRW", "gtin": "", "seller": "가전공식", "entity_id": "E023", "note": "same as L043, different seller"},
+
+    {"id": "L045", "marketplace": "coupang", "title": "소니 WH-1000XM5 헤드폰 블랙 리퍼비시 A급 정품", "brand_raw": "소니", "price": 329000, "currency": "KRW", "gtin": "", "seller": "리퍼마켓", "entity_id": "E024", "note": "SEMANTIC AMBIGUITY: refurbished. Brand/model/color identical to new E001 — no clean attribute separates them, so it is routed to the LLM stage (not a rule). entity_id E024 = distinct SKU from new."}
+  ]
+}
