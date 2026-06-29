@@ -5,5 +5,13 @@ __pycache__/
 *.log
 # 대용량 정적/재생성 가능 데이터 (디스크에는 보존, git 추적만 제외)
 insight/archive/
-insight/trees_food.jsonl
 identity/outputs/
+# 원천/입력/산출 데이터 (재생성·재수집 가능)
+*.jsonl
+*.csv
+# 통합 대시보드 산출물 (unified_dashboard.py 로 재생성)
+assets/
+dashboard.html
+# 생성된 리포트 HTML (db 스크립트로 재생성)
+insight/data/*.html
+insight/site/
