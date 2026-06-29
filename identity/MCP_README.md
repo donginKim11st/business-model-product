@@ -23,7 +23,7 @@ stdio JSON-RPC를 직접 구현 (의존성 0).
 직접 등록도 가능:
 ```bash
 claude mcp add --transport stdio product-identity-graph \
-  -- /usr/bin/python3 /Users/a1101417/Laboratory/product-identity-graph/mcp_server.py
+  -- /usr/bin/python3 /Users/a1101417/Work/business-model/identity/mcp_server.py
 ```
 네이버 키는 셸 환경변수로 export 해두면 `.mcp.json` 의 `${NAVER_CLIENT_ID}` 로 전달됩니다.
 
@@ -35,7 +35,7 @@ claude mcp add --transport stdio product-identity-graph \
   "mcpServers": {
     "product-identity-graph": {
       "command": "/usr/bin/python3",
-      "args": ["/Users/a1101417/Laboratory/product-identity-graph/mcp_server.py"],
+      "args": ["/Users/a1101417/Work/business-model/identity/mcp_server.py"],
       "env": {
         "NAVER_CLIENT_ID": "여기에-아이디",
         "NAVER_CLIENT_SECRET": "여기에-시크릿"

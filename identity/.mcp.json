@@ -3,7 +3,7 @@
     "product-identity-graph": {
       "type": "stdio",
       "command": "/usr/bin/python3",
-      "args": ["/Users/a1101417/Laboratory/product-identity-graph/mcp_server.py"],
+      "args": ["/Users/a1101417/Work/business-model/identity/mcp_server.py"],
       "env": {
         "NAVER_CLIENT_ID": "${NAVER_CLIENT_ID}",
         "NAVER_CLIENT_SECRET": "${NAVER_CLIENT_SECRET}"

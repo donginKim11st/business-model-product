@@ -3,5 +3,7 @@ __pycache__/
 .DS_Store
 .idea/
 *.log
-archive/
-trees_food.jsonl
+# 대용량 정적/재생성 가능 데이터 (디스크에는 보존, git 추적만 제외)
+insight/archive/
+insight/trees_food.jsonl
+identity/outputs/

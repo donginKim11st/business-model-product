@@ -4,7 +4,7 @@
 export PATH="/usr/bin:/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 export ORA_LIB="/opt/homebrew/lib"   # oracledb thick 클라이언트 dylib 위치
 PY=/usr/bin/python3                   # requests/oracledb/openai 설치된 인터프리터
-cd /Users/a1101417/Workspace/business-model || exit 1
+cd "$(dirname "$0")" || exit 1
 
 # 중복 실행 방지 락(이미 돌고 있으면 스킵). 쿼터 소진 시 즉시 종료라 무해.
 LOCK=/tmp/insights1002.lock

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# 환경변수 export + 실행을 한 번에. 키 값만 채우고 ./run.sh 실행하세요.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+# ── API 키 (여기만 채우세요) ───────────────────────────────────────────────
+export NAVER_CLIENT_ID="***REMOVED***"
+export NAVER_CLIENT_SECRET="***REMOVED***"
+export OPENAI_API_KEY="***REMOVED***"
+export YOUTUBE_API_KEY="***REMOVED***"
+export BRAVE_SEARCH_API_KEY="***REMOVED***"
+export PRODUCT_NAME=""   # 여러 제품군을 한 번에 돌릴 땐 비워둔다(FAQ JSON-LD about용·선택)
+# ── 조사할 키워드 ──────────────────────────────────────────────────────────
+# 변형 그룹 — base(용량·개수 제거)가 같은 키워드끼리 자동으로 묶여 고정/가변 속성을 비교한다.
+# 변형 축은 자동 판별: 개수가 갈리면 개수축, 용량이 갈리면 용량축으로 그래프를 그린다.
+#   · 비비고 왕교자  → 용량축(1.05/1.4/1.925kg)  [식품]
+#   · 도브 뷰티 너리싱 → 개수축(1/2/3개, 1L 고정)  [비식품]
+KEYWORDS=(
+  "비비고 왕교자"
+  "비비고 왕교자 1.4kg"
+  "비비고 왕교자 1.4kg 10개"
+)
+
+# ── 실행 ──────────────────────────────────────────────────────────────────
+# 테스트/검증용 옵션:
+#   DUMP_RAW=1        → 항목별 상세(insights.raw.json)도 저장 (정확도 확인용)
+#   INSIGHTS_ONLY=1   → 정형(쇼핑 L1~L4) 건너뛰고 비정형 인사이트만 추출(빠름·저비용)
+#                       → insights_unstructured.json 위주로 확인할 때 사용
+#   cost_runner.py    → 실행 끝에 OpenAI 토큰·달러·원화 비용 출력 (원본 동작 동일)
+export DUMP_RAW=1
+# export INSIGHTS_ONLY=1   # 인사이트만 뽑을 때 주석 해제
+python3 cost_runner.py "${KEYWORDS[@]}"
+
+# 비용 표시·raw 저장이 필요 없으면 위 두 줄 대신 아래 한 줄을 사용:
+# python3 naver_review_geo.py "${KEYWORDS[@]}"

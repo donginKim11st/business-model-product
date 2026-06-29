@@ -19,7 +19,7 @@ import requests
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "outputs")
-sys.path.insert(0, "/Users/a1101417/Workspace/business-model")
+sys.path.insert(0, "/Users/a1101417/Work/business-model/insight")
 from naver_review_geo import fetch_danawa_reviews  # 리뷰 상세(날짜) 수집 재사용
 
 VSAPI = "https://prod.danawa.com/api/vssearch/searchProducts.php"
