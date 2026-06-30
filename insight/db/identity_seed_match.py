@@ -61,6 +61,18 @@ def _content_recall(a, b):
     return len(A & _content_bigrams(b)) / len(A)
 
 
+def _color_match(seed_color, row):
+    """씨앗 색(OPT_NM 등) 이 후보 color 에 포함되면 True. 변형충돌 tie-break(C1)."""
+    sc = (seed_color or "").strip().lower()
+    return bool(sc) and sc in ((row.get("color") or "").lower())
+
+
+def _size_match(seed_size, row):
+    """씨앗 사이즈가 후보 sizes/size 에 포함되면 True. 변형 tie-break(C1)."""
+    ss = (seed_size or "").strip().lower()
+    return bool(ss) and ss in ((row.get("sizes") or row.get("size") or "").lower())
+
+
 def domain_of(category, domain_map):
     """category(문자열) → 도메인. domain_map={도메인:[키워드…]}; 키워드가 부분일치하면 그 도메인.
     카테고리 게이트의 단일 해석 지점. 매핑 없거나 미일치면 None(=게이트 통과/판정 보류)."""
@@ -140,13 +152,18 @@ def match_seed_to_extracted(seed_rows, extracted_rows, name_thresh=DEFAULT_NAME_
             if len(_content_toks(disp)) < min_content_toks:
                 continue                             # 색상어 가드: 변별 토큰 부족(색상어뿐) → 매칭 안 함
             thr = resolve_thresh(s.get("category_l1"), thresh_map, name_thresh)
-            best, best_score = None, 0.0
+            seed_color, seed_size = _clean(s.get("color")), _clean(s.get("size"))
+            # (recall, color_match, size_match) 사전식 — 같은 이름 변형충돌을 색/사이즈로 해소(C1).
+            # recall 이 지배(상품군 결정), 동률일 때만 색→사이즈로 변형 선택. 강키 부재 시 precision 보강.
+            best, best_key = None, (-1.0, 0, 0)
             for r in extracted_rows:
-                score = _content_recall(disp, r.get("name") or "")   # 색상어 제외 recall
-                if score > best_score:
-                    best, best_score = r, score
-            if best is not None and best_score >= thr:
-                matched, method = best, f"name:{best_score:.2f}@{thr:g}"
+                score = _content_recall(disp, r.get("name") or "")
+                key = (score, 1 if _color_match(seed_color, r) else 0, 1 if _size_match(seed_size, r) else 0)
+                if key > best_key:
+                    best, best_key = r, key
+            if best is not None and best_key[0] >= thr:
+                tag = "name" + ("+color" if best_key[1] else "") + ("+size" if best_key[2] else "")
+                matched, method = best, f"{tag}:{best_key[0]:.2f}@{thr:g}"
         if matched is not None:
             out.append(dict(matched, insight_uid=s.get("insight_uid"),
                             ctlg_no=s.get("ctlg_no"), _match=method))

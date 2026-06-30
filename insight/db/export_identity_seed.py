@@ -18,7 +18,9 @@ import sys
 import csv
 import argparse
 
-SEED_COLUMNS = ["insight_uid", "ctlg_no", "keyword", "category_l1", "disp"]
+# size/color/barcode = 변형 변별자/강키(C1/C3). 가용 시(OPT_NM·BAR_CODE 흐름) 매처 tie-break/강키로 쓰임.
+# 현 대상 스코프엔 비어 있을 수 있으나 plumbing 은 준비(변형 카테고리 유입 시 즉시 효과).
+SEED_COLUMNS = ["insight_uid", "ctlg_no", "keyword", "category_l1", "disp", "size", "color", "barcode"]
 
 
 def product_to_seed_rows(product):
@@ -26,6 +28,7 @@ def product_to_seed_rows(product):
 
     package 는 catalogs[] 의 ctlg_no 보유 SKU 마다 1행(per-SKU 정형 합류 대상).
     catalogs 없음/ctlg_no 없음 → 상품 레벨 1행(ctlg_no=None, disp=keyword).
+    size/color/barcode 는 catalog 에 있으면 전달(변형 변별/강키), 없으면 None.
     T3 회귀 가드의 단위 검증 지점."""
     uid = product.get("_id")
     kw = product.get("keyword") or ""
@@ -36,10 +39,11 @@ def product_to_seed_rows(product):
         if ctlg in (None, ""):
             continue
         rows.append({"insight_uid": uid, "ctlg_no": str(ctlg), "keyword": kw,
-                     "category_l1": cat, "disp": c.get("disp") or kw})
+                     "category_l1": cat, "disp": c.get("disp") or kw,
+                     "size": c.get("size"), "color": c.get("color"), "barcode": c.get("barcode")})
     if not rows:                                    # catalog 없는 product(변형 등) → 상품 레벨 1행
         rows.append({"insight_uid": uid, "ctlg_no": None, "keyword": kw,
-                     "category_l1": cat, "disp": kw})
+                     "category_l1": cat, "disp": kw, "size": None, "color": None, "barcode": None})
     return rows
 
 

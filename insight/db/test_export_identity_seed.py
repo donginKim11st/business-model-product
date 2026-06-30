@@ -18,9 +18,18 @@ def test_package_emits_row_per_catalog():
     rows = product_to_seed_rows(p)
     assert len(rows) == 2
     assert rows[0] == {"insight_uid": "P1", "ctlg_no": "C1", "keyword": "미역국",
-                       "category_l1": "국·탕·찌개", "disp": "미역국 490g"}
+                       "category_l1": "국·탕·찌개", "disp": "미역국 490g",
+                       "size": None, "color": None, "barcode": None}
     assert rows[1]["ctlg_no"] == "C2"
     assert set(rows[0].keys()) == set(SEED_COLUMNS)
+
+
+def test_size_color_barcode_passthrough():
+    # 변별자/강키가 catalog 에 있으면 씨앗에 전달(C1/C3 plumbing).
+    p = {"_id": "P1", "keyword": "k", "category_l1": "의류",
+         "catalogs": [{"ctlg_no": "C1", "disp": "운동화 270", "size": "270", "color": "블랙", "barcode": "880123"}]}
+    r = product_to_seed_rows(p)[0]
+    assert r["size"] == "270" and r["color"] == "블랙" and r["barcode"] == "880123"
 
 
 def test_ctlg_no_coerced_to_str():
@@ -41,7 +50,8 @@ def test_no_catalogs_product_level_row():
     p = {"_id": "P3::대", "keyword": "변형상품", "category_l1": "면류·라면"}
     rows = product_to_seed_rows(p)
     assert rows == [{"insight_uid": "P3::대", "ctlg_no": None, "keyword": "변형상품",
-                     "category_l1": "면류·라면", "disp": "변형상품"}]
+                     "category_l1": "면류·라면", "disp": "변형상품",
+                     "size": None, "color": None, "barcode": None}]
 
 
 def test_category_passthrough_any_value():

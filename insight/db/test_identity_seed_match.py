@@ -149,6 +149,40 @@ def test_color_word_not_match_basis():
     assert match_seed_to_extracted(seed, ext) == []
 
 
+def test_color_tiebreak_resolves_variant():
+    # 같은 이름 다른 style_code(색 변형). 씨앗 color 로 올바른 변형 선택(C1).
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "disp": "에어맥스 270", "color": "블랙"}]
+    ext = [{"name": "에어맥스 270", "style_code": "AM-WHT", "color": "화이트"},
+           {"name": "에어맥스 270", "style_code": "AM-BLK", "color": "블랙"}]
+    out = match_seed_to_extracted(seed, ext)
+    assert out[0]["style_code"] == "AM-BLK"           # 색 일치 변형 선택
+    assert "+color" in out[0]["_match"]
+
+
+def test_size_tiebreak_resolves_variant():
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "disp": "에어맥스", "size": "270"}]
+    ext = [{"name": "에어맥스", "style_code": "S-260", "sizes": "250|260"},
+           {"name": "에어맥스", "style_code": "S-270", "sizes": "270|280"}]
+    out = match_seed_to_extracted(seed, ext)
+    assert out[0]["style_code"] == "S-270" and "+size" in out[0]["_match"]
+
+
+def test_recall_dominates_over_color():
+    # 더 높은 recall(이름 일치)이 색 일치보다 우선 — 색은 동률 tie-break 만.
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "disp": "쿡시 미역국", "color": "블랙"}]
+    ext = [{"name": "쿡시 미역국 490g", "style_code": "A", "color": "화이트"},   # recall 높음, 색 불일치
+           {"name": "전혀 다른 상품", "style_code": "B", "color": "블랙"}]        # recall 낮음, 색 일치
+    out = match_seed_to_extracted(seed, ext)
+    assert out[0]["style_code"] == "A"                # recall 지배
+
+
+def test_no_color_falls_back_to_name():
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "disp": "쿡시 미역국"}]   # color 없음
+    ext = [{"name": "쿡시 미역국 490g", "style_code": "A"}]
+    out = match_seed_to_extracted(seed, ext)
+    assert len(out) == 1 and out[0]["_match"].startswith("name:")   # +color/+size 없음
+
+
 def test_strong_key_bypasses_gates():
     # 강키 매칭은 도메인 게이트/색상 가드 우회(권위).
     seed = [{"insight_uid": "P1", "ctlg_no": "C1", "category_l1": "음료", "style_code": "S1", "disp": "그린"}]
