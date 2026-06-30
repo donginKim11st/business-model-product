@@ -26,18 +26,41 @@ sys.path.insert(0, HERE)
 import food_price_backfill as fp          # name_recall(catalog_name, candidate) 재사용(DRY)
 
 DEFAULT_STRONG_KEYS = ("style_code", "barcode", "gtin")
+DEFAULT_NAME_THRESH = 0.4                 # 식품 골드셋 보정값. 카테고리별 튜닝은 thresh_map 으로.
 
 
 def _clean(v):
     return (v.strip() if isinstance(v, str) else v) or None
 
 
-def match_seed_to_extracted(seed_rows, extracted_rows, name_thresh=0.4,
-                            strong_keys=DEFAULT_STRONG_KEYS):
+def resolve_thresh(category, thresh_map, default=DEFAULT_NAME_THRESH):
+    """category_l1 → 이름 폴백 임계. thresh_map 에 카테고리 키 있으면 그 값,
+    없으면 map 의 "default", 그것도 없으면 인자 default. 카테고리별 튜닝의 단일 해석 지점."""
+    if thresh_map:
+        if category in thresh_map:
+            return thresh_map[category]
+        if "default" in thresh_map:
+            return thresh_map["default"]
+    return default
+
+
+def load_thresh_map(path):
+    """카테고리별 임계 JSON 로드. 예: {"default":0.4, "식품":0.5, "신발":0.35}. 없으면 None."""
+    import json
+    if not path or not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        m = json.load(f)
+    return {k: float(v) for k, v in m.items()}
+
+
+def match_seed_to_extracted(seed_rows, extracted_rows, name_thresh=DEFAULT_NAME_THRESH,
+                            strong_keys=DEFAULT_STRONG_KEYS, thresh_map=None):
     """순수 함수: 씨앗 행 × identity 산출 행 → uid 스탬프된 산출 행 list.
 
     각 씨앗은 최대 1개 산출에 매칭(강키 우선, 없으면 이름 최고점). 매칭된 산출 행을 복사해
     insight_uid/ctlg_no 를 찍고 _match(매칭 방식)를 기록. unmatched 씨앗은 출력 안 함.
+    이름 폴백 임계는 씨앗의 category_l1 별로 thresh_map 에서 해석(category-agnostic + per-category 튜닝).
     T4 회귀 가드의 단위 검증 지점."""
     # 강키 인덱스: {key: {value: row}}
     strong = {k: {} for k in strong_keys}
@@ -55,15 +78,16 @@ def match_seed_to_extracted(seed_rows, extracted_rows, name_thresh=0.4,
             if v is not None and v in strong[k]:
                 matched, method = strong[k][v], f"key:{k}"
                 break
-        if matched is None:                          # 2) 이름 폴백
+        if matched is None:                          # 2) 이름 폴백(카테고리별 임계)
+            thr = resolve_thresh(s.get("category_l1"), thresh_map, name_thresh)
             disp = _clean(s.get("disp")) or _clean(s.get("keyword")) or ""
             best, best_score = None, 0.0
             for r in extracted_rows:
                 score = fp.name_recall(disp, r.get("name") or "")
                 if score > best_score:
                     best, best_score = r, score
-            if best is not None and best_score >= name_thresh:
-                matched, method = best, f"name:{best_score:.2f}"
+            if best is not None and best_score >= thr:
+                matched, method = best, f"name:{best_score:.2f}@{thr:g}"
         if matched is not None:
             out.append(dict(matched, insight_uid=s.get("insight_uid"),
                             ctlg_no=s.get("ctlg_no"), _match=method))
@@ -75,10 +99,11 @@ def _read_csv(path, encoding="utf-8-sig"):
         return list(csv.DictReader(f))
 
 
-def run(seed_path, extracted_path, out_path, name_thresh=0.4, strong_keys=DEFAULT_STRONG_KEYS):
+def run(seed_path, extracted_path, out_path, name_thresh=DEFAULT_NAME_THRESH,
+        strong_keys=DEFAULT_STRONG_KEYS, thresh_map=None):
     seed = _read_csv(seed_path)
     extracted = _read_csv(extracted_path)              # identity CSV(BOM 가능) → utf-8-sig
-    stamped = match_seed_to_extracted(seed, extracted, name_thresh, strong_keys)
+    stamped = match_seed_to_extracted(seed, extracted, name_thresh, strong_keys, thresh_map)
     cols = list(extracted[0].keys()) if extracted else []
     for extra in ("insight_uid", "ctlg_no", "_match"):
         if extra not in cols:
@@ -97,7 +122,10 @@ def main():
     ap.add_argument("--seed", default="identity/seeds/seed.csv")
     ap.add_argument("--extracted", default="identity/outputs/all_brands.csv")
     ap.add_argument("--out", default="identity/outputs/all_brands_uid.csv")
-    ap.add_argument("--name-thresh", type=float, default=0.4, help="이름 폴백 bigram recall 임계(골드셋 0.4)")
+    ap.add_argument("--name-thresh", type=float, default=DEFAULT_NAME_THRESH,
+                    help="이름 폴백 bigram recall 기본 임계(골드셋 0.4). 카테고리별은 --thresh-map")
+    ap.add_argument("--thresh-map", default=os.environ.get("ID_THRESH_MAP", ""),
+                    help='카테고리별 임계 JSON 경로. 예: {"default":0.4,"식품":0.5,"신발":0.35}')
     ap.add_argument("--strong-keys", default=",".join(DEFAULT_STRONG_KEYS),
                     help="강키 우선순위(콤마구분). 양쪽에 있으면 확정 매칭")
     args = ap.parse_args()
@@ -105,9 +133,10 @@ def main():
         if not os.path.exists(p):
             sys.exit(f"✗ 입력 없음: {p}")
     sk = tuple(k.strip() for k in args.strong_keys.split(",") if k.strip())
-    n_seed, n_ext, n_match = run(args.seed, args.extracted, args.out, args.name_thresh, sk)
+    tmap = load_thresh_map(args.thresh_map)
+    n_seed, n_ext, n_match = run(args.seed, args.extracted, args.out, args.name_thresh, sk, tmap)
     print(f"매칭: 씨앗 {n_seed:,} × 산출 {n_ext:,} → uid 스탬프 {n_match:,}행 "
-          f"(미매칭 씨앗은 backfill 에서 status:empty) → {args.out}")
+          f"(임계맵 {'적용' if tmap else '없음(기본 '+str(args.name_thresh)+')'}) → {args.out}")
 
 
 if __name__ == "__main__":
