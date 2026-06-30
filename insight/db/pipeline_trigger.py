@@ -32,6 +32,23 @@ PORT = int(os.environ.get("TRIGGER_PORT", "8765"))
 STEP_TIMEOUT = int(os.environ.get("STEP_TIMEOUT", "900"))   # 동기 배치 실행 상한(초)
 PROGRESS = ROOT / "db" / "pipeline_progress.py"
 PY = os.environ.get("PY", "/usr/bin/python3")
+EXTRACTED = str(ROOT.parent / "identity" / "outputs" / "all_brands.csv")  # 보정 큐용 identity 산출
+
+# 보정 API/DB — 지연 로딩(서버 기동을 무거운 import 체인에 묶지 않음).
+_CDB = None
+
+
+def _cdb():
+    global _CDB
+    if _CDB is None:
+        import identity_guidelines_db as g
+        _CDB = g.get_db()
+    return _CDB
+
+
+def _calib():
+    import identity_calib_api as c
+    return c
 
 # 스테이지별 스크립트 · 로그 · 락(run_*.sh 와 일치해야 함).
 # in_run_all: 무인자 POST /run 이 함께 기동하는지(상시 루프=True, 1회 배치=False).
@@ -181,6 +198,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_html(self, code, html):
+        body = html.encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def _auth_ok(self):
         if not TOKEN:
             return True
@@ -196,6 +221,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self._send(200, progress_stage())
         elif path.startswith("/progress/") and path[len("/progress/"):] in STAGES:
             self._send(200, progress_stage(path[len("/progress/"):]))
+        elif path == "/calib/ui":
+            self._send_html(200, _calib().PAGE)
+        elif path == "/calib/status":
+            self._send(200, _calib().status(_cdb()))
+        elif path == "/calib/queue":
+            q = parse_qs(urlparse(self.path).query)
+            cat = (q.get("category") or [""])[0]
+            n = int((q.get("n") or ["15"])[0])
+            src = (q.get("source") or ["perturb"])[0]
+            self._send(200, _calib().queue(_cdb(), cat, n, src, EXTRACTED))
         else:
             self._send(404, {"error": "not found"})
 
@@ -206,10 +241,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
         length = int(self.headers.get("Content-Length") or 0)
-        if length:
-            self.rfile.read(length)
+        body = self.rfile.read(length) if length else b""
 
-        if path.startswith("/step/") and path[len("/step/"):] in STAGES:
+        if path == "/calib/label":
+            try:
+                payload = json.loads(body or b"{}")
+            except Exception:
+                payload = {}
+            self._send(200, _calib().save_label(_cdb(), payload))
+        elif path == "/calib/recommend":
+            q = parse_qs(parsed.query)
+            cat = (q.get("category") or [""])[0]
+            apply = (q.get("apply") or ["0"])[0] in ("1", "true")
+            by = (q.get("by") or ["web"])[0]
+            self._send(200, _calib().recommend(_cdb(), cat, apply, by))
+        elif path.startswith("/step/") and path[len("/step/"):] in STAGES:
             stage = path[len("/step/"):]
             batch = (parse_qs(parsed.query).get("batch") or [None])[0]
             self._send(200, run_step(stage, batch))      # ★ 동기 — 배치 끝날 때까지 응답 대기

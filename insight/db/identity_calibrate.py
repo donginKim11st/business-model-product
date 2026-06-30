@@ -123,15 +123,9 @@ def cmd_ingest(args):
     print(f"[ingest] 사람 라벨 {len(rows)}건 → DB {n} 반영 (by={args.by})")
 
 
-def cmd_recommend(args):
-    db = gdb.get_db()
-    labels = gdb.get_labels(db, args.category)
-    if not labels:
-        sys.exit(f"✗ DB 라벨 없음(category={args.category}) — 먼저 review/ingest")
-    pos = sum(1 for d in labels if d["label"] == 1)
-    print(f"[recommend] '{args.category}' DB 라벨 {len(labels)}건 (정답 {pos}/오답 {len(labels)-pos})")
-    print(f"  {'임계':>5} {'P':>7} {'R':>7} {'F1':>7} {'TP':>4} {'FP':>4} {'FN':>4}")
-    best_thr, best_f1, sweep_rows, precs = None, -1.0, [], []
+def compute_recommendation(labels):
+    """순수 함수: 라벨 list → sweep/판정/추천. API·CLI 공유. 평탄 sweep → needs_strong_key."""
+    sweep_rows, precs, best_thr, best_f1 = [], [], None, -1.0
     for thr in SWEEP:
         tp = sum(1 for d in labels if d["label"] == 1 and d["score"] >= thr)
         fp_ = sum(1 for d in labels if d["label"] == 0 and d["score"] >= thr)
@@ -142,34 +136,57 @@ def cmd_recommend(args):
         precs.append(P)
         sweep_rows.append({"thr": thr, "p": round(P, 3), "r": round(R, 3), "f1": round(F1, 3),
                            "tp": tp, "fp": fp_, "fn": fn})
-        mark = ""
         if F1 > best_f1 or (F1 == best_f1 and best_thr is not None and thr > best_thr):
-            best_thr, best_f1, mark = thr, F1, "  ←"
-        print(f"  {thr:>5} {P:>7.1%} {R:>7.1%} {F1:>7.1%} {tp:>4} {fp_:>4} {fn:>4}{mark}")
-    if len(labels) < 10:
-        print(f"  ⚠ 라벨 {len(labels)}건 — 신뢰 위해 30+ 권장. 추천 잠정.")
-
+            best_thr, best_f1 = thr, F1
     ineffective = (max(precs) - min(precs)) < 0.05
     best_row = next(r for r in sweep_rows if r["thr"] == best_thr)
-    if ineffective:
-        verdict, status, recommended = "needs_strong_key", "needs_strong_key", None
-        print(f"\n  ⚠ 튜닝 무효: precision {max(precs):.0%} 평탄 — 변형충돌. 강키(color/style_code/barcode) 필요(옵션 C).")
+    verdict = "needs_strong_key" if ineffective else "effective"
+    return {"n_labels": len(labels), "pos": sum(1 for d in labels if d["label"] == 1),
+            "sweep": sweep_rows, "best_thr": best_thr, "best_f1": best_f1, "best_row": best_row,
+            "ineffective": ineffective, "verdict": verdict, "status": verdict,
+            "recommended": None if ineffective else best_thr}
+
+
+def recommend_core(db, category, apply=False, by="api"):
+    """라벨 → 추천 계산 + DB 기록(가이드라인 메트릭 + 보정이력). apply 시 활성 임계 반영 + JSON export.
+    API·CLI 공유. 반환=compute_recommendation dict + {applied}."""
+    labels = gdb.get_labels(db, category)
+    if not labels:
+        return {"error": "no_labels", "category": category}
+    rec = compute_recommendation(labels)
+    br = rec["best_row"]
+    gdb.upsert_guideline(db, category, status=rec["status"], recommended=rec["recommended"],
+                         precision=br["p"], recall=br["r"], f1=br["f1"],
+                         n_labels=rec["n_labels"], updated_by=by)
+    gdb.add_calib_run(db, category, n_labels=rec["n_labels"], sweep=rec["sweep"],
+                      recommended=rec["recommended"], verdict=rec["verdict"], applied=bool(apply), by=by)
+    if apply:
+        gdb.upsert_guideline(db, category, name_thresh=rec["recommended"], updated_by=by)
+        gdb.export_thresh_json(db, THRESH_CFG)
+    rec["applied"] = bool(apply)
+    return rec
+
+
+def cmd_recommend(args):
+    db = gdb.get_db()
+    labels = gdb.get_labels(db, args.category)
+    if not labels:
+        sys.exit(f"✗ DB 라벨 없음(category={args.category}) — 먼저 review/ingest")
+    rec = recommend_core(db, args.category, apply=args.apply, by=args.by)
+    print(f"[recommend] '{args.category}' DB 라벨 {rec['n_labels']}건 (정답 {rec['pos']}/오답 {rec['n_labels']-rec['pos']})")
+    print(f"  {'임계':>5} {'P':>7} {'R':>7} {'F1':>7} {'TP':>4} {'FP':>4} {'FN':>4}")
+    for s in rec["sweep"]:
+        mark = "  ←" if s["thr"] == rec["best_thr"] else ""
+        print(f"  {s['thr']:>5} {s['p']:>7.1%} {s['r']:>7.1%} {s['f1']:>7.1%} {s['tp']:>4} {s['fp']:>4} {s['fn']:>4}{mark}")
+    if rec["n_labels"] < 10:
+        print(f"  ⚠ 라벨 {rec['n_labels']}건 — 신뢰 위해 30+ 권장. 추천 잠정.")
+    if rec["ineffective"]:
+        print(f"\n  ⚠ 튜닝 무효: precision {rec['best_row']['p']:.0%} 평탄 — 변형충돌. 강키(color/style_code/barcode) 필요(옵션 C).")
     else:
-        verdict, status, recommended = "effective", "effective", best_thr
-        print(f"\n  추천 임계('{args.category}') = {best_thr} (F1 {best_f1:.1%})")
-
-    # DB 기록: 가이드라인 메트릭 + 보정 이력(항상). name_thresh 활성값은 --apply 때만.
-    gdb.upsert_guideline(db, args.category, status=status, recommended=recommended,
-                         precision=best_row["p"], recall=best_row["r"], f1=best_row["f1"],
-                         n_labels=len(labels), updated_by=args.by)
-    gdb.add_calib_run(db, args.category, n_labels=len(labels), sweep=sweep_rows,
-                      recommended=recommended, verdict=verdict, applied=bool(args.apply), by=args.by)
-
+        print(f"\n  추천 임계('{args.category}') = {rec['best_thr']} (F1 {rec['best_f1']:.1%})")
     if args.apply:
-        gdb.upsert_guideline(db, args.category, name_thresh=recommended, updated_by=args.by)
-        tm = gdb.export_thresh_json(db, THRESH_CFG)
-        act = recommended if recommended is not None else "미설정(default)"
-        print(f"  ✅ DB 가이드라인 name_thresh='{args.category}' → {act} · JSON export({len(tm)}개)")
+        act = rec["recommended"] if rec["recommended"] is not None else "미설정(default)"
+        print(f"  ✅ DB 가이드라인 name_thresh='{args.category}' → {act} · JSON export")
     else:
         print("  (DB 이력/메트릭 기록됨. --apply 로 활성 임계 반영 + JSON export)")
 
