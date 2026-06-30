@@ -195,7 +195,8 @@ def cmd_recommend(args):
         if args.apply:
             cfg = json.load(open(THRESH_CFG, encoding="utf-8")) if os.path.exists(THRESH_CFG) else {}
             removed = cfg.pop(args.category, "없음")
-            json.dump(cfg, open(THRESH_CFG, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+            with open(THRESH_CFG, "w", encoding="utf-8") as _fh:
+                json.dump(cfg, _fh, ensure_ascii=False, indent=2); _fh.write("\n")
             print(f"  ✅ identity_name_thresh.json['{args.category}'] 제거(이전 {removed}) → default 사용")
         return
     print(f"\n  추천 임계('{args.category}') = {best_thr}  (F1 {best_f1:.1%})")
@@ -203,7 +204,8 @@ def cmd_recommend(args):
         cfg = json.load(open(THRESH_CFG, encoding="utf-8")) if os.path.exists(THRESH_CFG) else {}
         old = cfg.get(args.category)
         cfg[args.category] = best_thr
-        json.dump(cfg, open(THRESH_CFG, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+        with open(THRESH_CFG, "w", encoding="utf-8") as _fh:
+            json.dump(cfg, _fh, ensure_ascii=False, indent=2); _fh.write("\n")
         print(f"  ✅ identity_name_thresh.json['{args.category}'] {old} → {best_thr} 기록")
     else:
         print("  (--apply 로 identity_name_thresh.json 에 기록)")
