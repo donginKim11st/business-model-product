@@ -24,19 +24,7 @@ echo "===== $(date '+%F %T') [identity] 합류 루프 시작 (DB=$INSIGHTS_DB ·
 
 while true; do
   TMP="$(mktemp)"
-  "$PY" db/export_identity_seed.py --out "$SEED" --limit "$ID_BATCH" >> "$LOG" 2>&1
-
-  if [ -f "$EXTRACTED" ]; then
-    "$PY" db/identity_seed_match.py --seed "$SEED" --extracted "$EXTRACTED" \
-          --out "$UIDCSV" --name-thresh "${ID_NAME_THRESH:-0.4}" \
-          --thresh-map "${ID_THRESH_MAP:-db/identity_name_thresh.json}" \
-          --domain-map "${ID_DOMAIN_MAP:-db/identity_domain_map.json}" \
-          --extracted-domain "${ID_EXTRACTED_DOMAIN:-의류·신발}" >> "$LOG" 2>&1
-    "$PY" db/identity_backfill.py --csv "$UIDCSV" --limit "$ID_BATCH" 2>&1 | tee -a "$LOG" > "$TMP"
-  else
-    echo "$(date '+%F %T') [identity] 산출 CSV 없음($EXTRACTED) — identity 추출 대기" >> "$LOG"
-    : > "$TMP"
-  fi
+  "$PY" db/oracle_structured_backfill.py --limit "$ID_BATCH" 2>&1 | tee -a "$LOG" > "$TMP"
   SUMMARY="$(grep -E '^완료 ·' "$TMP" | tail -1)"
   DONE="$(echo "$SUMMARY"  | sed -nE 's/.*done=([0-9]+).*/\1/p')";  DONE="${DONE:-0}"
   EMPTY="$(echo "$SUMMARY" | sed -nE 's/.*empty=([0-9]+).*/\1/p')"; EMPTY="${EMPTY:-0}"
