@@ -112,27 +112,49 @@ def main():
 
 
 def _html(d):
-    bar = lambda v, c: f'<div style="background:#eef0f2;border-radius:6px;height:26px;width:240px"><div style="background:{c};height:100%;width:{v*100:.0f}%;border-radius:6px"></div></div>'
+    A,B=d["A"],d["B"]
+    def bar(v,grad):
+        return f'<div style="height:30px;width:300px;background:#1a2230;border-radius:8px;overflow:hidden;display:inline-block;vertical-align:middle"><div style="height:100%;width:{v*100:.0f}%;background:{grad};border-radius:8px"></div></div>'
+    G="linear-gradient(90deg,#7c5cff,#3f8cff)"; Gr="linear-gradient(90deg,#ff6b8a,#ff3d6e)"
     return f"""<!doctype html><html lang=ko><meta charset=utf-8><title>identity 매칭 전수 검증</title>
-<style>body{{font:14px/1.6 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f6f7f9;color:#1c1e21}}
-header{{background:#1c2733;color:#fff;padding:16px 24px}}header h1{{margin:0;font-size:18px}}.sub{{opacity:.7;font-size:12px}}
-.wrap{{padding:22px;max-width:760px}}.card{{background:#fff;border:1px solid #e3e6ea;border-radius:12px;padding:20px 24px;margin-bottom:16px}}
-table{{border-collapse:collapse;width:100%}}td,th{{padding:10px 12px;border-bottom:1px solid #eef0f2;text-align:left}}
-th{{font-size:12px;color:#65676b}}.big{{font-size:30px;font-weight:700}}.lift{{color:#1a7f37}}.mut{{color:#65676b;font-size:13px}}
-.row{{display:flex;align-items:center;gap:14px;margin:10px 0}}</style>
-<header><h1>identity 매칭 전수 검증 (A/B)</h1><div class=sub>산출 {d['ext']:,}행 · 표본 {d['n']:,} · 임계 {d['thr']} · 정답=style_code</div></header>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel=stylesheet>
+<style>:root{{--bg:#0a0e17;--panel:#121826;--panel2:#0f1420;--bd:#1e2737;--tx:#e8eef9;--mut:#7c8aa3}}
+*{{box-sizing:border-box}}body{{font:14px/1.55 Inter,-apple-system,sans-serif;margin:0;color:var(--tx);min-height:100vh;
+ background:radial-gradient(1200px 600px at 80% -10%,#16213a 0,transparent 60%),var(--bg)}}
+.top{{display:flex;align-items:center;gap:12px;padding:22px 30px}}
+.logo{{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7c5cff,#3f8cff);box-shadow:0 6px 20px rgba(124,92,255,.45)}}
+h1{{margin:0;font-size:17px;font-weight:700}}.sub{{color:var(--mut);font-size:12px}}
+.wrap{{padding:6px 30px 30px;max-width:820px}}
+.kpis{{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}}
+.kpi{{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--bd);border-radius:18px;padding:18px 20px}}
+.kpi.feat{{background:linear-gradient(135deg,rgba(124,92,255,.22),rgba(63,140,255,.10)),var(--panel)}}
+.kpi .lbl{{color:var(--mut);font-size:11.5px;text-transform:uppercase;letter-spacing:.6px}}
+.kpi .val{{font-size:30px;font-weight:800;margin-top:6px;letter-spacing:-1px;font-variant-numeric:tabular-nums}}
+.kpi .val.up{{background:linear-gradient(90deg,#22d3a5,#3f8cff);-webkit-background-clip:text;background-clip:text;color:transparent}}
+.card{{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--bd);border-radius:18px;padding:20px 24px;margin-bottom:16px}}
+.card h2{{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin:0 0 16px}}
+.row{{display:flex;align-items:center;gap:16px;margin:14px 0}}.row .nm{{width:160px;font-size:13.5px;color:#cdd7e6}}.row b{{font-size:18px;width:54px;text-align:right;font-variant-numeric:tabular-nums}}
+table{{border-collapse:separate;border-spacing:0;width:100%}}td,th{{padding:10px 12px;text-align:left;font-size:13px}}th{{color:var(--mut);font-size:11px;text-transform:uppercase}}td{{border-top:1px solid var(--bd);font-variant-numeric:tabular-nums}}
+.mut{{color:var(--mut);font-size:12.5px;margin-top:8px}}.tag{{display:inline-block;background:#0e2a26;color:#22d3a5;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:600}}
+</style>
+<div class=top><div class=logo></div><div><h1>identity 매칭 전수 검증 (A/B)</h1>
+ <div class=sub>산출 {d['ext']:,}행 · 표본 {d['n']:,} · 임계 {d['thr']} · 정답=style_code</div></div></div>
 <div class=wrap>
- <div class=card><b>precision (정답률)</b>
-  <div class=row><div style=width:170px>A) 베이스라인(이름만)</div>{bar(d['A']['precision'],'#b42318')}<b>{d['A']['precision']*100:.0f}%</b></div>
-  <div class=row><div style=width:170px>B) C1(색/사이즈 변별)</div>{bar(d['B']['precision'],'#1a7f37')}<b>{d['B']['precision']*100:.0f}%</b></div>
-  <p class=lift><b>C1 효과: +{d['lift_p']*100:.0f}p</b> (변형충돌을 색/사이즈로 해소). OPT_NM 이 흐르면 얻는 실효.</p></div>
- <div class=card><b>recall / 비용</b>
+ <div class=kpis>
+  <div class=kpi><div class=lbl>A 베이스라인 precision</div><div class=val>{A['precision']*100:.0f}%</div></div>
+  <div class="kpi feat"><div class=lbl>B · C1 precision</div><div class="val up">{B['precision']*100:.0f}%</div></div>
+  <div class=kpi><div class=lbl>C1 상승폭</div><div class="val up">+{d['lift_p']*100:.0f}p</div></div>
+ </div>
+ <div class=card><h2>precision (정답률)</h2>
+  <div class=row><div class=nm>A) 베이스라인(이름만)</div>{bar(A['precision'],Gr)}<b>{A['precision']*100:.0f}%</b></div>
+  <div class=row><div class=nm>B) C1(색/사이즈 변별)</div>{bar(B['precision'],G)}<b>{B['precision']*100:.0f}%</b></div>
+  <p class=mut>변형충돌(같은 이름 다른 style_code)을 색/사이즈로 해소 → OPT_NM 이 흐르면 얻는 실효.</p></div>
+ <div class=card><h2>recall / 비용</h2>
   <table><tr><th>조건</th><th>recall</th><th>precision</th><th>건당</th></tr>
-   <tr><td>A 베이스라인</td><td>{d['A']['recall']*100:.0f}%</td><td>{d['A']['precision']*100:.0f}%</td><td>{d['A']['per_item_ms']}ms</td></tr>
-   <tr><td>B C1</td><td>{d['B']['recall']*100:.0f}%</td><td>{d['B']['precision']*100:.0f}%</td><td>{d['B']['per_item_ms']}ms</td></tr></table>
-  <p class=mut>API 비용 <b>$0</b> (LLM 없음, 매칭=bigram+tie-break 순수 CPU). 전체 {d['full']:,}건 1회 매칭 ≈ <b>{d['full_min']}분</b> (=$0).</p></div>
+   <tr><td>A 베이스라인</td><td>{A['recall']*100:.0f}%</td><td>{A['precision']*100:.0f}%</td><td>{A['per_item_ms']}ms</td></tr>
+   <tr><td>B C1</td><td>{B['recall']*100:.0f}%</td><td>{B['precision']*100:.0f}%</td><td>{B['per_item_ms']}ms</td></tr></table>
+  <p class=mut>API 비용 <span class=tag>$0</span> (LLM 없음, 매칭=bigram+tie-break 순수 CPU). 전체 {d['full']:,}건 1회 ≈ <b>{d['full_min']}분</b>.</p></div>
 </div></html>"""
-
 
 if __name__ == "__main__":
     main()
