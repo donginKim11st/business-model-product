@@ -91,10 +91,12 @@ Mongo insights_demo.products
 1. ✅ **(T1 완료)** product 스키마 계약: `catalogs[].identity`(per-SKU) + `products.identity{brand,status,n_facts}`. 인덱스 `identity.status`.
 2. ✅ **(T1 완료)** reload 보존: `load_mongo.py` projection+`_preserve_async_fields`. (활성 demo 경로는 증분 skip+$set로 이미 안전 — 별도 로더 수정 불필요.)
 3. ✅ **(T2 완료)** `identity_backfill.py`: CSV→uid 매치, **column-agnostic** per-SKU/상품 합류, status enum, resumable. 순수함수 단위테스트 7/7.
-4. ⬜ `export_identity_seed.py` (insight→seed.csv, `identity.status` 부재 필터, category_l1 포함).
-5. ⬜ identity 카테고리별 실행 + `insight_uid` 컬럼 보존(추출기 본체 불변, 씨앗/매칭 래퍼만).
-6. ⬜ `run_identity_loop.sh` + `step_identity.sh` + `STAGES` + `pipeline_progress`(total=전체) 연결.
-7. ⬜ 스모크: 여러 카테고리 end-to-end + 추출기 없는 카테고리(→empty) + reload 후 보존(라이브 Mongo).
+4. ✅ **(T3 완료)** `export_identity_seed.py` (insight→seed.csv, `identity.status` 부재 필터, category_l1 passthrough). 단위 6/6.
+5. ✅ **(T4 완료)** `identity_seed_match.py`: 강키 우선+이름 폴백 매칭 + `insight_uid` 스탬프(추출기 본체 불변). 단위 7/7.
+6. ✅ **(T5 완료)** `run_identity_loop.sh` + `step_identity.sh` + `STAGES['identity']` + `pipeline_progress`(total=전체). 조인만(크롤 별도).
+7. ✅ **(T6 완료)** 라이브 통합 테스트(격리 DB): 합류·공존보존·empty·progress·reload 보존 end-to-end PASS.
+
+**상태: T1~T6 구현 완료.** 5개 테스트 스위트 36개 통과(라이브 통합 포함). 미커밋 연계: `pipeline_progress.py`/`pipeline_trigger.py`(선행 untracked + identity 추가분).
 
 ## Error & Rescue Registry
 ```
