@@ -18,7 +18,7 @@ EXTRACTED="${ID_EXTRACTED:-identity/outputs/all_brands.csv}"
 UIDCSV="${ID_UIDCSV:-identity/outputs/all_brands_uid.csv}"
 TMP="$(mktemp)"
 
-"$PY" db/export_identity_seed.py --out "$SEED" >> "$LOG" 2>&1
+"$PY" db/export_identity_seed.py --out "$SEED" --limit "$BATCH" >> "$LOG" 2>&1
 if [ -f "$EXTRACTED" ]; then
   "$PY" db/identity_seed_match.py --seed "$SEED" --extracted "$EXTRACTED" \
         --out "$UIDCSV" --name-thresh "${ID_NAME_THRESH:-0.4}" \

@@ -24,7 +24,7 @@ echo "===== $(date '+%F %T') [identity] 합류 루프 시작 (DB=$INSIGHTS_DB ·
 
 while true; do
   TMP="$(mktemp)"
-  "$PY" db/export_identity_seed.py --out "$SEED" >> "$LOG" 2>&1
+  "$PY" db/export_identity_seed.py --out "$SEED" --limit "$ID_BATCH" >> "$LOG" 2>&1
 
   if [ -f "$EXTRACTED" ]; then
     "$PY" db/identity_seed_match.py --seed "$SEED" --extracted "$EXTRACTED" \
