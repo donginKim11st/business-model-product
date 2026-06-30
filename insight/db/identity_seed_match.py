@@ -28,9 +28,57 @@ import food_price_backfill as fp          # name_recall(catalog_name, candidate)
 DEFAULT_STRONG_KEYS = ("style_code", "barcode", "gtin")
 DEFAULT_NAME_THRESH = 0.4                 # 식품 골드셋 보정값. 카테고리별 튜닝은 thresh_map 으로.
 
+# 색상어 — 이름 매칭의 변별 근거에서 제외(색상 공유는 동일상품 신호가 아님).
+# "그린"·"화이트" 단독 토큰이 아무 의류 이름에 1.0 으로 붙는 교차도메인 오탐 차단.
+COLOR_WORDS = {
+    "화이트", "블랙", "그린", "레드", "블루", "옐로우", "핑크", "골드", "실버", "그레이", "그래이",
+    "네이비", "브라운", "베이지", "카키", "퍼플", "오렌지", "민트", "와인", "아이보리", "차콜",
+    "버건디", "코랄", "라벤더", "터콰이즈", "크림", "탄", "올리브", "머스타드", "스카이",
+    "white", "black", "green", "red", "blue", "yellow", "pink", "gold", "silver", "grey", "gray",
+    "navy", "brown", "beige", "khaki", "purple", "orange", "mint", "wine", "ivory", "charcoal",
+}
+
 
 def _clean(v):
     return (v.strip() if isinstance(v, str) else v) or None
+
+
+def _content_toks(text):
+    """food_price 토큰화(용량/숫자 제거) 후 색상어까지 제거한 '변별 토큰'."""
+    return [t for t in fp._nm_toks(text or "") if t not in COLOR_WORDS]
+
+
+def _content_bigrams(text):
+    s = "".join(_content_toks(text))
+    return set(s[i:i + 2] for i in range(len(s) - 1)) if len(s) >= 2 else ({s} if s else set())
+
+
+def _content_recall(a, b):
+    """씨앗 변별 bigram 중 후보 이름에 존재하는 비율. 색상어 제외. 내용 없으면 0(=매칭 불가)."""
+    A = _content_bigrams(a)
+    if not A:
+        return 0.0
+    return len(A & _content_bigrams(b)) / len(A)
+
+
+def domain_of(category, domain_map):
+    """category(문자열) → 도메인. domain_map={도메인:[키워드…]}; 키워드가 부분일치하면 그 도메인.
+    카테고리 게이트의 단일 해석 지점. 매핑 없거나 미일치면 None(=게이트 통과/판정 보류)."""
+    if not category or not domain_map:
+        return None
+    for dom, kws in domain_map.items():
+        if any(k in category for k in kws):
+            return dom
+    return None
+
+
+def load_domain_map(path):
+    """도메인 맵 JSON 로드. 예: {"식품":["식품","라면","음료"], "의류·신발":["의류","신발"]}. 없으면 None."""
+    import json
+    if not path or not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
 
 def resolve_thresh(category, thresh_map, default=DEFAULT_NAME_THRESH):
@@ -55,12 +103,18 @@ def load_thresh_map(path):
 
 
 def match_seed_to_extracted(seed_rows, extracted_rows, name_thresh=DEFAULT_NAME_THRESH,
-                            strong_keys=DEFAULT_STRONG_KEYS, thresh_map=None):
+                            strong_keys=DEFAULT_STRONG_KEYS, thresh_map=None,
+                            domain_map=None, extracted_domain=None, min_content_toks=1):
     """순수 함수: 씨앗 행 × identity 산출 행 → uid 스탬프된 산출 행 list.
 
     각 씨앗은 최대 1개 산출에 매칭(강키 우선, 없으면 이름 최고점). 매칭된 산출 행을 복사해
     insight_uid/ctlg_no 를 찍고 _match(매칭 방식)를 기록. unmatched 씨앗은 출력 안 함.
-    이름 폴백 임계는 씨앗의 category_l1 별로 thresh_map 에서 해석(category-agnostic + per-category 튜닝).
+
+    강키 매칭은 게이트를 우회(권위 있음). 이름 폴백에만 적용:
+      · 카테고리 게이트: domain_of(씨앗 category_l1) 와 extracted_domain 이 둘 다 알려졌고 다르면 매칭 안 함.
+        (교차도메인 오탐 차단. domain_map 없거나 미일치면 통과 — 관대.)
+      · 색상어 가드: 색상어 제외 변별 토큰이 min_content_toks 미만이면 매칭 안 함. recall 도 색상어 제외 계산.
+      · 임계는 씨앗 category_l1 별 thresh_map.
     T4 회귀 가드의 단위 검증 지점."""
     # 강키 인덱스: {key: {value: row}}
     strong = {k: {} for k in strong_keys}
@@ -78,12 +132,17 @@ def match_seed_to_extracted(seed_rows, extracted_rows, name_thresh=DEFAULT_NAME_
             if v is not None and v in strong[k]:
                 matched, method = strong[k][v], f"key:{k}"
                 break
-        if matched is None:                          # 2) 이름 폴백(카테고리별 임계)
-            thr = resolve_thresh(s.get("category_l1"), thresh_map, name_thresh)
+        if matched is None:                          # 2) 이름 폴백(게이트 + 색상어 가드 + 카테고리별 임계)
+            sd = domain_of(s.get("category_l1"), domain_map)
+            if extracted_domain and sd and sd != extracted_domain:
+                continue                             # 카테고리 게이트: 도메인 불일치 → 매칭 안 함(오탐 차단)
             disp = _clean(s.get("disp")) or _clean(s.get("keyword")) or ""
+            if len(_content_toks(disp)) < min_content_toks:
+                continue                             # 색상어 가드: 변별 토큰 부족(색상어뿐) → 매칭 안 함
+            thr = resolve_thresh(s.get("category_l1"), thresh_map, name_thresh)
             best, best_score = None, 0.0
             for r in extracted_rows:
-                score = fp.name_recall(disp, r.get("name") or "")
+                score = _content_recall(disp, r.get("name") or "")   # 색상어 제외 recall
                 if score > best_score:
                     best, best_score = r, score
             if best is not None and best_score >= thr:
@@ -100,10 +159,11 @@ def _read_csv(path, encoding="utf-8-sig"):
 
 
 def run(seed_path, extracted_path, out_path, name_thresh=DEFAULT_NAME_THRESH,
-        strong_keys=DEFAULT_STRONG_KEYS, thresh_map=None):
+        strong_keys=DEFAULT_STRONG_KEYS, thresh_map=None, domain_map=None, extracted_domain=None):
     seed = _read_csv(seed_path)
     extracted = _read_csv(extracted_path)              # identity CSV(BOM 가능) → utf-8-sig
-    stamped = match_seed_to_extracted(seed, extracted, name_thresh, strong_keys, thresh_map)
+    stamped = match_seed_to_extracted(seed, extracted, name_thresh, strong_keys, thresh_map,
+                                      domain_map, extracted_domain)
     cols = list(extracted[0].keys()) if extracted else []
     for extra in ("insight_uid", "ctlg_no", "_match"):
         if extra not in cols:
@@ -128,15 +188,22 @@ def main():
                     help='카테고리별 임계 JSON 경로. 예: {"default":0.4,"식품":0.5,"신발":0.35}')
     ap.add_argument("--strong-keys", default=",".join(DEFAULT_STRONG_KEYS),
                     help="강키 우선순위(콤마구분). 양쪽에 있으면 확정 매칭")
+    ap.add_argument("--domain-map", default=os.environ.get("ID_DOMAIN_MAP", ""),
+                    help='카테고리 게이트용 도메인 맵 JSON. 예: {"식품":["라면","음료"],"의류·신발":["의류"]}')
+    ap.add_argument("--extracted-domain", default=os.environ.get("ID_EXTRACTED_DOMAIN", ""),
+                    help="산출 CSV 의 도메인(예: 의류·신발). 씨앗 도메인과 다르면 매칭 차단")
     args = ap.parse_args()
     for p in (args.seed, args.extracted):
         if not os.path.exists(p):
             sys.exit(f"✗ 입력 없음: {p}")
     sk = tuple(k.strip() for k in args.strong_keys.split(",") if k.strip())
     tmap = load_thresh_map(args.thresh_map)
-    n_seed, n_ext, n_match = run(args.seed, args.extracted, args.out, args.name_thresh, sk, tmap)
+    dmap = load_domain_map(args.domain_map)
+    edom = args.extracted_domain or None
+    n_seed, n_ext, n_match = run(args.seed, args.extracted, args.out, args.name_thresh, sk, tmap,
+                                 dmap, edom)
     print(f"매칭: 씨앗 {n_seed:,} × 산출 {n_ext:,} → uid 스탬프 {n_match:,}행 "
-          f"(임계맵 {'적용' if tmap else '없음(기본 '+str(args.name_thresh)+')'}) → {args.out}")
+          f"(임계맵 {'O' if tmap else 'X'} · 게이트 {edom or 'X'}) → {args.out}")
 
 
 if __name__ == "__main__":

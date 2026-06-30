@@ -29,7 +29,9 @@ while true; do
   if [ -f "$EXTRACTED" ]; then
     "$PY" db/identity_seed_match.py --seed "$SEED" --extracted "$EXTRACTED" \
           --out "$UIDCSV" --name-thresh "${ID_NAME_THRESH:-0.4}" \
-          --thresh-map "${ID_THRESH_MAP:-db/identity_name_thresh.json}" >> "$LOG" 2>&1
+          --thresh-map "${ID_THRESH_MAP:-db/identity_name_thresh.json}" \
+          --domain-map "${ID_DOMAIN_MAP:-db/identity_domain_map.json}" \
+          --extracted-domain "${ID_EXTRACTED_DOMAIN:-의류·신발}" >> "$LOG" 2>&1
     "$PY" db/identity_backfill.py --csv "$UIDCSV" --limit "$ID_BATCH" 2>&1 | tee -a "$LOG" > "$TMP"
   else
     echo "$(date '+%F %T') [identity] 산출 CSV 없음($EXTRACTED) — identity 추출 대기" >> "$LOG"

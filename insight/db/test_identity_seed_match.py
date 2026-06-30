@@ -9,7 +9,10 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from identity_seed_match import match_seed_to_extracted, resolve_thresh, DEFAULT_NAME_THRESH
+from identity_seed_match import (match_seed_to_extracted, resolve_thresh, DEFAULT_NAME_THRESH,
+                                 domain_of, _content_recall)
+
+_DMAP = {"식품": ["음료", "라면"], "의류·신발": ["의류", "신발"]}
 
 
 def test_strong_key_match_beats_name():
@@ -99,6 +102,59 @@ def test_method_tag_records_threshold():
     ext = [{"name": "쿡시 미역국 490g", "brand": "쿡시"}]
     out = match_seed_to_extracted(seed, ext, thresh_map={"신발": 0.2})
     assert out[0]["_match"].startswith("name:") and "@0.2" in out[0]["_match"]
+
+
+def test_domain_of():
+    assert domain_of("음료", _DMAP) == "식품"
+    assert domain_of("스포츠의류", _DMAP) == "의류·신발"
+    assert domain_of("가전", _DMAP) is None          # 미등록 → None(게이트 통과)
+    assert domain_of("음료", None) is None            # 맵 없음 → None
+
+
+def test_category_gate_blocks_cross_domain():
+    # 음료(식품) 씨앗이 이름이 겹쳐도 의류 산출과 매칭 안 됨(게이트).
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "category_l1": "음료", "disp": "스파클 생수"}]
+    ext = [{"name": "스파클 조개 슬리퍼", "brand": "크록스"}]
+    out = match_seed_to_extracted(seed, ext, domain_map=_DMAP, extracted_domain="의류·신발")
+    assert out == []                                  # 도메인 불일치 → 차단
+
+
+def test_category_gate_permissive_on_unknown():
+    # 미등록 카테고리(가전)는 도메인 None → 게이트 통과(이름 매칭 시도).
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "category_l1": "가전", "disp": "쿡시 미역국"}]
+    ext = [{"name": "쿡시 미역국 490g", "brand": "쿡시"}]
+    out = match_seed_to_extracted(seed, ext, domain_map=_DMAP, extracted_domain="의류·신발")
+    assert len(out) == 1                              # 미등록 → 통과 → 이름 매칭
+
+
+def test_category_gate_allows_same_domain():
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "category_l1": "스포츠의류", "disp": "나이키 운동화"}]
+    ext = [{"name": "나이키 운동화 에어", "brand": "나이키"}]
+    out = match_seed_to_extracted(seed, ext, domain_map=_DMAP, extracted_domain="의류·신발")
+    assert len(out) == 1                              # 같은 도메인 → 매칭
+
+
+def test_color_guard_color_only_seed_blocked():
+    # 색상어뿐인 씨앗은 변별 토큰 없음 → 매칭 안 함.
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "category_l1": "가전", "disp": "그린"}]
+    ext = [{"name": "스프레드 로고 슬리브리스 그린", "brand": "아웃도어"}]
+    assert match_seed_to_extracted(seed, ext) == []
+
+
+def test_color_word_not_match_basis():
+    # 색상만 겹치는 교차상품은 content recall 0 → 매칭 안 됨(그린 제외).
+    assert _content_recall("글로벌심층수 딥스 그린", "스프레드 로고 슬리브리스 그린") == 0.0
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "category_l1": "가전", "disp": "글로벌심층수 딥스 그린"}]
+    ext = [{"name": "스프레드 로고 슬리브리스 그린", "brand": "아웃도어"}]
+    assert match_seed_to_extracted(seed, ext) == []
+
+
+def test_strong_key_bypasses_gates():
+    # 강키 매칭은 도메인 게이트/색상 가드 우회(권위).
+    seed = [{"insight_uid": "P1", "ctlg_no": "C1", "category_l1": "음료", "style_code": "S1", "disp": "그린"}]
+    ext = [{"style_code": "S1", "name": "전혀 다른 의류", "brand": "A"}]
+    out = match_seed_to_extracted(seed, ext, domain_map=_DMAP, extracted_domain="의류·신발")
+    assert len(out) == 1 and out[0]["_match"] == "key:style_code"
 
 
 if __name__ == "__main__":
