@@ -38,3 +38,31 @@ def test_catalog_qty_uses_structured_fields():
 def test_catalog_qty_fallback_to_disp():
     cat = {"size": None, "count": None, "disp": "쿡시 미역국 96g 12개"}
     assert V.catalog_qty(cat) == {"mass": 96.0, "vol": None, "count": 12}
+
+
+def _ctx(catalog, opts=None):
+    ins = catalog.get("insight")
+    return {"db": None, "pkg_uid": "P1", "ctlg_no": catalog.get("ctlg_no"),
+            "disp": catalog.get("disp"), "catalog": catalog, "insight": ins,
+            "opts": opts or {}}
+
+
+def test_flag_drift_insight_present_flag_false():
+    cat = {"ctlg_no": 1, "has_insight": False, "insight": {"dims": [{"dim": "x"}]}}
+    detail = V.detect_flag_drift(_ctx(cat))
+    assert detail is not None
+    spec = V.fix_flag_drift(_ctx(cat))
+    assert spec["update"] == {"$set": {"catalogs.$[c].has_insight": True}}
+    assert spec["array_filters"] == [{"c.ctlg_no": 1}]
+
+
+def test_flag_drift_flag_true_no_insight():
+    cat = {"ctlg_no": 2, "has_insight": True, "insight": None}
+    assert V.detect_flag_drift(_ctx(cat)) is not None
+    spec = V.fix_flag_drift(_ctx(cat))
+    assert spec["update"] == {"$set": {"catalogs.$[c].has_insight": False}}
+
+
+def test_flag_drift_consistent_is_noop():
+    cat = {"ctlg_no": 3, "has_insight": True, "insight": {"dims": [{"dim": "x"}]}}
+    assert V.detect_flag_drift(_ctx(cat)) is None

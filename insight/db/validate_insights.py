@@ -14,6 +14,39 @@ import json
 import argparse
 from datetime import datetime, timezone
 
+
+def now_iso():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _af(ctlg_no):
+    return [{"c.ctlg_no": ctlg_no}]
+
+
+class Rule:
+    def __init__(self, id, severity, detect, fix=None):
+        self.id = id
+        self.severity = severity
+        self.detect = detect
+        self.fix = fix
+
+
+# --- R1: flag_drift -------------------------------------------------------
+def detect_flag_drift(ctx):
+    actual = bool(ctx["catalog"].get("insight"))
+    flag = bool(ctx["catalog"].get("has_insight"))
+    if actual != flag:
+        return f"has_insight={flag} but insight present={actual}"
+    return None
+
+
+def fix_flag_drift(ctx):
+    actual = bool(ctx["catalog"].get("insight"))
+    return {"filter": {"_id": ctx["pkg_uid"]},
+            "update": {"$set": {"catalogs.$[c].has_insight": actual}},
+            "array_filters": _af(ctx["ctlg_no"])}
+
+
 _KG = re.compile(r'(\d+(?:\.\d+)?)\s*kg', re.I)
 _G = re.compile(r'(\d+(?:\.\d+)?)\s*g(?![a-z])', re.I)
 _L = re.compile(r'(\d+(?:\.\d+)?)\s*l(?![a-z])', re.I)
