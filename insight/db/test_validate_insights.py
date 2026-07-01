@@ -255,3 +255,31 @@ def test_run_rules_filter():
     rep = V.run(db, {"limit": 0, "dry_run": True, "rules": ["flag_drift"],
                      "llm_gate": False})
     assert {v["rule_id"] for v in rep["violations"]} == {"flag_drift"}
+
+
+# --- Task 5 Fix 1: flag_drift content-existence ----------------------------
+
+def test_flag_drift_empty_insight_false_flag_is_noop():
+    # 무효화/빈 insight({dims:[]}) + has_insight:False 는 일치 → no-op (R2와 수렴).
+    cat = {"ctlg_no": 10, "has_insight": False,
+           "insight": {"dims": [], "faqs": [], "n_sources": 0}}
+    assert V.detect_flag_drift(_ctx(cat)) is None
+
+
+def test_flag_drift_empty_insight_true_flag_detects():
+    # 빈 insight 인데 has_insight:True → 드리프트, False 로 수정.
+    cat = {"ctlg_no": 11, "has_insight": True, "insight": {"dims": [], "faqs": []}}
+    assert V.detect_flag_drift(_ctx(cat)) is not None
+    spec = V.fix_flag_drift(_ctx(cat))
+    assert spec["update"] == {"$set": {"catalogs.$[c].has_insight": False}}
+
+
+# --- Task 5 Fix 2: source_mismatch count exclusion -------------------------
+
+def test_source_mismatch_count_only_diff_no_trigger():
+    # mass 일치(92g)·count만 다름(12개 vs evidence 6개입) → count 제외이므로 트리거 안 함.
+    cat = {"ctlg_no": 20, "size": "92g", "count": "12개", "disp": "미역국 92g 12개",
+           "has_insight": True,
+           "insight": _insight_with_evidence("미역국 92g 6개입", "미역국 92g 6개입 후기")}
+    ctx = _ctx(cat, opts={"llm_gate": False})
+    assert V.detect_source_mismatch(ctx) is None

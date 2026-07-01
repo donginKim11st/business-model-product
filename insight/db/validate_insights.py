@@ -33,7 +33,7 @@ class Rule:
 
 # --- R1: flag_drift -------------------------------------------------------
 def detect_flag_drift(ctx):
-    actual = bool(ctx["catalog"].get("insight"))
+    actual = bool((ctx["catalog"].get("insight") or {}).get("dims"))
     flag = bool(ctx["catalog"].get("has_insight"))
     if actual != flag:
         return f"has_insight={flag} but insight present={actual}"
@@ -41,7 +41,7 @@ def detect_flag_drift(ctx):
 
 
 def fix_flag_drift(ctx):
-    actual = bool(ctx["catalog"].get("insight"))
+    actual = bool((ctx["catalog"].get("insight") or {}).get("dims"))
     return {"filter": {"_id": ctx["pkg_uid"]},
             "update": {"$set": {"catalogs.$[c].has_insight": actual}},
             "array_filters": _af(ctx["ctlg_no"])}
@@ -123,7 +123,7 @@ def detect_source_mismatch(ctx):
         return None
     evq = [parse_qty(t) for t in texts]
     # 1) 휴리스틱: catalog에 값이 있고 evidence 다수(과반)가 명확히 다른 값이면 mismatch.
-    for dim in ("mass", "vol", "count"):
+    for dim in ("mass", "vol"):   # count는 리뷰 문구 노이즈 → 파괴적 트리거에서 제외
         cv = cat.get(dim)
         if cv is None:
             continue
