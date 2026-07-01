@@ -94,7 +94,8 @@ def group(drows):
         size_range = cd.size_range_label([s for m in members
                                           for s in (m.get("size") or "").split("|")])
         color_for_name = cd.primary_color(colors[0]) if len(colors) == 1 else ""
-        attrs = cd.name_attrs(gender, product_type, color_for_name, size_range, cap=5)
+        # 모델 롤업 이름엔 사이즈 제외(사이즈는 size_range 컬럼·개별 카탈로그는 Stage1).
+        attrs = cd.name_attrs(gender, product_type, color_for_name, "", cap=5)
         catalog_name = cd.compose_catalog_name(members[0].get("brand_norm", ""), product_name, attrs)
         cats.append({
             "source": members[0].get("source", ""),

@@ -174,8 +174,9 @@ def decompose_row(row):
     product_line = clean_product_line(name, source, row.get("color"))
     product_name = strip_type(product_line, product_type)
     color = color_ko(_norm(row.get("color")))
-    attrs = name_attrs(gender, product_type, primary_color(color),
-                       size_label(row.get("sizes")), cap=5)
+    # 사이즈 제외한 기저 카탈로그명(브랜드+상품명+성별+유형+색상). 사이즈는 run_stage1 에서
+    # 사이즈별로 전개(explode)하며 이름 끝에 단일 사이즈를 붙인다.
+    attrs = name_attrs(gender, product_type, primary_color(color))
     catalog_name = compose_catalog_name(brand_norm, product_name, attrs)
     return {
         "source": source,
@@ -203,15 +204,26 @@ def run_stage1(in_path=IN_DEFAULT, out_path=OUT_DEFAULT, limit=0, llm_gate=False
     rows = list(csv.DictReader(open(in_path, encoding="utf-8-sig")))
     if limit:
         rows = rows[:limit]
-    out, n_empty, n_llm = [], 0, 0
+    out, n_empty = [], 0
     for r in rows:
         if not (r.get("name") or "").strip():
             n_empty += 1
             continue
-        d = decompose_row(r)
-        if d["needs_llm"] == "1":
-            n_llm += 1
-        out.append(d)
+        base = decompose_row(r)
+        sizes = [s.strip() for s in (r.get("sizes") or "").split("|") if s.strip()]
+        if sizes:
+            # 사이즈마다 별도 카탈로그로 전개(브랜드+상품명+성별+유형+색상+단일사이즈).
+            for s in sizes:
+                d = dict(base)
+                d["size"] = s
+                d["catalog_name"] = compose_catalog_name(
+                    base["brand_norm"], base["product_name"],
+                    name_attrs(base["gender"], base["product_type"],
+                               primary_color(base["color"]), s, cap=5))
+                out.append(d)
+        else:
+            out.append(base)
+    n_llm = sum(1 for d in out if d["needs_llm"] == "1")
     if llm_gate:
         import catalog_llm_gate as gate
         n_gated = gate.apply_stage1(out, limit=llm_limit)

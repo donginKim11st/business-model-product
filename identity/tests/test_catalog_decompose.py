@@ -108,9 +108,11 @@ def test_run_stage1_writes_output(tmp_path):
                     "url": "http://x"})
     out = tmp_path / "out.csv"
     summary = cd.run_stage1(str(src), str(out), limit=0)
-    assert summary["rows"] == 1
-    rows = list(_csv.DictReader(open(out, encoding="utf-8-sig")))
-    assert rows[0]["catalog_name"] == "아이더 ST 슬라이드 2 공용 신발 레드 250~260"
+    assert summary["rows"] == 2   # 사이즈 250·260 → 각각 별도 카탈로그
+    rows = sorted(_csv.DictReader(open(out, encoding="utf-8-sig")), key=lambda r: r["size"])
+    assert [r["size"] for r in rows] == ["250", "260"]
+    assert rows[0]["catalog_name"] == "아이더 ST 슬라이드 2 공용 신발 레드 250"
+    assert rows[1]["catalog_name"] == "아이더 ST 슬라이드 2 공용 신발 레드 260"
     assert list(rows[0].keys()) == cd.OUT_COLS
 
 
