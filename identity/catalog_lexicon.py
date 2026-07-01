@@ -72,3 +72,6 @@ STYLECODE_SUFFIX = {
     "redface": {"tail_digit": 3},
     "prospecs": {"tail_digit": 3},
 }
+
+# 성별 코드 → 한글 라벨(카탈로그명·컬럼 표시용)
+GENDER_LABEL = {"M": "남성", "W": "여성", "U": "공용", "K": "키즈"}

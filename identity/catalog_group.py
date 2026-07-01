@@ -13,13 +13,15 @@ import collections
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import catalog_lexicon as lex
+import catalog_decompose as cd
 
 IN_DEFAULT = os.path.join(HERE, "outputs", "catalog_decomposed.csv")
 OUT_DEFAULT = os.path.join(HERE, "outputs", "catalogs.csv")
 
-GROUP_COLS = ["source", "brand_norm", "model_key", "catalog_name", "product_type",
-              "gender", "colorways", "n_colorways", "style_codes", "price_min",
-              "price_max", "size_range", "n_variants", "sample_url"]
+GROUP_COLS = ["source", "brand_norm", "model_key", "catalog_name", "product_name",
+              "gender", "product_type", "colors", "n_colors", "size_range",
+              "materials", "origins", "style_codes", "price_min", "price_max",
+              "n_variants", "sample_url"]
 
 _WS = re.compile(r"\s+")
 
@@ -48,8 +50,8 @@ def base_style_code(source, style_code):
 
 
 def name_key(d):
-    parts = [d.get("source", ""), d.get("product_line", ""),
-             d.get("product_type", ""), d.get("gender_norm", "")]
+    parts = [d.get("source", ""), d.get("product_name", ""),
+             d.get("product_type", ""), d.get("gender_code", "")]
     return "name:" + _WS.sub("", " ".join(parts)).lower()
 
 
@@ -58,6 +60,13 @@ def model_key(d):
     if b:
         return "sc:%s:%s" % (d.get("source", ""), b)
     return name_key(d)
+
+
+def _modal(values):
+    vals = [v for v in values if v]
+    if not vals:
+        return ""
+    return collections.Counter(vals).most_common(1)[0][0]
 
 
 def _isnum(s):
@@ -71,11 +80,10 @@ def _isnum(s):
 def _sizes_of(members):
     vals = []
     for m in members:
-        for s in (m.get("sizes") or "").split("|"):
+        for s in (m.get("size") or "").split("|"):
             s = s.strip()
             if s:
                 vals.append(s)
-    # 숫자 사이즈는 수치 정렬, 아니면 문자 정렬
     try:
         uniq = sorted(set(vals), key=lambda x: float(x))
     except ValueError:
@@ -89,26 +97,33 @@ def group(drows):
         buckets.setdefault(model_key(d), []).append(d)
     cats = []
     for key, members in buckets.items():
-        names = [m.get("catalog_name", "") for m in members if m.get("catalog_name")]
-        rep = collections.Counter(names).most_common(1)[0][0] if names else ""
+        product_name = _modal([m.get("product_name", "") for m in members])
+        gender = _modal([m.get("gender", "") for m in members])
+        product_type = _modal([m.get("product_type", "") for m in members])
+        attrs = cd.name_attrs(gender, product_type, "", include_color=False)
+        catalog_name = cd.compose_catalog_name(members[0].get("brand_norm", ""), product_name, attrs)
         prices = [float(m["price"]) for m in members if _isnum(m.get("price"))]
-        colors = sorted({m.get("colorway", "") for m in members if m.get("colorway")})
-        genders = sorted({m.get("gender_norm", "") for m in members if m.get("gender_norm")})
+        colors = sorted({m.get("color", "") for m in members if m.get("color")})
+        materials = sorted({m.get("material", "") for m in members if m.get("material")})
+        origins = sorted({m.get("origin", "") for m in members if m.get("origin")})
         codes = {m.get("style_code", "") for m in members if m.get("style_code")}
         sizes = _sizes_of(members)
         cats.append({
             "source": members[0].get("source", ""),
             "brand_norm": members[0].get("brand_norm", ""),
             "model_key": key,
-            "catalog_name": rep,
-            "product_type": members[0].get("product_type", ""),
-            "gender": "|".join(genders),
-            "colorways": "|".join(colors),
-            "n_colorways": str(len(colors)),
+            "catalog_name": catalog_name,
+            "product_name": product_name,
+            "gender": gender,
+            "product_type": product_type,
+            "colors": "|".join(colors),
+            "n_colors": str(len(colors)),
+            "size_range": ("%s~%s" % (sizes[0], sizes[-1])) if sizes else "",
+            "materials": "|".join(materials),
+            "origins": "|".join(origins),
             "style_codes": str(len(codes)),
             "price_min": str(int(min(prices))) if prices else "",
             "price_max": str(int(max(prices))) if prices else "",
-            "size_range": ("%s~%s" % (sizes[0], sizes[-1])) if sizes else "",
             "n_variants": str(len(members)),
             "sample_url": members[0].get("url", ""),
         })

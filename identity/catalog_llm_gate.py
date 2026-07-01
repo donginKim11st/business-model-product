@@ -12,6 +12,8 @@ import hashlib
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import catalog_decompose as cd
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 URL = "https://api.openai.com/v1/chat/completions"
 CACHE_PATH = os.path.join(HERE, "outputs", "_catalog_llm_cache.json")
@@ -52,11 +54,11 @@ def _call_openai(prompt, api_key):
 
 def _decompose_prompt(row):
     return (
-        "다음 스포츠/아웃도어 상품의 원본명에서 '깨끗한 상품명(product_line)'과 "
+        "다음 스포츠/아웃도어 상품의 원본명에서 '핵심 상품명(product_name)'과 "
         "'상품유형(product_type)', '성별(gender: M/W/U/K/빈칸)'을 뽑으세요.\n"
-        "규칙: 브랜드명·성별·색상·한/영 중복은 상품명에서 제외. 모델라인+유형만 남김.\n"
+        "규칙: 브랜드명·성별·색상·유형·한/영 중복은 상품명에서 제외. 핵심 모델명만 남김.\n"
         "브랜드: %s\n원본명: %s\n"
-        '오직 JSON만: {"product_line": "...", "product_type": "...", "gender": "M|W|U|K|"}'
+        '오직 JSON만: {"product_name": "...", "product_type": "...", "gender": "M|W|U|K|"}'
         % (row.get("brand_norm", ""), row.get("name", ""))
     )
 
@@ -86,14 +88,17 @@ def apply_stage1(rows, limit=0, api_key=None, cache=None):
                 print("  [LLM] 호출 실패(규칙 유지): %s" % e)
                 continue
         parsed = cache[k]
-        pl = _WS.sub(" ", (parsed.get("product_line") or "")).strip()
-        if pl:
-            r["product_line"] = pl
+        pn = _WS.sub(" ", (parsed.get("product_name") or "")).strip()
+        if pn:
+            r["product_name"] = pn
             r["product_type"] = parsed.get("product_type") or r.get("product_type", "")
             g = parsed.get("gender")
             if g in ("M", "W", "U", "K"):
-                r["gender_norm"] = g
-            r["catalog_name"] = _WS.sub(" ", "%s %s" % (r.get("brand_norm", ""), pl)).strip()
+                r["gender_code"] = g
+                r["gender"] = cd.lex.GENDER_LABEL.get(g, r.get("gender", ""))
+            attrs = cd.name_attrs(r.get("gender", ""), r.get("product_type", ""),
+                                  cd.primary_color(r.get("color", "")), True)
+            r["catalog_name"] = cd.compose_catalog_name(r.get("brand_norm", ""), pn, attrs)
             r["needs_llm"] = "0"
             n_done += 1
     left = len(cands) - n_done

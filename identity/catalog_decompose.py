@@ -17,9 +17,9 @@ import catalog_lexicon as lex
 IN_DEFAULT = os.path.join(HERE, "outputs", "all_brands.csv")
 OUT_DEFAULT = os.path.join(HERE, "outputs", "catalog_decomposed.csv")
 
-OUT_COLS = ["source", "brand_norm", "style_code", "catalog_name", "product_line",
-            "product_type", "gender_norm", "colorway", "price", "sizes", "url",
-            "name", "needs_llm"]
+OUT_COLS = ["source", "brand_norm", "style_code", "catalog_name", "product_name",
+            "gender", "product_type", "color", "size", "material", "origin",
+            "gender_code", "price", "url", "name", "needs_llm"]
 
 _JUNK = re.compile(r"★[^★]*★|\[[^\]]*\]")
 _WS = re.compile(r"\s+")
@@ -73,6 +73,34 @@ def _strip_tokens(text, tokens):
     return _WS.sub(" ", out).strip()
 
 
+def primary_color(color):
+    """색상 컬럼값에서 이름에 붙일 대표색 1개(콤마/슬래시/파이프 앞 첫 세그먼트)."""
+    if not color:
+        return ""
+    return re.split(r"[,/|]", color)[0].strip()
+
+
+def strip_type(product_line, product_type):
+    """상품명 = product_line 에서 유형 명사 제거(핵심 모델명). 유형 없으면 그대로."""
+    if not product_type:
+        return product_line
+    return _strip_tokens(product_line, [product_type])
+
+
+def name_attrs(gender_label, product_type, color, include_color=True):
+    """카탈로그명에 붙일 속성(우선순위 성별→유형→색상, 빈값 제외, 최대 3)."""
+    seq = [gender_label, product_type]
+    if include_color:
+        seq.append(color)
+    return [a for a in seq if a][:3]
+
+
+def compose_catalog_name(brand_norm, product_name, attrs):
+    """브랜드 + 상품명 + 속성들 → 정규 카탈로그명."""
+    parts = [brand_norm, product_name] + list(attrs)
+    return _WS.sub(" ", " ".join(p for p in parts if p)).strip()
+
+
 def clean_product_line(name, source, color):
     line = _JUNK.sub(" ", name or "")
     line = _norm(line)
@@ -96,24 +124,31 @@ def decompose_row(row):
     source = (row.get("source") or "").strip()
     name = row.get("name") or ""
     brand_norm = lex.BRAND_KO.get(source) or (row.get("brand") or source or "").strip()
-    gender_norm = norm_gender(row.get("gender"), name)
+    gender_code = norm_gender(row.get("gender"), name)
+    gender = lex.GENDER_LABEL.get(gender_code, "")
     product_type = find_product_type(row.get("category"), name)
     product_line = clean_product_line(name, source, row.get("color"))
-    catalog_name = _WS.sub(" ", ("%s %s" % (brand_norm, product_line))).strip()
+    product_name = strip_type(product_line, product_type)
+    color = _norm(row.get("color"))
+    attrs = name_attrs(gender, product_type, primary_color(color), include_color=True)
+    catalog_name = compose_catalog_name(brand_norm, product_name, attrs)
     return {
         "source": source,
         "brand_norm": brand_norm,
         "style_code": (row.get("style_code") or "").strip(),
         "catalog_name": catalog_name,
-        "product_line": product_line,
+        "product_name": product_name,
+        "gender": gender,
         "product_type": product_type or "",
-        "gender_norm": gender_norm or "",
-        "colorway": _norm(row.get("color")),
+        "color": color,
+        "size": (row.get("sizes") or "").strip(),
+        "material": _norm(row.get("material")),
+        "origin": _norm(row.get("origin")),
+        "gender_code": gender_code or "",
         "price": (row.get("price") or "").strip(),
-        "sizes": (row.get("sizes") or "").strip(),
         "url": (row.get("url") or "").strip(),
         "name": _norm(name),
-        "needs_llm": "1" if compute_needs_llm(product_line) else "0",
+        "needs_llm": "1" if compute_needs_llm(product_name) else "0",
     }
 
 
