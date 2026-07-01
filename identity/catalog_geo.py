@@ -15,6 +15,7 @@ import sys
 import json
 import argparse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -85,7 +86,17 @@ def _call(prompt, api_key):
     return payload["choices"][0]["message"]["content"].strip()
 
 
-def run_batch(in_path=IN_DEFAULT, batch=200, api_key=None):
+def _one(api_key, brand, pn, ptype):
+    try:
+        txt = _call(_prompt(brand, pn, ptype), api_key)
+        can = _WS.sub(" ", json.loads(txt[txt.find("{"): txt.rfind("}") + 1])
+                      .get("canonical", "")).strip()
+    except Exception:
+        can = ""
+    return _key(brand, pn), (can or pn)   # 실패/빈값 → 원문 폴백(드레인 보장)
+
+
+def run_batch(in_path=IN_DEFAULT, batch=200, api_key=None, workers=4):
     api_key = api_key or os.environ.get("OPENAI_API_KEY")
     store = store_load()
     pend = pending(in_path, store)
@@ -99,16 +110,22 @@ def run_batch(in_path=IN_DEFAULT, batch=200, api_key=None):
     if not api_key:
         return {"stage": "catalog_geo", "error": "no OPENAI_API_KEY",
                 "processed": 0, "progress": prog(len(pend))}
+    todo = pend[:batch] if batch else pend   # batch=0 → 전량
     done = 0
-    for brand, pn, ptype in pend[:batch]:
-        try:
-            txt = _call(_prompt(brand, pn, ptype), api_key)
-            can = _WS.sub(" ", json.loads(txt[txt.find("{"): txt.rfind("}") + 1])
-                          .get("canonical", "")).strip()
-        except Exception:
-            can = ""
-        store[_key(brand, pn)] = can or pn   # 실패/빈값 → 원문 폴백(드레인 보장)
-        done += 1
+    if workers and workers > 1:
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futs = [ex.submit(_one, api_key, b, p, t) for b, p, t in todo]
+            for fut in as_completed(futs):
+                k, v = fut.result()
+                store[k] = v
+                done += 1
+                if done % 500 == 0:
+                    store_save(store)   # 주기적 저장(장시간 드레인 안전)
+    else:
+        for b, p, t in todo:
+            k, v = _one(api_key, b, p, t)
+            store[k] = v
+            done += 1
     store_save(store)
     return {"stage": "catalog_geo", "processed": done, "model": MODEL,
             "progress": prog(len(pend) - done)}
@@ -117,9 +134,10 @@ def run_batch(in_path=IN_DEFAULT, batch=200, api_key=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="in_path", default=IN_DEFAULT)
-    ap.add_argument("--batch", type=int, default=200)
+    ap.add_argument("--batch", type=int, default=200, help="0=전량")
+    ap.add_argument("--workers", type=int, default=int(os.environ.get("CATALOG_GEO_WORKERS", "4")))
     args = ap.parse_args()
-    print(json.dumps(run_batch(args.in_path, args.batch), ensure_ascii=False))
+    print(json.dumps(run_batch(args.in_path, args.batch, workers=args.workers), ensure_ascii=False))
 
 
 if __name__ == "__main__":
