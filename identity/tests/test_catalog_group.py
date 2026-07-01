@@ -44,3 +44,29 @@ def test_group_by_name_fallback_adidas():
 
 def test_group_cols_stable():
     assert cg.GROUP_COLS[:4] == ["source", "brand_norm", "model_key", "catalog_name"]
+
+
+import csv as _csv
+
+def test_run_stage2_writes_output(tmp_path):
+    src = tmp_path / "dec.csv"
+    import catalog_decompose as cd
+    with open(src, "w", encoding="utf-8-sig", newline="") as f:
+        w = _csv.DictWriter(f, fieldnames=cd.OUT_COLS)
+        w.writeheader()
+        w.writerow({"source": "nike", "brand_norm": "나이키", "style_code": "IM5752-300",
+                    "catalog_name": "나이키 에어 포스 1", "product_line": "에어 포스 1",
+                    "product_type": "신발", "gender_norm": "M", "colorway": "퍼",
+                    "price": "159000", "sizes": "240|250", "url": "http://x",
+                    "name": "에어 포스 1", "needs_llm": "0"})
+        w.writerow({"source": "nike", "brand_norm": "나이키", "style_code": "IM5752-100",
+                    "catalog_name": "나이키 에어 포스 1", "product_line": "에어 포스 1",
+                    "product_type": "신발", "gender_norm": "M", "colorway": "화이트",
+                    "price": "159000", "sizes": "250|260", "url": "http://y",
+                    "name": "에어 포스 1", "needs_llm": "0"})
+    out = tmp_path / "cat.csv"
+    summary = cg.run_stage2(str(src), str(out))
+    assert summary["catalogs"] == 1
+    rows = list(_csv.DictReader(open(out, encoding="utf-8-sig")))
+    assert rows[0]["n_variants"] == "2"
+    assert list(rows[0].keys()) == cg.GROUP_COLS

@@ -113,3 +113,35 @@ def group(drows):
             "sample_url": members[0].get("url", ""),
         })
     return cats
+
+
+def run_stage2(in_path=IN_DEFAULT, out_path=OUT_DEFAULT, llm_gate=False, llm_limit=0):
+    if not os.path.exists(in_path):
+        sys.exit("✗ 입력 없음: %s — 먼저 catalog_decompose.py 를 실행하세요." % in_path)
+    drows = list(csv.DictReader(open(in_path, encoding="utf-8-sig")))
+    cats = group(drows)
+    if llm_gate:
+        import catalog_llm_gate as gate
+        n = gate.apply_stage2(cats, drows, limit=llm_limit)
+        print("  [LLM] 그룹 보정 %d건 (모델 %s)" % (n, gate.MODEL))
+    with open(out_path, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=GROUP_COLS)
+        w.writeheader()
+        for c in cats:
+            w.writerow(c)
+    print("[Stage2] %d행 → %d 카탈로그 → %s" % (len(drows), len(cats), out_path))
+    return {"rows": len(drows), "catalogs": len(cats)}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--in", dest="in_path", default=IN_DEFAULT)
+    ap.add_argument("--out", dest="out_path", default=OUT_DEFAULT)
+    ap.add_argument("--llm-gate", action="store_true")
+    ap.add_argument("--llm-limit", type=int, default=0)
+    args = ap.parse_args()
+    run_stage2(args.in_path, args.out_path, args.llm_gate, args.llm_limit)
+
+
+if __name__ == "__main__":
+    main()
