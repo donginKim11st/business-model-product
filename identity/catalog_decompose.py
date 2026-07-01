@@ -9,6 +9,7 @@ import csv
 import sys
 import argparse
 import unicodedata
+import json
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -17,9 +18,12 @@ import catalog_lexicon as lex
 IN_DEFAULT = os.path.join(HERE, "outputs", "all_brands.csv")
 OUT_DEFAULT = os.path.join(HERE, "outputs", "catalog_decomposed.csv")
 
-OUT_COLS = ["source", "brand_norm", "style_code", "catalog_name", "product_name",
-            "gender", "product_type", "color", "size", "material", "origin",
-            "gender_code", "price", "url", "name", "needs_llm"]
+OUT_COLS = ["source", "brand_norm", "style_code", "title_geo", "title_commerce",
+            "product_name", "gender", "product_type", "color", "size", "material",
+            "origin", "gender_code", "price", "url", "name", "needs_llm"]
+
+CANON_PATH = os.path.join(HERE, "outputs", "_catalog_canonical.json")
+_CANON = None
 
 _JUNK = re.compile(r"★[^★]*★|\[[^\]]*\]")
 _WS = re.compile(r"\s+")
@@ -145,6 +149,34 @@ def compose_catalog_name(brand_norm, product_name, attrs):
     return _WS.sub(" ", " ".join(p for p in parts if p)).strip()
 
 
+def _canon_store():
+    """title_geo canonical 캐시(catalog_geo 배치가 채움). 없으면 빈 dict."""
+    global _CANON
+    if _CANON is None:
+        try:
+            _CANON = json.load(open(CANON_PATH, encoding="utf-8")) if os.path.exists(CANON_PATH) else {}
+        except (ValueError, OSError):
+            _CANON = {}
+    return _CANON
+
+
+def canonical_name(brand_norm, product_name):
+    """title_geo 용 canonical 모델명. 배치 캐시 우선, 없으면 원 상품명 폴백."""
+    return _canon_store().get("%s|%s" % (brand_norm, product_name), product_name)
+
+
+def commerce_size(size, product_type):
+    """커머스 제목용 사이즈: 가방 치수 제외, 아디 A/ 접두 제거, 신발 숫자는 mm 부여."""
+    s = (size or "").strip()
+    if not s or "*" in s or "cm" in s.lower():
+        return ""
+    if s.upper().startswith("A/"):
+        s = s[2:]
+    if product_type in lex.FOOTWEAR_TYPES and re.match(r"^\d+(\.\d+)?$", s):
+        return s + "mm"
+    return s
+
+
 def clean_product_line(name, source, color):
     line = _JUNK.sub(" ", name or "")
     line = _norm(line)
@@ -174,15 +206,19 @@ def decompose_row(row):
     product_line = clean_product_line(name, source, row.get("color"))
     product_name = strip_type(product_line, product_type)
     color = color_ko(_norm(row.get("color")))
-    # 사이즈 제외한 기저 카탈로그명(브랜드+상품명+성별+유형+색상). 사이즈는 run_stage1 에서
-    # 사이즈별로 전개(explode)하며 이름 끝에 단일 사이즈를 붙인다.
-    attrs = name_attrs(gender, product_type, primary_color(color))
-    catalog_name = compose_catalog_name(brand_norm, product_name, attrs)
+    gender_c = gender if gender != "공용" else ""   # 커머스 제목엔 '공용' 노이즈 제외
+    # title_geo: 브랜드 + canonical 모델명 + 유형 (색상·사이즈·성별 제외, AI검색 엔티티용).
+    title_geo = compose_catalog_name(brand_norm, canonical_name(brand_norm, product_name),
+                                     [product_type] if product_type else [])
+    # title_commerce(기저): 브랜드+상품명+성별+유형+색상. 사이즈는 run_stage1 에서 전개하며 붙인다.
+    title_commerce = compose_catalog_name(brand_norm, product_name,
+                                          name_attrs(gender_c, product_type, primary_color(color)))
     return {
         "source": source,
         "brand_norm": brand_norm,
         "style_code": (row.get("style_code") or "").strip(),
-        "catalog_name": catalog_name,
+        "title_geo": title_geo,
+        "title_commerce": title_commerce,
         "product_name": product_name,
         "gender": gender,
         "product_type": product_type or "",
@@ -210,16 +246,17 @@ def run_stage1(in_path=IN_DEFAULT, out_path=OUT_DEFAULT, limit=0, llm_gate=False
             n_empty += 1
             continue
         base = decompose_row(r)
+        gender_c = base["gender"] if base["gender"] != "공용" else ""
         sizes = [s.strip() for s in (r.get("sizes") or "").split("|") if s.strip()]
         if sizes:
-            # 사이즈마다 별도 카탈로그로 전개(브랜드+상품명+성별+유형+색상+단일사이즈).
+            # 사이즈마다 별도 카탈로그로 전개(title_commerce 끝에 단일 사이즈; title_geo 는 동일).
             for s in sizes:
                 d = dict(base)
                 d["size"] = s
-                d["catalog_name"] = compose_catalog_name(
+                d["title_commerce"] = compose_catalog_name(
                     base["brand_norm"], base["product_name"],
-                    name_attrs(base["gender"], base["product_type"],
-                               primary_color(base["color"]), s, cap=5))
+                    name_attrs(gender_c, base["product_type"],
+                               primary_color(base["color"]), commerce_size(s, base["product_type"]), cap=5))
                 out.append(d)
         else:
             out.append(base)

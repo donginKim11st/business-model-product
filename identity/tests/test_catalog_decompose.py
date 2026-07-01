@@ -17,9 +17,12 @@ def test_trailing_type_and_gender_adidas():
     assert d["product_type"] == "축구화"
     assert "축구화" not in d["product_name"]
     assert "키즈" not in d["product_name"]
-    assert d["catalog_name"].startswith("아디다스 F50 하이퍼패스트")
-    assert "키즈" in d["catalog_name"] and "축구화" in d["catalog_name"]
+    assert d["title_commerce"].startswith("아디다스 F50 하이퍼패스트")
+    assert "키즈" in d["title_commerce"] and "축구화" in d["title_commerce"]
     assert d["color"] == "핑크"
+    # title_geo(캐시 없으면 폴백): 브랜드+상품명+유형, 성별·색상 제외
+    assert d["title_geo"].endswith("축구화")
+    assert "키즈" not in d["title_geo"] and "핑크" not in d["title_geo"]
 
 def test_leading_gender_blackyak():
     r = _row(source="blackyak", name="남성 아이스프레쉬 라운드 베이스레이어",
@@ -28,8 +31,8 @@ def test_leading_gender_blackyak():
     assert d["gender"] == "남성"
     assert d["product_type"] == "베이스레이어"
     assert d["product_name"] == "아이스프레쉬 라운드"
-    assert d["catalog_name"].startswith("블랙야크 아이스프레쉬 라운드")
-    assert "남성" in d["catalog_name"] and "베이스레이어" in d["catalog_name"]
+    assert d["title_commerce"].startswith("블랙야크 아이스프레쉬 라운드")
+    assert "남성" in d["title_commerce"] and "베이스레이어" in d["title_commerce"]
     assert d["color"] == "블랙,네이비,화이트"
 
 def test_name_only_eider():
@@ -39,8 +42,9 @@ def test_name_only_eider():
     assert d["gender"] == "공용"
     assert d["product_name"] == "ST 슬라이드 2"
     assert d["product_type"] == "신발"
-    assert d["catalog_name"].startswith("아이더 ST 슬라이드 2")
-    assert "공용" in d["catalog_name"] and "신발" in d["catalog_name"]
+    assert d["title_commerce"].startswith("아이더 ST 슬라이드 2")
+    assert "공용" not in d["title_commerce"]   # 커머스 제목엔 '공용' 제외
+    assert "신발" in d["title_commerce"]
 
 def test_trailing_color_jansport():
     r = _row(source="jansport", name="슈퍼브레이크 BLACK", gender="",
@@ -49,8 +53,8 @@ def test_trailing_color_jansport():
     assert d["product_type"] == "백팩"
     assert d["product_name"] == "슈퍼브레이크"
     assert "BLACK" not in d["product_name"].upper()
-    assert d["catalog_name"].startswith("잔스포츠 슈퍼브레이크")
-    assert "백팩" in d["catalog_name"]
+    assert d["title_commerce"].startswith("잔스포츠 슈퍼브레이크")
+    assert "백팩" in d["title_commerce"]
 
 def test_paren_gender_kolping():
     r = _row(source="kolping", name="국민바지2.5 210(남)", gender="MALE",
@@ -58,8 +62,8 @@ def test_paren_gender_kolping():
     d = cd.decompose_row(r)
     assert d["gender"] == "남성"
     assert "(남)" not in d["product_name"]
-    assert d["catalog_name"].startswith("콜핑 국민바지2.5")
-    assert "남성" in d["catalog_name"]
+    assert d["title_commerce"].startswith("콜핑 국민바지2.5")
+    assert "남성" in d["title_commerce"]
 
 def test_bilingual_dup_flags_needs_llm():
     r = _row(source="puma", name="푸마 아반티 LS Puma Avanti LS", gender="남성",
@@ -69,7 +73,7 @@ def test_bilingual_dup_flags_needs_llm():
     assert d["needs_llm"] == "1"
 
 def test_out_cols_stable():
-    assert cd.OUT_COLS[:5] == ["source", "brand_norm", "style_code", "catalog_name", "product_name"]
+    assert cd.OUT_COLS[:6] == ["source", "brand_norm", "style_code", "title_geo", "title_commerce", "product_name"]
     assert "gender" in cd.OUT_COLS and "product_type" in cd.OUT_COLS
     assert "color" in cd.OUT_COLS and "size" in cd.OUT_COLS
     assert "needs_llm" in cd.OUT_COLS
@@ -88,7 +92,7 @@ def test_model_version_paren_preserved():
              category="신발", color="")
     d = cd.decompose_row(r)
     assert "40" in d["product_name"]      # 모델 버전 괄호 보존
-    assert "40" in d["catalog_name"]
+    assert "40" in d["title_commerce"]
     assert d["gender_code"] == "M"
 
 
@@ -111,8 +115,8 @@ def test_run_stage1_writes_output(tmp_path):
     assert summary["rows"] == 2   # 사이즈 250·260 → 각각 별도 카탈로그
     rows = sorted(_csv.DictReader(open(out, encoding="utf-8-sig")), key=lambda r: r["size"])
     assert [r["size"] for r in rows] == ["250", "260"]
-    assert rows[0]["catalog_name"] == "아이더 ST 슬라이드 2 공용 신발 레드 250"
-    assert rows[1]["catalog_name"] == "아이더 ST 슬라이드 2 공용 신발 레드 260"
+    assert rows[0]["title_commerce"] == "아이더 ST 슬라이드 2 신발 레드 250mm"
+    assert rows[1]["title_commerce"] == "아이더 ST 슬라이드 2 신발 레드 260mm"
     assert list(rows[0].keys()) == cd.OUT_COLS
 
 

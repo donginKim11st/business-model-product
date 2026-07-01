@@ -96,10 +96,13 @@ def apply_stage1(rows, limit=0, api_key=None, cache=None):
             if g in ("M", "W", "U", "K"):
                 r["gender_code"] = g
                 r["gender"] = cd.lex.GENDER_LABEL.get(g, r.get("gender", ""))
-            attrs = cd.name_attrs(r.get("gender", ""), r.get("product_type", ""),
-                                  cd.primary_color(r.get("color", "")),
-                                  cd.size_label(r.get("size", "")), cap=5)
-            r["catalog_name"] = cd.compose_catalog_name(r.get("brand_norm", ""), pn, attrs)
+            gender_c = r.get("gender", "") if r.get("gender", "") != "공용" else ""
+            ptype = r.get("product_type", "")
+            attrs = cd.name_attrs(gender_c, ptype, cd.primary_color(r.get("color", "")),
+                                  cd.commerce_size(r.get("size", ""), ptype), cap=5)
+            r["title_commerce"] = cd.compose_catalog_name(r.get("brand_norm", ""), pn, attrs)
+            r["title_geo"] = cd.compose_catalog_name(r.get("brand_norm", ""), pn,
+                                                     [ptype] if ptype else [])
             r["needs_llm"] = "0"
             n_done += 1
     left = len(cands) - n_done

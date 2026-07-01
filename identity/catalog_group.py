@@ -18,10 +18,10 @@ import catalog_decompose as cd
 IN_DEFAULT = os.path.join(HERE, "outputs", "catalog_decomposed.csv")
 OUT_DEFAULT = os.path.join(HERE, "outputs", "catalogs.csv")
 
-GROUP_COLS = ["source", "brand_norm", "model_key", "catalog_name", "product_name",
-              "gender", "product_type", "colors", "n_colors", "size_range",
-              "materials", "origins", "style_codes", "price_min", "price_max",
-              "n_variants", "sample_url"]
+GROUP_COLS = ["source", "brand_norm", "model_key", "title_geo", "title_commerce",
+              "product_name", "gender", "product_type", "colors", "n_colors",
+              "size_range", "materials", "origins", "style_codes", "price_min",
+              "price_max", "n_variants", "sample_url"]
 
 _WS = re.compile(r"\s+")
 
@@ -93,15 +93,20 @@ def group(drows):
         codes = {m.get("style_code", "") for m in members if m.get("style_code")}
         size_range = cd.size_range_label([s for m in members
                                           for s in (m.get("size") or "").split("|")])
+        brand = members[0].get("brand_norm", "")
         color_for_name = cd.primary_color(colors[0]) if len(colors) == 1 else ""
-        # 모델 롤업 이름엔 사이즈 제외(사이즈는 size_range 컬럼·개별 카탈로그는 Stage1).
-        attrs = cd.name_attrs(gender, product_type, color_for_name, "", cap=5)
-        catalog_name = cd.compose_catalog_name(members[0].get("brand_norm", ""), product_name, attrs)
+        gender_c = gender if gender != "공용" else ""
+        # title_geo: 브랜드+canonical+유형. title_commerce(모델): 브랜드+상품명+성별+유형(+단색). 사이즈 제외.
+        title_geo = cd.compose_catalog_name(brand, cd.canonical_name(brand, product_name),
+                                            [product_type] if product_type else [])
+        title_commerce = cd.compose_catalog_name(
+            brand, product_name, cd.name_attrs(gender_c, product_type, color_for_name, "", cap=5))
         cats.append({
             "source": members[0].get("source", ""),
-            "brand_norm": members[0].get("brand_norm", ""),
+            "brand_norm": brand,
             "model_key": key,
-            "catalog_name": catalog_name,
+            "title_geo": title_geo,
+            "title_commerce": title_commerce,
             "product_name": product_name,
             "gender": gender,
             "product_type": product_type,

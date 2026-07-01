@@ -1,0 +1,82 @@
+{
+  "name": "catalog-geo (title_geo canonical LLM 배치 드레인)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [ { "field": "minutes", "minutesInterval": 10 } ] }
+      },
+      "id": "sched-catalog-geo",
+      "name": "10분마다",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [ 240, 320 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8766/step/catalog_geo",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [ { "name": "batch", "value": "200" } ] },
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "X-Token", "value": "={{ $env.TRIGGER_TOKEN }}" } ] },
+        "options": { "timeout": 900000 }
+      },
+      "id": "http-step-catalog-geo",
+      "name": "POST /step/catalog_geo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [ 470, 320 ],
+      "notes": "step_catalog_geo.sh: 유니크 모델 batch개 canonical(LLM) → _catalog_canonical.json. OPENAI_API_KEY 필요."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            { "value1": "={{ $json.progress.catalog_geo.remaining }}", "operation": "larger", "value2": 0 }
+          ]
+        }
+      },
+      "id": "if-remaining",
+      "name": "remaining>0?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [ 700, 320 ]
+    },
+    {
+      "parameters": { "amount": 3, "unit": "seconds" },
+      "id": "wait-drain",
+      "name": "3초 대기",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [ 930, 220 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8766/step/catalog",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "X-Token", "value": "={{ $env.TRIGGER_TOKEN }}" } ] },
+        "options": { "timeout": 900000 }
+      },
+      "id": "http-apply-catalog",
+      "name": "완료→/step/catalog 재빌드",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [ 930, 440 ],
+      "notes": "canonical 다 채운 뒤 catalog 재실행 → title_geo 가 canonical 로 반영됨."
+    }
+  ],
+  "connections": {
+    "10분마다": { "main": [ [ { "node": "POST /step/catalog_geo", "type": "main", "index": 0 } ] ] },
+    "POST /step/catalog_geo": { "main": [ [ { "node": "remaining>0?", "type": "main", "index": 0 } ] ] },
+    "remaining>0?": {
+      "main": [
+        [ { "node": "3초 대기", "type": "main", "index": 0 } ],
+        [ { "node": "완료→/step/catalog 재빌드", "type": "main", "index": 0 } ]
+      ]
+    },
+    "3초 대기": { "main": [ [ { "node": "POST /step/catalog_geo", "type": "main", "index": 0 } ] ] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

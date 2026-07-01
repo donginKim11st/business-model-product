@@ -94,6 +94,12 @@ STAGES = {
         "lock_pid": Path("/tmp/_noop_catalog.lock/pid"),
         "in_run_all": False,   # 스케줄/버튼 — /step/catalog. 정형 all_brands.csv → 카탈로그명 추출(규칙·무료·멱등).
     },
+    "catalog_geo": {
+        "step": ROOT.parent / "identity" / "step_catalog_geo.sh",
+        "log": ROOT.parent / "identity" / "catalog_pipeline.log",
+        "lock_pid": Path("/tmp/_noop_catalog_geo.lock/pid"),
+        "in_run_all": False,   # LLM canonical 배치 드레인 — /step/catalog_geo?batch=N (OPENAI_API_KEY 필요).
+    },
     "report": {
         "step": ROOT / "db" / "step_report.sh",
         "log": ROOT / "db" / "exports" / "export.log",

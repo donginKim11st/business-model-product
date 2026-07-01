@@ -33,5 +33,11 @@ n8n UI → Import from File → `catalog.json`. 활성화 후 `$env.TRIGGER_TOKE
 ### 전제
 - 트리거서버에 `catalog` 스테이지 등록됨(`pipeline_trigger.py` STAGES). `identity/outputs/all_brands.csv`는 extract_all 이 채움 — 이 워크플로우는 **명명 추출만**.
 
+## catalog_geo.json — title_geo canonical LLM 배치 드레인
+
+- **10분마다** → `POST :8766/step/catalog_geo?batch=200` (X-Token). `identity/step_catalog_geo.sh` → `catalog_geo.py` 가 유니크 모델 batch개를 gpt-4o-mini canonical 화 → `identity/outputs/_catalog_canonical.json` 누적. **OPENAI_API_KEY 필요**(트리거서버 프로세스 env).
+- **`remaining>0?`**(`{{$json.progress.catalog_geo.remaining}}`) → 참이면 3초 후 재호출(드레인), 거짓이면 **/step/catalog 재빌드**(title_geo 를 canonical 로 반영).
+- 키 없으면 error+remaining 반환(무해). 규칙 기반 `catalog` 은 무료·독립.
+
 ## (참고) 보정은 n8n 아님
 가이드라인 보정(라벨링)은 **사람 인더루프** — n8n 자동화 아님. 브라우저 `GET :8766/calib/ui`에서 사람이 라벨→추천. 자동화 대상은 합류(join)뿐.

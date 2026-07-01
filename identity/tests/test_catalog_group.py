@@ -28,7 +28,8 @@ def test_group_by_stylecode_base_merges_colorways():
     cats = cg.group(rows)
     assert len(cats) == 1
     c = cats[0]
-    assert c["catalog_name"] == "나이키 에어 포스 1 남성 신발"
+    assert c["title_commerce"] == "나이키 에어 포스 1 남성 신발"
+    assert c["title_geo"] == "나이키 에어 포스 1 신발"   # 브랜드+canonical+유형(색상·사이즈·성별 제외)
     assert c["product_name"] == "에어 포스 1"
     assert c["n_variants"] == "2"
     assert c["n_colors"] == "2"
@@ -45,10 +46,10 @@ def test_group_by_name_fallback_adidas():
     cats = cg.group(rows)
     assert len(cats) == 1
     assert cats[0]["n_colors"] == "2"
-    assert cats[0]["catalog_name"] == "아디다스 삼바 공용 신발"
+    assert cats[0]["title_commerce"] == "아디다스 삼바 신발"   # '공용' 제외
 
 def test_group_cols_stable():
-    assert cg.GROUP_COLS[:5] == ["source", "brand_norm", "model_key", "catalog_name", "product_name"]
+    assert cg.GROUP_COLS[:6] == ["source", "brand_norm", "model_key", "title_geo", "title_commerce", "product_name"]
     assert "colors" in cg.GROUP_COLS and "size_range" in cg.GROUP_COLS
 
 
@@ -65,11 +66,11 @@ def test_run_stage2_writes_output(tmp_path):
         w = _csv.DictWriter(f, fieldnames=cd.OUT_COLS)
         w.writeheader()
         w.writerow(_row(source="nike", brand_norm="나이키", style_code="IM5752-300",
-            catalog_name="나이키 에어 포스 1 남성 신발", product_name="에어 포스 1",
+            product_name="에어 포스 1",
             gender="남성", product_type="신발", color="퍼", size="240|250",
             gender_code="M", price="159000", url="u1", name="에어 포스 1", needs_llm="0"))
         w.writerow(_row(source="nike", brand_norm="나이키", style_code="IM5752-100",
-            catalog_name="나이키 에어 포스 1 남성 신발", product_name="에어 포스 1",
+            product_name="에어 포스 1",
             gender="남성", product_type="신발", color="화이트", size="250|260",
             gender_code="M", price="159000", url="u2", name="에어 포스 1", needs_llm="0"))
     out = tmp_path / "cat.csv"
