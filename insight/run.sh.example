@@ -4,11 +4,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 # ── API 키 (여기만 채우세요) ───────────────────────────────────────────────
-export NAVER_CLIENT_ID="***REMOVED***"
-export NAVER_CLIENT_SECRET="***REMOVED***"
-export OPENAI_API_KEY="***REMOVED***"
-export YOUTUBE_API_KEY="***REMOVED***"
-export BRAVE_SEARCH_API_KEY="***REMOVED***"
+export NAVER_CLIENT_ID="<YOUR_VALUE_HERE>"
+export NAVER_CLIENT_SECRET="<YOUR_VALUE_HERE>"
+export OPENAI_API_KEY="<YOUR_VALUE_HERE>"
+export YOUTUBE_API_KEY="<YOUR_VALUE_HERE>"
+export BRAVE_SEARCH_API_KEY="<YOUR_VALUE_HERE>"
 export PRODUCT_NAME=""   # 여러 제품군을 한 번에 돌릴 땐 비워둔다(FAQ JSON-LD about용·선택)
 # ── 조사할 키워드 ──────────────────────────────────────────────────────────
 # 변형 그룹 — base(용량·개수 제거)가 같은 키워드끼리 자동으로 묶여 고정/가변 속성을 비교한다.

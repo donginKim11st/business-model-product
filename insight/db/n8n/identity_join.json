@@ -1,0 +1,75 @@
+{
+  "name": "identity-join (canonical product 합류)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [ { "field": "minutes", "minutesInterval": 10 } ] }
+      },
+      "id": "sched-identity",
+      "name": "10분마다",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [ 240, 320 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8766/step/identity",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [ { "name": "batch", "value": "200" } ] },
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "X-Token", "value": "={{ $env.TRIGGER_TOKEN }}" } ] },
+        "options": { "timeout": 900000 }
+      },
+      "id": "http-step-identity",
+      "name": "POST /step/identity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [ 470, 320 ],
+      "notes": "step_identity.sh: export_seed → match(게이트+색상가드+tie-break) → identity_backfill 1배치. 크롤 없음(타임아웃 안전)."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            { "value1": "={{ $json.progress.identity.remaining }}", "operation": "larger", "value2": 0 }
+          ]
+        }
+      },
+      "id": "if-remaining",
+      "name": "remaining>0?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [ 700, 320 ]
+    },
+    {
+      "parameters": { "amount": 3, "unit": "seconds" },
+      "id": "wait-drain",
+      "name": "3초 대기",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [ 930, 220 ]
+    },
+    {
+      "parameters": {},
+      "id": "noop-done",
+      "name": "큐 비움(완료)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [ 930, 440 ]
+    }
+  ],
+  "connections": {
+    "10분마다": { "main": [ [ { "node": "POST /step/identity", "type": "main", "index": 0 } ] ] },
+    "POST /step/identity": { "main": [ [ { "node": "remaining>0?", "type": "main", "index": 0 } ] ] },
+    "remaining>0?": {
+      "main": [
+        [ { "node": "3초 대기", "type": "main", "index": 0 } ],
+        [ { "node": "큐 비움(완료)", "type": "main", "index": 0 } ]
+      ]
+    },
+    "3초 대기": { "main": [ [ { "node": "POST /step/identity", "type": "main", "index": 0 } ] ] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

@@ -84,6 +84,25 @@ def build_for_product(uid, parent_uid, type_, variant_value, keyword, category, 
     return pdoc, sdocs, cdocs
 
 
+def _preserve_async_fields(p, ex):
+    """비동기로 채워지는 필드를 재적재(ReplaceOne) 시 보존 머지.
+    인사이트 재적재가 backfill·주간배치 산출(youtube/representative/identity)을 덮어쓰지 않게 한다.
+    p: 새로 빌드한 product 문서(in-place 수정), ex: 기존 문서(projection 결과, 없으면 {}).
+    순수 함수(Mongo 비의존) — reload 보존 테스트의 단위 검증 지점."""
+    yt = ex.get("youtube")
+    if yt:
+        if yt.get("status") not in (None, "pending"):
+            p["youtube"] = yt                   # done/empty/error → 통째 보존
+        elif yt.get("attempts"):                # pending이지만 시도이력 있음 → 이월(--max-attempts 보호)
+            p["youtube"] = dict(p["youtube"], attempts=yt.get("attempts", 0),
+                                last_error=yt.get("last_error"))
+    if ex.get("representative") is not None:
+        p["representative"] = ex["representative"]   # 주간 랭킹 산출 → 보존
+    if ex.get("identity") is not None:
+        p["identity"] = ex["identity"]               # identity_backfill 정형 스핀(brand/status) → 보존
+    return p
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("jsonl"); ap.add_argument("--category", default=None)
@@ -136,18 +155,9 @@ def main():
         # 인사이트 재적재가 이를 덮어쓰지 않도록 기존 값을 보존 머지한다.
         uids = [p["_id"] for p in prods]
         keep = {d["_id"]: d for d in db.products.find(
-            {"_id": {"$in": uids}}, {"youtube": 1, "representative": 1})}
+            {"_id": {"$in": uids}}, {"youtube": 1, "representative": 1, "identity": 1})}
         for p in prods:
-            ex = keep.get(p["_id"]) or {}
-            yt = ex.get("youtube")
-            if yt:
-                if yt.get("status") not in (None, "pending"):
-                    p["youtube"] = yt                   # done/empty/error → 통째 보존
-                elif yt.get("attempts"):                # pending이지만 시도이력 있음 → 이월(--max-attempts 보호)
-                    p["youtube"] = dict(p["youtube"], attempts=yt.get("attempts", 0),
-                                        last_error=yt.get("last_error"))
-            if ex.get("representative") is not None:
-                p["representative"] = ex["representative"]   # 주간 랭킹 산출 → 보존
+            _preserve_async_fields(p, keep.get(p["_id"]) or {})
         db.products.bulk_write([ReplaceOne({"_id": p["_id"]}, p, upsert=True) for p in prods])
         # backfill이 넣은 kind=youtube 원문은 건드리지 않는다(보존된 youtube.taxonomy evidence의 조인 대상).
         db.sources.delete_many({"product_uid": {"$in": uids}, "kind": {"$ne": "youtube"}})
@@ -160,6 +170,7 @@ def main():
     db.products.create_index("category"); db.products.create_index("flags.is_gift_set")
     db.products.create_index("category_l1"); db.products.create_index("bndl_grp")
     db.products.create_index("youtube.status")   # backfill 큐 스캔용
+    db.products.create_index("identity.status")  # identity 씨앗 export 스캔용(status 부재/pending 큐)
     db.sources.create_index("url"); db.chunks.create_index("product_uid")
     db.chunks.create_index("dim_path"); db.chunks.create_index("metadata.dim")
     db.chunks.create_index("metadata.category_l1")

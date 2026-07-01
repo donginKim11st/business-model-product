@@ -15,3 +15,6 @@ dashboard.html
 # 생성된 리포트 HTML (db 스크립트로 재생성)
 insight/data/*.html
 insight/site/
+
+# 실 API 키 보유 — 커밋 금지(템플릿은 insight/run.sh.example)
+insight/run.sh
