@@ -80,3 +80,20 @@ STYLECODE_SUFFIX = {
 
 # 성별 코드 → 한글 라벨(카탈로그명·컬럼 표시용)
 GENDER_LABEL = {"M": "남성", "W": "여성", "U": "공용", "K": "키즈"}
+
+# 영문 색 단어 → 한글(카탈로그명·색상 컬럼 한글 표기용). 미지 단어·구분자는 보존.
+COLOR_KO = {
+    "black": "블랙", "white": "화이트", "gray": "그레이", "grey": "그레이",
+    "navy": "네이비", "red": "레드", "blue": "블루", "green": "그린",
+    "yellow": "옐로우", "pink": "핑크", "purple": "퍼플", "orange": "오렌지",
+    "brown": "브라운", "beige": "베이지", "khaki": "카키", "silver": "실버",
+    "gold": "골드", "mint": "민트", "coral": "코랄", "burgundy": "버건디",
+    "charcoal": "차콜", "ivory": "아이보리", "lavender": "라벤더", "cream": "크림",
+    "olive": "올리브", "wine": "와인", "sky": "스카이", "mustard": "머스타드",
+    "turquoise": "터콰이즈", "teal": "틸", "indigo": "인디고", "violet": "바이올렛",
+    "magenta": "마젠타", "lime": "라임", "peach": "피치", "rose": "로즈",
+    "sand": "샌드", "stone": "스톤", "metal": "메탈", "gum": "검",
+    "natural": "내추럴", "clear": "클리어", "multi": "멀티", "camo": "카모",
+    "denim": "데님", "light": "라이트", "dark": "다크", "hunter": "헌터",
+    "platinum": "플래티넘", "bronze": "브론즈", "copper": "코퍼", "tan": "탄",
+}

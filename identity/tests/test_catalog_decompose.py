@@ -19,7 +19,7 @@ def test_trailing_type_and_gender_adidas():
     assert "키즈" not in d["product_name"]
     assert d["catalog_name"].startswith("아디다스 F50 하이퍼패스트")
     assert "키즈" in d["catalog_name"] and "축구화" in d["catalog_name"]
-    assert d["color"] == "Pink"
+    assert d["color"] == "핑크"
 
 def test_leading_gender_blackyak():
     r = _row(source="blackyak", name="남성 아이스프레쉬 라운드 베이스레이어",
@@ -30,7 +30,7 @@ def test_leading_gender_blackyak():
     assert d["product_name"] == "아이스프레쉬 라운드"
     assert d["catalog_name"].startswith("블랙야크 아이스프레쉬 라운드")
     assert "남성" in d["catalog_name"] and "베이스레이어" in d["catalog_name"]
-    assert d["color"] == "BLACK,NAVY,WHITE"
+    assert d["color"] == "블랙,네이비,화이트"
 
 def test_name_only_eider():
     r = _row(source="eider", name="ST 슬라이드 2", gender="공용",
@@ -110,5 +110,19 @@ def test_run_stage1_writes_output(tmp_path):
     summary = cd.run_stage1(str(src), str(out), limit=0)
     assert summary["rows"] == 1
     rows = list(_csv.DictReader(open(out, encoding="utf-8-sig")))
-    assert rows[0]["catalog_name"] == "아이더 ST 슬라이드 2 공용 신발 Red 250~260"
+    assert rows[0]["catalog_name"] == "아이더 ST 슬라이드 2 공용 신발 레드 250~260"
     assert list(rows[0].keys()) == cd.OUT_COLS
+
+
+def test_color_ko_translates():
+    assert cd.color_ko("Pink") == "핑크"
+    assert cd.color_ko("BLACK,NAVY,WHITE") == "블랙,네이비,화이트"
+    assert cd.color_ko("METAL") == "메탈"
+    assert cd.color_ko("PUMA Black") == "PUMA 블랙"   # 미지 단어 보존
+
+
+def test_size_range_label_separates_numeric_alpha():
+    assert cd.size_range_label(["250", "260"]) == "250~260"
+    assert cd.size_range_label(["OS"]) == "OS"                 # 단일=범위 아님
+    assert cd.size_range_label(["230", "250", "XL"]) == "230~250 XL"  # 숫자/문자 분리
+    assert cd.size_range_label(["S", "XL", "M"]) == "S~XL"     # 의류 순서

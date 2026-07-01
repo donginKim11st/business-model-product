@@ -77,20 +77,6 @@ def _isnum(s):
         return False
 
 
-def _sizes_of(members):
-    vals = []
-    for m in members:
-        for s in (m.get("size") or "").split("|"):
-            s = s.strip()
-            if s:
-                vals.append(s)
-    try:
-        uniq = sorted(set(vals), key=lambda x: float(x))
-    except ValueError:
-        uniq = sorted(set(vals))
-    return uniq
-
-
 def group(drows):
     buckets = collections.OrderedDict()
     for d in drows:
@@ -105,8 +91,8 @@ def group(drows):
         materials = sorted({m.get("material", "") for m in members if m.get("material")})
         origins = sorted({m.get("origin", "") for m in members if m.get("origin")})
         codes = {m.get("style_code", "") for m in members if m.get("style_code")}
-        sizes = _sizes_of(members)
-        size_range = ("%s~%s" % (sizes[0], sizes[-1])) if sizes else ""
+        size_range = cd.size_range_label([s for m in members
+                                          for s in (m.get("size") or "").split("|")])
         color_for_name = cd.primary_color(colors[0]) if len(colors) == 1 else ""
         attrs = cd.name_attrs(gender, product_type, color_for_name, size_range, cap=5)
         catalog_name = cd.compose_catalog_name(members[0].get("brand_norm", ""), product_name, attrs)

@@ -87,18 +87,50 @@ def strip_type(product_line, product_type):
     return _strip_tokens(product_line, [product_type])
 
 
+_APPAREL_ORDER = {s: i for i, s in enumerate(
+    ["XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL", "XXXXL",
+     "FREE", "F", "OS", "ONESIZE"])}
+
+
+def _size_key(tok):
+    u = tok.upper()
+    return (0, _APPAREL_ORDER[u]) if u in _APPAREL_ORDER else (1, u)
+
+
+def size_range_label(tokens):
+    """사이즈 토큰들 → 숫자/문자 분리 라벨(숫자=수치범위, 문자=순서범위, 빈값·중복 제외).
+
+    숫자·문자가 섞여도 한 범위로 뭉치지 않는다(예: 230·250·XL → '230~250 XL')."""
+    toks = [t.strip() for t in tokens if t and t.strip()]
+    nums, alphas = [], []
+    for t in toks:
+        try:
+            float(t)
+            nums.append(t)
+        except ValueError:
+            alphas.append(t)
+    parts = []
+    if nums:
+        ns = sorted(set(nums), key=float)
+        parts.append(ns[0] if len(ns) == 1 else "%s~%s" % (ns[0], ns[-1]))
+    if alphas:
+        aa = sorted(set(alphas), key=_size_key)
+        parts.append(aa[0] if len(aa) == 1 else "%s~%s" % (aa[0], aa[-1]))
+    return " ".join(parts)
+
+
 def size_label(size_field):
-    """사이즈 목록(파이프 구분)에서 이름에 붙일 범위 라벨(단일=그대로, 복수=min~max)."""
-    toks = [s.strip() for s in (size_field or "").split("|") if s.strip()]
-    if not toks:
+    """사이즈 컬럼값(파이프 구분) → 이름용 범위 라벨(숫자/문자 분리)."""
+    return size_range_label((size_field or "").split("|"))
+
+
+def color_ko(color):
+    """색상 문자열의 영문 색 단어를 한글로 치환(구분자·미지 단어 보존)."""
+    if not color:
         return ""
-    if len(toks) == 1:
-        return toks[0]
-    try:
-        toks = sorted(toks, key=float)
-    except ValueError:
-        toks = sorted(toks)
-    return "%s~%s" % (toks[0], toks[-1])
+    return re.sub(r"[A-Za-z]+",
+                  lambda m: lex.COLOR_KO.get(m.group(0).lower(), m.group(0)),
+                  color)
 
 
 def name_attrs(gender_label, product_type, color, size="", cap=5):
@@ -141,7 +173,7 @@ def decompose_row(row):
     product_type = find_product_type(row.get("category"), name)
     product_line = clean_product_line(name, source, row.get("color"))
     product_name = strip_type(product_line, product_type)
-    color = _norm(row.get("color"))
+    color = color_ko(_norm(row.get("color")))
     attrs = name_attrs(gender, product_type, primary_color(color),
                        size_label(row.get("sizes")), cap=5)
     catalog_name = compose_catalog_name(brand_norm, product_name, attrs)
