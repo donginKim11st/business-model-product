@@ -152,3 +152,14 @@ def fix_source_mismatch(ctx):
             "update": {"$set": {"catalogs.$[c].insight": empty,
                                 "catalogs.$[c].has_insight": False}},
             "array_filters": _af(ctx["ctlg_no"])}
+
+
+# --- R3: stale_schema (감지만, autofix 없음) --------------------------------
+def detect_stale_schema(ctx):
+    ins = ctx["insight"] or {}
+    if not ins.get("dims"):            # 비어있지 않은 insight만 대상
+        return None
+    missing = [k for k in ("fetched_at", "source") if not ins.get(k)]
+    if missing:
+        return f"missing fields: {','.join(missing)}"
+    return None

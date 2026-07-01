@@ -130,3 +130,27 @@ def test_fix_source_mismatch_invalidates_for_requeue():
     assert ins["invalidated"] == "source_mismatch"
     assert up["catalogs.$[c].has_insight"] is False
     assert spec["array_filters"] == [{"c.ctlg_no": 6}]
+
+
+# --- Task 4: stale_schema rule (감지만) -----------------------------------
+
+def test_stale_schema_missing_fetched_at():
+    cat = {"ctlg_no": 1, "insight": {"dims": [{"dim": "x"}], "source": "naver_review"}}
+    assert V.detect_stale_schema(_ctx(cat)) is not None
+
+
+def test_stale_schema_missing_source():
+    cat = {"ctlg_no": 2, "insight": {"dims": [{"dim": "x"}], "fetched_at": "2026-06-25T00:00:00+00:00"}}
+    assert V.detect_stale_schema(_ctx(cat)) is not None
+
+
+def test_stale_schema_complete_is_noop():
+    cat = {"ctlg_no": 3, "insight": {"dims": [{"dim": "x"}],
+                                      "fetched_at": "2026-06-25T00:00:00+00:00",
+                                      "source": "naver_review"}}
+    assert V.detect_stale_schema(_ctx(cat)) is None
+
+
+def test_stale_schema_empty_insight_is_noop():
+    cat = {"ctlg_no": 4, "insight": {"dims": [], "faqs": []}}
+    assert V.detect_stale_schema(_ctx(cat)) is None
