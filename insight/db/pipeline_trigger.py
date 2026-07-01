@@ -88,6 +88,12 @@ STAGES = {
         "lock_pid": Path("/tmp/source_identity_loop.lock/pid"),
         "in_run_all": False,   # 조인 단계 — /step/identity 로 호출(크롤은 identity extract 별도).
     },
+    "catalog": {
+        "step": ROOT.parent / "identity" / "step_catalog.sh",
+        "log": ROOT.parent / "identity" / "catalog_pipeline.log",
+        "lock_pid": Path("/tmp/_noop_catalog.lock/pid"),
+        "in_run_all": False,   # 스케줄/버튼 — /step/catalog. 정형 all_brands.csv → 카탈로그명 추출(규칙·무료·멱등).
+    },
     "report": {
         "step": ROOT / "db" / "step_report.sh",
         "log": ROOT / "db" / "exports" / "export.log",

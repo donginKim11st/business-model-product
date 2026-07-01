@@ -19,5 +19,19 @@ n8n UI → Workflows → Import from File → `identity_join.json`. 활성화(Ac
 ### 진행률
 - `GET /progress/identity` → `{identity:{total,done,remaining,joined,empty}}`. (모든 카테고리 적격, status∈{done,empty}=처리완료.)
 
+## catalog.json — 스포츠 정형 → 카탈로그명 추출 자동화
+
+- **매일(24h)** → `POST host.docker.internal:8766/step/catalog` (X-Token 헤더)
+  - 서버가 `identity/step_catalog.sh` 동기 실행: `run_catalog.py` 전체 재변환(`identity/outputs/all_brands.csv` → `catalog_decomposed.csv` + `catalogs.csv`). **규칙 기반·무료·멱등**(수초). 크롤 없음.
+  - 카탈로그명 = 브랜드 + 상품명 + 속성(성별→유형→색상→사이즈, 최대 5). 속성값은 개별 컬럼으로도.
+- **1회성**이라 드레인 루프 없음(`progress.catalog.remaining`=0) → POST 후 바로 완료.
+- LLM 보정(한/영 중복명 정리)은 기본 OFF. 켜려면 트리거서버 프로세스에 `CATALOG_LLM_GATE=1 CATALOG_LLM_LIMIT=N` env.
+
+### import
+n8n UI → Import from File → `catalog.json`. 활성화 후 `$env.TRIGGER_TOKEN` 확인.
+
+### 전제
+- 트리거서버에 `catalog` 스테이지 등록됨(`pipeline_trigger.py` STAGES). `identity/outputs/all_brands.csv`는 extract_all 이 채움 — 이 워크플로우는 **명명 추출만**.
+
 ## (참고) 보정은 n8n 아님
 가이드라인 보정(라벨링)은 **사람 인더루프** — n8n 자동화 아님. 브라우저 `GET :8766/calib/ui`에서 사람이 라벨→추천. 자동화 대상은 합류(join)뿐.

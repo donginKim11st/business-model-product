@@ -1,0 +1,44 @@
+{
+  "name": "catalog (스포츠 정형 → 카탈로그명 추출)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [ { "field": "hours", "hoursInterval": 24 } ] }
+      },
+      "id": "sched-catalog",
+      "name": "매일",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [ 240, 320 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8766/step/catalog",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "X-Token", "value": "={{ $env.TRIGGER_TOKEN }}" } ] },
+        "options": { "timeout": 900000 }
+      },
+      "id": "http-step-catalog",
+      "name": "POST /step/catalog",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [ 470, 320 ],
+      "notes": "step_catalog.sh: run_catalog.py 전체 재변환(all_brands.csv → catalog_decomposed.csv + catalogs.csv). 규칙 기반·무료·멱등. LLM 보정은 서버측 env CATALOG_LLM_GATE=1 로만."
+    },
+    {
+      "parameters": {},
+      "id": "noop-done",
+      "name": "완료",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [ 700, 320 ]
+    }
+  ],
+  "connections": {
+    "매일": { "main": [ [ { "node": "POST /step/catalog", "type": "main", "index": 0 } ] ] },
+    "POST /step/catalog": { "main": [ [ { "node": "완료", "type": "main", "index": 0 } ] ] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}
