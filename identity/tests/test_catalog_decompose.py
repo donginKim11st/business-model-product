@@ -61,3 +61,20 @@ def test_bilingual_dup_flags_needs_llm():
 def test_out_cols_stable():
     assert cd.OUT_COLS[:4] == ["source", "brand_norm", "style_code", "catalog_name"]
     assert "needs_llm" in cd.OUT_COLS
+
+def test_ascii_token_not_substring_clobbered():
+    # 'men' in Cement, 'blue' in Blueprint must NOT be stripped/gendered
+    r = _row(source="nike", name="Blueprint Cement Runner", gender="",
+             category="신발", color="")
+    d = cd.decompose_row(r)
+    assert "Blueprint" in d["product_line"]
+    assert "Cement" in d["product_line"]
+    assert d["gender_norm"] != "M"  # 'Cement' contains 'men' but is not gender
+
+def test_model_version_paren_preserved():
+    r = _row(source="nike", name="에어 줌 페가수스 (40)", gender="남성",
+             category="신발", color="")
+    d = cd.decompose_row(r)
+    assert "40" in d["product_line"]      # 모델 버전 괄호 보존
+    assert "40" in d["catalog_name"]
+    assert d["gender_norm"] == "M"

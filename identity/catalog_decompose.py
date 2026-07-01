@@ -21,7 +21,7 @@ OUT_COLS = ["source", "brand_norm", "style_code", "catalog_name", "product_line"
             "product_type", "gender_norm", "colorway", "price", "sizes", "url",
             "name", "needs_llm"]
 
-_JUNK = re.compile(r"★[^★]*★|\[[^\]]*\]|[（(][^)）]*[)）]")
+_JUNK = re.compile(r"★[^★]*★|\[[^\]]*\]")
 _WS = re.compile(r"\s+")
 _HANGUL = re.compile(r"[가-힣]{2,}")
 # 트레일링 다단어 영문(2단어 이상) — 한/영 중복 의심 신호
@@ -47,7 +47,7 @@ def norm_gender(raw, name):
         return lex.GENDER_MAP[key]
     low = (name or "").lower()
     for tok in lex.GENDER_NAME_TOKENS:
-        if tok.lower() in low:
+        if re.search(r"\b" + re.escape(tok.lower()) + r"\b", low):
             return lex.GENDER_MAP.get(tok.lower())
     if re.search(r"[（(]남[)）]", name or ""):
         return "M"
@@ -69,7 +69,7 @@ def _strip_tokens(text, tokens):
     for tok in tokens:
         if not tok:
             continue
-        out = re.sub(re.escape(tok), " ", out, flags=re.IGNORECASE)
+        out = re.sub(r"\b" + re.escape(tok) + r"\b", " ", out, flags=re.IGNORECASE)
     return _WS.sub(" ", out).strip()
 
 
