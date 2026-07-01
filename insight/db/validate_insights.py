@@ -163,3 +163,103 @@ def detect_stale_schema(ctx):
     if missing:
         return f"missing fields: {','.join(missing)}"
     return None
+
+
+RULES = [
+    Rule("flag_drift", "low", detect_flag_drift, fix_flag_drift),
+    Rule("source_mismatch", "high", detect_source_mismatch, fix_source_mismatch),
+    Rule("stale_schema", "low", detect_stale_schema, None),
+]
+
+
+def iter_contexts(db):
+    for p in db.products.find({"type": "package"}, {"_id": 1, "catalogs": 1}):
+        for c in p.get("catalogs") or []:
+            if not c.get("ctlg_no"):
+                continue
+            yield {"db": db, "pkg_uid": p["_id"], "ctlg_no": c.get("ctlg_no"),
+                   "disp": c.get("disp"), "catalog": c, "insight": c.get("insight"),
+                   "opts": None}
+
+
+def make_gate(model):
+    """gpt-4o-mini 게이트 (disp, texts)->bool. 실패 시 예외를 올린다."""
+    from openai import OpenAI
+    client = OpenAI()
+
+    def gate(disp, texts):
+        joined = "\n".join(f"- {t[:200]}" for t in texts[:8])
+        r = client.chat.completions.create(
+            model=model, temperature=0,
+            messages=[{"role": "system",
+                       "content": "제품명과 리뷰 근거가 같은 상품인지 판정. yes 또는 no만 답해라."},
+                      {"role": "user",
+                       "content": f"제품명: {disp}\n근거:\n{joined}\n\n같은 상품인가? yes/no"}])
+        return r.choices[0].message.content.strip().lower().startswith("y")
+    return gate
+
+
+def run(db, opts):
+    enabled = [r for r in RULES if not opts.get("rules") or r.id in opts["rules"]]
+    limit = opts.get("limit") or 0
+    violations = []
+    summary = Counter()
+    n = 0
+    for ctx in iter_contexts(db):
+        if limit and n >= limit:
+            break
+        n += 1
+        ctx["opts"] = opts
+        for rule in enabled:
+            detail = rule.detect(ctx)
+            if not detail:
+                continue
+            fixed = False
+            if rule.fix and not opts.get("dry_run"):
+                spec = rule.fix(ctx)
+                db.products.update_one(spec["filter"], spec["update"],
+                                       array_filters=spec["array_filters"])
+                fixed = True
+            summary[rule.id] += 1
+            violations.append({"rule_id": rule.id, "severity": rule.severity,
+                               "pkg_uid": ctx["pkg_uid"], "ctlg_no": ctx["ctlg_no"],
+                               "disp": ctx["disp"], "detail": detail, "fixed": fixed})
+    return {"summary": {"scanned": n, "by_rule": dict(summary),
+                        "total": len(violations)},
+            "violations": violations}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--limit", type=int, default=0, help="처리 카탈로그 수(0=전체)")
+    ap.add_argument("--dry-run", action="store_true", help="감지만, 수정 안 함")
+    ap.add_argument("--rules", default="", help="쉼표구분 규칙 id (기본: 전체)")
+    ap.add_argument("--llm-gate", dest="llm_gate", action="store_true", default=True)
+    ap.add_argument("--no-llm-gate", dest="llm_gate", action="store_false")
+    args = ap.parse_args()
+
+    from pymongo import MongoClient
+    db = MongoClient(os.environ.get("MONGO_URI", "mongodb://localhost:47017/?directConnection=true"))[
+        os.environ.get("INSIGHTS_DB", "insights")]
+
+    opts = {"limit": args.limit, "dry_run": args.dry_run,
+            "rules": [r for r in args.rules.split(",") if r] or None,
+            "llm_gate": args.llm_gate}
+    if args.llm_gate and not args.dry_run and os.environ.get("OPENAI_API_KEY"):
+        opts["gate_fn"] = make_gate(os.environ.get("INSIGHT_MODEL", "gpt-4o-mini"))
+
+    rep = run(db, opts)
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    exdir = os.path.join(here, "exports")
+    os.makedirs(exdir, exist_ok=True)
+    ts = now_iso().replace(":", "").replace("-", "")[:15]
+    out = os.path.join(exdir, f"validation_report_{ts}.json")
+    with open(out, "w", encoding="utf-8") as w:
+        json.dump(rep, w, ensure_ascii=False, indent=2)
+    rep["report"] = out
+    print(json.dumps(rep["summary"] | {"report": out}, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()

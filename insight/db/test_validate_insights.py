@@ -154,3 +154,104 @@ def test_stale_schema_complete_is_noop():
 def test_stale_schema_empty_insight_is_noop():
     cat = {"ctlg_no": 4, "insight": {"dims": [], "faqs": []}}
     assert V.detect_stale_schema(_ctx(cat)) is None
+
+
+# --- Task 5: registry + runner integration ------------------------------------
+import re as _re
+import mongomock
+
+
+def _patch_mongomock_array_filters():
+    """Translate $[alias] positional-filtered paths to indexed paths for mongomock."""
+    import mongomock.collection as _mc
+    _orig = _mc.Collection.update_one
+
+    def _patched(self, filter_doc, update_doc, array_filters=None, **kw):
+        if not array_filters:
+            return _orig(self, filter_doc, update_doc, **kw)
+        doc = self.find_one(filter_doc)
+        if doc is None:
+            return _orig(self, filter_doc, update_doc, **kw)
+        alias_map = {}
+        for af in array_filters:
+            for k, v in af.items():
+                parts = k.split('.', 1)
+                if len(parts) == 2:
+                    alias_map[parts[0]] = (parts[1], v)
+        new_set = {}
+        for path, value in (update_doc.get('$set') or {}).items():
+            m = _re.match(r'^([\w]+)\.\$\[(\w+)\]\.(.+)$', path)
+            if m and m.group(2) in alias_map:
+                arr_name, alias, sub = m.group(1), m.group(2), m.group(3)
+                mf, mv = alias_map[alias]
+                for i, item in enumerate(doc.get(arr_name) or []):
+                    if item.get(mf) == mv:
+                        new_set[f'{arr_name}.{i}.{sub}'] = value
+                        break
+            else:
+                new_set[path] = value
+        new_upd = dict(update_doc)
+        if new_set:
+            new_upd['$set'] = new_set
+        return _orig(self, filter_doc, new_upd, **kw)
+
+    _mc.Collection.update_one = _patched
+
+
+_patch_mongomock_array_filters()
+
+
+def _seed_db():
+    db = mongomock.MongoClient().db
+    db.products.insert_one({
+        "_id": "P1", "type": "package",
+        "catalogs": [
+            # flag_drift: insight 있는데 has_insight=False
+            {"ctlg_no": 100, "has_insight": False, "size": "92g", "count": "12개",
+             "disp": "미역국 92g 12개",
+             "insight": {"dims": [{"dim": "aspect.taste",
+                                   "points": [{"point": "p",
+                                               "evidence": [{"title": "미역국 92g", "quote": ""}]}]}],
+                         "faqs": [], "n_sources": 1,
+                         "fetched_at": "2026-06-25T00:00:00+00:00", "source": "naver_review"}},
+            # source_mismatch: 92g인데 evidence 96g
+            {"ctlg_no": 200, "has_insight": True, "size": "92g", "count": "12개",
+             "disp": "미역국 92g 12개",
+             "insight": {"dims": [{"dim": "aspect.taste",
+                                   "points": [{"point": "p", "evidence": [
+                                       {"title": "미역국 96g", "quote": ""},
+                                       {"title": "미역국 96g 후기", "quote": ""}]}]}],
+                         "faqs": [], "n_sources": 2,
+                         "fetched_at": "2026-06-25T00:00:00+00:00", "source": "naver_review"}},
+        ],
+    })
+    return db
+
+
+def test_run_detects_and_fixes():
+    db = _seed_db()
+    rep = V.run(db, {"limit": 0, "dry_run": False, "rules": None, "llm_gate": False})
+    ids = {(v["rule_id"], v["ctlg_no"]) for v in rep["violations"]}
+    assert ("flag_drift", 100) in ids
+    assert ("source_mismatch", 200) in ids
+    doc = db.products.find_one({"_id": "P1"})
+    c100 = next(c for c in doc["catalogs"] if c["ctlg_no"] == 100)
+    c200 = next(c for c in doc["catalogs"] if c["ctlg_no"] == 200)
+    assert c100["has_insight"] is True                      # flag 수정됨
+    assert c200["insight"]["invalidated"] == "source_mismatch"  # 무효화됨
+    assert c200["has_insight"] is False
+
+
+def test_run_dry_run_makes_no_writes():
+    db = _seed_db()
+    V.run(db, {"limit": 0, "dry_run": True, "rules": None, "llm_gate": False})
+    doc = db.products.find_one({"_id": "P1"})
+    c100 = next(c for c in doc["catalogs"] if c["ctlg_no"] == 100)
+    assert c100["has_insight"] is False                    # 변경 없음
+
+
+def test_run_rules_filter():
+    db = _seed_db()
+    rep = V.run(db, {"limit": 0, "dry_run": True, "rules": ["flag_drift"],
+                     "llm_gate": False})
+    assert {v["rule_id"] for v in rep["violations"]} == {"flag_drift"}
