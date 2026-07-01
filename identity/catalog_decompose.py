@@ -115,3 +115,46 @@ def decompose_row(row):
         "name": _norm(name),
         "needs_llm": "1" if compute_needs_llm(product_line) else "0",
     }
+
+
+def run_stage1(in_path=IN_DEFAULT, out_path=OUT_DEFAULT, limit=0, llm_gate=False, llm_limit=0):
+    if not os.path.exists(in_path):
+        sys.exit("✗ 입력 없음: %s — 먼저 extract_all.py 로 all_brands.csv 를 만드세요." % in_path)
+    rows = list(csv.DictReader(open(in_path, encoding="utf-8-sig")))
+    if limit:
+        rows = rows[:limit]
+    out, n_empty, n_llm = [], 0, 0
+    for r in rows:
+        if not (r.get("name") or "").strip():
+            n_empty += 1
+            continue
+        d = decompose_row(r)
+        if d["needs_llm"] == "1":
+            n_llm += 1
+        out.append(d)
+    if llm_gate:
+        import catalog_llm_gate as gate
+        n_gated = gate.apply_stage1(out, limit=llm_limit)
+        print("  [LLM] 게이트 보정 %d행 (모델 %s)" % (n_gated, gate.MODEL))
+    with open(out_path, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=OUT_COLS)
+        w.writeheader()
+        for d in out:
+            w.writerow(d)
+    print("[Stage1] %d행 → %s (빈name skip %d · needs_llm %d)" % (len(out), out_path, n_empty, n_llm))
+    return {"rows": len(out), "needs_llm": n_llm, "empty": n_empty}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--in", dest="in_path", default=IN_DEFAULT)
+    ap.add_argument("--out", dest="out_path", default=OUT_DEFAULT)
+    ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--llm-gate", action="store_true")
+    ap.add_argument("--llm-limit", type=int, default=0)
+    args = ap.parse_args()
+    run_stage1(args.in_path, args.out_path, args.limit, args.llm_gate, args.llm_limit)
+
+
+if __name__ == "__main__":
+    main()

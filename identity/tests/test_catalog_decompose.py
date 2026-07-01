@@ -78,3 +78,25 @@ def test_model_version_paren_preserved():
     assert "40" in d["product_line"]      # 모델 버전 괄호 보존
     assert "40" in d["catalog_name"]
     assert d["gender_norm"] == "M"
+
+
+import csv as _csv
+import os as _os
+
+def test_run_stage1_writes_output(tmp_path):
+    src = tmp_path / "in.csv"
+    with open(src, "w", encoding="utf-8-sig", newline="") as f:
+        w = _csv.DictWriter(f, fieldnames=["source", "brand", "style_code", "name",
+            "color", "price", "currency", "category", "gender", "sizes",
+            "origin", "material", "mfg_date", "url"])
+        w.writeheader()
+        w.writerow({"source": "eider", "style_code": "DUS26N77R2",
+                    "name": "ST 슬라이드 2", "color": "Red", "gender": "공용",
+                    "category": "신발", "price": "39000", "sizes": "250|260",
+                    "url": "http://x"})
+    out = tmp_path / "out.csv"
+    summary = cd.run_stage1(str(src), str(out), limit=0)
+    assert summary["rows"] == 1
+    rows = list(_csv.DictReader(open(out, encoding="utf-8-sig")))
+    assert rows[0]["catalog_name"] == "아이더 ST 슬라이드 2"
+    assert list(rows[0].keys()) == cd.OUT_COLS
