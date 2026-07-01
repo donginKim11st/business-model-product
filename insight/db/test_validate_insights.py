@@ -66,3 +66,67 @@ def test_flag_drift_flag_true_no_insight():
 def test_flag_drift_consistent_is_noop():
     cat = {"ctlg_no": 3, "has_insight": True, "insight": {"dims": [{"dim": "x"}]}}
     assert V.detect_flag_drift(_ctx(cat)) is None
+
+
+# --- Task 3: source_mismatch rule -------------------------------------------
+
+def _insight_with_evidence(*texts):
+    ev = [{"title": t, "quote": ""} for t in texts]
+    return {"dims": [{"dim": "aspect.taste",
+                      "points": [{"point": "p", "evidence": ev}]}],
+            "faqs": [], "n_sources": len(texts)}
+
+
+def test_source_mismatch_clear_size_diff():
+    # catalog 92g, evidence 다수 96g → 휴리스틱만으로 mismatch.
+    cat = {"ctlg_no": 1, "size": "92g", "count": "12개", "disp": "미역국 92g 12개",
+           "has_insight": True,
+           "insight": _insight_with_evidence("미역국 96g 12개", "미역국 96g 리뷰", "미역국 96g")}
+    ctx = _ctx(cat, opts={"llm_gate": True, "gate_fn": lambda d, t: (_ for _ in ()).throw(
+        AssertionError("휴리스틱으로 확정 시 LLM 호출 금지"))})
+    assert V.detect_source_mismatch(ctx) is not None
+
+
+def test_source_mismatch_match_is_noop():
+    cat = {"ctlg_no": 2, "size": "92g", "count": "12개", "disp": "미역국 92g 12개",
+           "has_insight": True,
+           "insight": _insight_with_evidence("미역국 92g 12개", "미역국 92g 후기")}
+    ctx = _ctx(cat, opts={"llm_gate": True, "gate_fn": lambda d, t: True})
+    assert V.detect_source_mismatch(ctx) is None
+
+
+def test_source_mismatch_ambiguous_uses_gate():
+    # evidence에 용량 없음 → 애매 → 게이트가 False면 mismatch.
+    cat = {"ctlg_no": 3, "size": "92g", "count": "12개", "disp": "미역국 92g 12개",
+           "has_insight": True,
+           "insight": _insight_with_evidence("맛있는 국수 후기", "국수 리뷰")}
+    ctx_bad = _ctx(cat, opts={"llm_gate": True, "gate_fn": lambda d, t: False})
+    assert V.detect_source_mismatch(ctx_bad) is not None
+    ctx_ok = _ctx(cat, opts={"llm_gate": True, "gate_fn": lambda d, t: True})
+    assert V.detect_source_mismatch(ctx_ok) is None
+
+
+def test_source_mismatch_gate_disabled_passes_ambiguous():
+    cat = {"ctlg_no": 4, "size": "92g", "count": "12개", "disp": "미역국 92g 12개",
+           "has_insight": True,
+           "insight": _insight_with_evidence("국수 후기")}
+    ctx = _ctx(cat, opts={"llm_gate": False})
+    assert V.detect_source_mismatch(ctx) is None
+
+
+def test_source_mismatch_empty_insight_is_noop():
+    # 빈 insight(dims 없음)는 검사 대상 아님.
+    cat = {"ctlg_no": 5, "size": "92g", "insight": {"dims": [], "faqs": [], "n_sources": 0}}
+    assert V.detect_source_mismatch(_ctx(cat, opts={"llm_gate": True})) is None
+
+
+def test_fix_source_mismatch_invalidates_for_requeue():
+    cat = {"ctlg_no": 6, "insight": {"dims": [{"dim": "x"}], "attempts": 1}}
+    spec = V.fix_source_mismatch(_ctx(cat))
+    up = spec["update"]["$set"]
+    ins = up["catalogs.$[c].insight"]
+    assert ins["dims"] == [] and ins["faqs"] == [] and ins["n_sources"] == 0
+    assert ins["attempts"] == 2           # prev(1) + 1
+    assert ins["invalidated"] == "source_mismatch"
+    assert up["catalogs.$[c].has_insight"] is False
+    assert spec["array_filters"] == [{"c.ctlg_no": 6}]
