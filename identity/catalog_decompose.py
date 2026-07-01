@@ -87,12 +87,24 @@ def strip_type(product_line, product_type):
     return _strip_tokens(product_line, [product_type])
 
 
-def name_attrs(gender_label, product_type, color, include_color=True):
-    """카탈로그명에 붙일 속성(우선순위 성별→유형→색상, 빈값 제외, 최대 3)."""
-    seq = [gender_label, product_type]
-    if include_color:
-        seq.append(color)
-    return [a for a in seq if a][:3]
+def size_label(size_field):
+    """사이즈 목록(파이프 구분)에서 이름에 붙일 범위 라벨(단일=그대로, 복수=min~max)."""
+    toks = [s.strip() for s in (size_field or "").split("|") if s.strip()]
+    if not toks:
+        return ""
+    if len(toks) == 1:
+        return toks[0]
+    try:
+        toks = sorted(toks, key=float)
+    except ValueError:
+        toks = sorted(toks)
+    return "%s~%s" % (toks[0], toks[-1])
+
+
+def name_attrs(gender_label, product_type, color, size="", cap=5):
+    """카탈로그명에 붙일 속성(우선순위 성별→유형→색상→사이즈, 빈값 제외, 최대 cap)."""
+    seq = [gender_label, product_type, color, size]
+    return [a for a in seq if a][:cap]
 
 
 def compose_catalog_name(brand_norm, product_name, attrs):
@@ -130,7 +142,8 @@ def decompose_row(row):
     product_line = clean_product_line(name, source, row.get("color"))
     product_name = strip_type(product_line, product_type)
     color = _norm(row.get("color"))
-    attrs = name_attrs(gender, product_type, primary_color(color), include_color=True)
+    attrs = name_attrs(gender, product_type, primary_color(color),
+                       size_label(row.get("sizes")), cap=5)
     catalog_name = compose_catalog_name(brand_norm, product_name, attrs)
     return {
         "source": source,

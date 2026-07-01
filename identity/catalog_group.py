@@ -100,14 +100,16 @@ def group(drows):
         product_name = _modal([m.get("product_name", "") for m in members])
         gender = _modal([m.get("gender", "") for m in members])
         product_type = _modal([m.get("product_type", "") for m in members])
-        attrs = cd.name_attrs(gender, product_type, "", include_color=False)
-        catalog_name = cd.compose_catalog_name(members[0].get("brand_norm", ""), product_name, attrs)
         prices = [float(m["price"]) for m in members if _isnum(m.get("price"))]
         colors = sorted({m.get("color", "") for m in members if m.get("color")})
         materials = sorted({m.get("material", "") for m in members if m.get("material")})
         origins = sorted({m.get("origin", "") for m in members if m.get("origin")})
         codes = {m.get("style_code", "") for m in members if m.get("style_code")}
         sizes = _sizes_of(members)
+        size_range = ("%s~%s" % (sizes[0], sizes[-1])) if sizes else ""
+        color_for_name = cd.primary_color(colors[0]) if len(colors) == 1 else ""
+        attrs = cd.name_attrs(gender, product_type, color_for_name, size_range, cap=5)
+        catalog_name = cd.compose_catalog_name(members[0].get("brand_norm", ""), product_name, attrs)
         cats.append({
             "source": members[0].get("source", ""),
             "brand_norm": members[0].get("brand_norm", ""),
@@ -118,7 +120,7 @@ def group(drows):
             "product_type": product_type,
             "colors": "|".join(colors),
             "n_colors": str(len(colors)),
-            "size_range": ("%s~%s" % (sizes[0], sizes[-1])) if sizes else "",
+            "size_range": size_range,
             "materials": "|".join(materials),
             "origins": "|".join(origins),
             "style_codes": str(len(codes)),

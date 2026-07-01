@@ -97,7 +97,8 @@ def apply_stage1(rows, limit=0, api_key=None, cache=None):
                 r["gender_code"] = g
                 r["gender"] = cd.lex.GENDER_LABEL.get(g, r.get("gender", ""))
             attrs = cd.name_attrs(r.get("gender", ""), r.get("product_type", ""),
-                                  cd.primary_color(r.get("color", "")), True)
+                                  cd.primary_color(r.get("color", "")),
+                                  cd.size_label(r.get("size", "")), cap=5)
             r["catalog_name"] = cd.compose_catalog_name(r.get("brand_norm", ""), pn, attrs)
             r["needs_llm"] = "0"
             n_done += 1

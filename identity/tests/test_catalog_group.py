@@ -28,7 +28,7 @@ def test_group_by_stylecode_base_merges_colorways():
     cats = cg.group(rows)
     assert len(cats) == 1
     c = cats[0]
-    assert c["catalog_name"] == "나이키 에어 포스 1 남성 신발"
+    assert c["catalog_name"] == "나이키 에어 포스 1 남성 신발 240~260"
     assert c["product_name"] == "에어 포스 1"
     assert c["n_variants"] == "2"
     assert c["n_colors"] == "2"
