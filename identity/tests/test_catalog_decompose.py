@@ -127,6 +127,30 @@ def test_color_ko_translates():
     assert cd.color_ko("PUMA Black") == "PUMA 블랙"   # 미지 단어 보존
 
 
+def test_commerce_size_mm_range_guard():
+    assert cd.commerce_size("250", "신발") == "250mm"
+    assert cd.commerce_size("90", "신발") == "90"     # 키즈 옷호수 오적용 방지
+    assert cd.commerce_size("140", "축구화") == "140"
+    assert cd.commerce_size("95", "티셔츠") == "95"    # 의류 호수는 mm 없음
+
+
+def test_attr_type_skips_duplicate():
+    assert cd.attr_type("원카고 립스탑팬츠", "팬츠") == ""   # 이름에 이미 유형
+    assert cd.attr_type("에어 포스 1", "신발") == "신발"
+
+
+def test_primary_color_hyphen_and_korean_pref():
+    assert cd.primary_color("Poison 핑크-PUMA 화이트-Sun Stream") == "핑크"
+    assert cd.primary_color("블랙,네이비") == "블랙"
+    assert cd.primary_color("Gum") == "Gum"            # 한글 없으면 원문
+
+
+def test_type_alias_english():
+    assert cd.find_product_type("", "베이직 R/TEE") == "티셔츠"
+    assert cd.find_product_type("", "우븐 트레이닝 MTM") == "맨투맨"
+    assert cd.find_product_type("", "고런 2.0(슬립인스)") == "슬립온"
+
+
 def test_size_range_label_separates_numeric_alpha():
     assert cd.size_range_label(["250", "260"]) == "250~260"
     assert cd.size_range_label(["OS"]) == "OS"                 # 단일=범위 아님

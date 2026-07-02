@@ -100,7 +100,8 @@ def group(drows):
         title_geo = cd.compose_catalog_name(brand, cd.canonical_name(brand, product_name),
                                             [product_type] if product_type else [])
         title_commerce = cd.compose_catalog_name(
-            brand, product_name, cd.name_attrs(gender_c, product_type, color_for_name, "", cap=5))
+            brand, product_name,
+            cd.name_attrs(gender_c, cd.attr_type(product_name, product_type), color_for_name, "", cap=5))
         cats.append({
             "source": members[0].get("source", ""),
             "brand_norm": brand,
@@ -124,6 +125,40 @@ def group(drows):
     return cats
 
 
+ENTITY_OUT_DEFAULT = os.path.join(HERE, "outputs", "catalog_entities.csv")
+ENTITY_COLS = ["brand_norm", "title_geo", "product_type", "gender", "n_models",
+               "n_variants", "colors", "n_colors", "size_range", "price_min",
+               "price_max", "sources", "sample_url"]
+
+
+def entity_rollup(cats):
+    """모델 롤업 → GEO 엔티티(title_geo) 롤업. 비정형 조인/GEO 노출 단위(1엔티티=1행)."""
+    buckets = collections.OrderedDict()
+    for c in cats:
+        buckets.setdefault(c["title_geo"], []).append(c)
+    ents = []
+    for tg, ms in buckets.items():
+        colors = sorted({x for m in ms for x in m["colors"].split("|") if x})
+        prices = [int(m[k]) for m in ms for k in ("price_min", "price_max") if m[k]]
+        sizes = cd.size_range_label([s for m in ms for s in m["size_range"].replace("~", "|").split("|")])
+        ents.append({
+            "brand_norm": ms[0]["brand_norm"],
+            "title_geo": tg,
+            "product_type": _modal([m["product_type"] for m in ms]),
+            "gender": "|".join(sorted({g for m in ms for g in m["gender"].split("|") if g})),
+            "n_models": str(len(ms)),
+            "n_variants": str(sum(int(m["n_variants"]) for m in ms)),
+            "colors": "|".join(colors),
+            "n_colors": str(len(colors)),
+            "size_range": sizes,
+            "price_min": str(min(prices)) if prices else "",
+            "price_max": str(max(prices)) if prices else "",
+            "sources": "|".join(sorted({m["source"] for m in ms})),
+            "sample_url": ms[0]["sample_url"],
+        })
+    return ents
+
+
 def run_stage2(in_path=IN_DEFAULT, out_path=OUT_DEFAULT, llm_gate=False, llm_limit=0):
     if not os.path.exists(in_path):
         sys.exit("✗ 입력 없음: %s — 먼저 catalog_decompose.py 를 실행하세요." % in_path)
@@ -138,8 +173,14 @@ def run_stage2(in_path=IN_DEFAULT, out_path=OUT_DEFAULT, llm_gate=False, llm_lim
         w.writeheader()
         for c in cats:
             w.writerow(c)
-    print("[Stage2] %d행 → %d 카탈로그 → %s" % (len(drows), len(cats), out_path))
-    return {"rows": len(drows), "catalogs": len(cats)}
+    ents = entity_rollup(cats)
+    with open(ENTITY_OUT_DEFAULT, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=ENTITY_COLS)
+        w.writeheader()
+        for e in ents:
+            w.writerow(e)
+    print("[Stage2] %d행 → %d 카탈로그 · %d GEO엔티티 → %s" % (len(drows), len(cats), len(ents), out_path))
+    return {"rows": len(drows), "catalogs": len(cats), "entities": len(ents)}
 
 
 def main():

@@ -65,6 +65,13 @@ def find_product_type(category, name):
     for t in lex.PRODUCT_TYPES:  # 긴 것 우선(lexicon 정렬 보장)
         if t in hay:
             return t
+    low = hay.lower()
+    for alias, canon in lex.TYPE_ALIASES.items():   # 영문/변형 표기 → 정규 한글 유형
+        if alias.isascii():
+            if re.search(r"\b" + re.escape(alias) + r"\b", low):
+                return canon
+        elif alias in hay:
+            return canon
     return None
 
 
@@ -78,10 +85,13 @@ def _strip_tokens(text, tokens):
 
 
 def primary_color(color):
-    """색상 컬럼값에서 이름에 붙일 대표색 1개(콤마/슬래시/파이프 앞 첫 세그먼트)."""
+    """색상 컬럼값 → 이름용 대표색 1개. 콤마/슬래시/파이프/하이픈 첫 세그먼트,
+    세그먼트에 한글 색상어가 있으면 한글 토큰만(브랜드/영문 수식어 'PUMA'·'Poison' 제거)."""
     if not color:
         return ""
-    return re.split(r"[,/|]", color)[0].strip()
+    seg = re.split(r"[,/|\-]", color)[0].strip()
+    ko = [t for t in seg.split() if re.search(r"[가-힣]", t)]
+    return " ".join(ko) if ko else seg
 
 
 def strip_type(product_line, product_type):
@@ -166,15 +176,26 @@ def canonical_name(brand_norm, product_name):
 
 
 def commerce_size(size, product_type):
-    """커머스 제목용 사이즈: 가방 치수 제외, 아디 A/ 접두 제거, 신발 숫자는 mm 부여."""
+    """커머스 제목용 사이즈: 가방 치수 제외, 아디 A/ 접두 제거,
+    신발 숫자는 발길이 범위(150~350)일 때만 mm 부여(키즈 옷호수 90~140 오적용 방지)."""
     s = (size or "").strip()
     if not s or "*" in s or "cm" in s.lower():
         return ""
     if s.upper().startswith("A/"):
         s = s[2:]
-    if product_type in lex.FOOTWEAR_TYPES and re.match(r"^\d+(\.\d+)?$", s):
+    if product_type in lex.FOOTWEAR_TYPES and re.match(r"^\d+(\.\d+)?$", s) \
+            and 150 <= float(s) <= 350:
         return s + "mm"
     return s
+
+
+def attr_type(product_name, product_type):
+    """제목용 유형: product_name 이 이미 유형어를 포함하면 재부착 생략('립스탑팬츠 … 팬츠' 방지)."""
+    if not product_type:
+        return ""
+    if product_type in (product_name or "").replace(" ", ""):
+        return ""
+    return product_type
 
 
 def clean_product_line(name, source, color):
@@ -211,8 +232,9 @@ def decompose_row(row):
     title_geo = compose_catalog_name(brand_norm, canonical_name(brand_norm, product_name),
                                      [product_type] if product_type else [])
     # title_commerce(기저): 브랜드+상품명+성별+유형+색상. 사이즈는 run_stage1 에서 전개하며 붙인다.
-    title_commerce = compose_catalog_name(brand_norm, product_name,
-                                          name_attrs(gender_c, product_type, primary_color(color)))
+    title_commerce = compose_catalog_name(
+        brand_norm, product_name,
+        name_attrs(gender_c, attr_type(product_name, product_type), primary_color(color)))
     return {
         "source": source,
         "brand_norm": brand_norm,
@@ -255,7 +277,7 @@ def run_stage1(in_path=IN_DEFAULT, out_path=OUT_DEFAULT, limit=0, llm_gate=False
                 d["size"] = s
                 d["title_commerce"] = compose_catalog_name(
                     base["brand_norm"], base["product_name"],
-                    name_attrs(gender_c, base["product_type"],
+                    name_attrs(gender_c, attr_type(base["product_name"], base["product_type"]),
                                primary_color(base["color"]), commerce_size(s, base["product_type"]), cap=5))
                 out.append(d)
         else:

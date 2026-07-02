@@ -65,9 +65,12 @@ def pending(in_path, store):
 
 def _prompt(brand, pn, ptype):
     return (
-        "스포츠/아웃도어 상품명에서 'canonical 모델명'만 남기세요. "
-        "브랜드·성별·색상·사이즈·소재·마케팅/디테일 수식어(벨크로·경량·그래픽·스트레치·클럽 등)는 "
-        "제거하고 핵심 제품 라인/모델명만 남깁니다.\n브랜드: %s\n유형: %s\n상품명: %s\n"
+        "스포츠/아웃도어 상품명에서 'canonical 모델명'만 남기세요.\n"
+        "제거: 브랜드·성별·색상·사이즈·소재·마케팅 수식어(벨크로·경량·그래픽·스트레치 등).\n"
+        "반드시 유지(다른 상품과 구분되는 정체성): 콜라보/파트너명(X 언더커버, 잔망루피, 미키, "
+        "스타워즈 등), 에디션/버전(프리미엄, 레트로, '07, 2.0, OG), 제품 라인·핏(로우/미드/하이, "
+        "루즈핏/베이직핏, 슬립인스). 서로 다른 콜라보·에디션이 같은 이름이 되면 안 됩니다.\n"
+        "브랜드: %s\n유형: %s\n상품명: %s\n"
         '오직 JSON만: {"canonical": "..."}' % (brand, ptype, pn)
     )
 
@@ -131,13 +134,42 @@ def run_batch(in_path=IN_DEFAULT, batch=200, api_key=None, workers=4):
             "progress": prog(len(pend) - done)}
 
 
+def collision_keys(store):
+    """같은 brand 에서 서로 다른 product_name 이 같은 canonical 로 병합된 키들(재처리 대상)."""
+    groups = {}
+    for k, v in store.items():
+        brand = k.split("|", 1)[0]
+        groups.setdefault((brand, v), []).append(k)
+    out = []
+    for (_b, _v), ks in groups.items():
+        if len(ks) > 1:
+            out.extend(ks)
+    return out
+
+
+def redo_collisions(in_path=IN_DEFAULT, workers=8, api_key=None):
+    """충돌 키를 store 에서 지우고(새 프롬프트로) 재계산."""
+    store = store_load()
+    ks = collision_keys(store)
+    for k in ks:
+        del store[k]
+    store_save(store)
+    print(json.dumps({"stage": "catalog_geo_redo", "invalidated": len(ks)}, ensure_ascii=False))
+    return run_batch(in_path, batch=0, api_key=api_key, workers=workers)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="in_path", default=IN_DEFAULT)
     ap.add_argument("--batch", type=int, default=200, help="0=전량")
     ap.add_argument("--workers", type=int, default=int(os.environ.get("CATALOG_GEO_WORKERS", "4")))
+    ap.add_argument("--redo-collisions", action="store_true",
+                    help="canonical 충돌(다른 상품→같은 이름) 키를 새 프롬프트로 재계산")
     args = ap.parse_args()
-    print(json.dumps(run_batch(args.in_path, args.batch, workers=args.workers), ensure_ascii=False))
+    if args.redo_collisions:
+        print(json.dumps(redo_collisions(args.in_path, args.workers), ensure_ascii=False))
+    else:
+        print(json.dumps(run_batch(args.in_path, args.batch, workers=args.workers), ensure_ascii=False))
 
 
 if __name__ == "__main__":
