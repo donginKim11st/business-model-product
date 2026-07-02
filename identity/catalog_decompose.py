@@ -26,6 +26,7 @@ CANON_PATH = os.path.join(HERE, "outputs", "_catalog_canonical.json")
 _CANON = None
 
 _JUNK = re.compile(r"★[^★]*★|\[[^\]]*\]")
+_ENUM_STOCK = re.compile(r"(?:(?<=\s)|^)\d{1,2}(?:-\d{1,2})?[.)]\s+|일시품절|재고소진|입고예정|품절|[�]+")
 _WS = re.compile(r"\s+")
 _HANGUL = re.compile(r"[가-힣]{2,}")
 # 트레일링 다단어 영문(2단어 이상) — 한/영 중복 의심 신호
@@ -200,6 +201,7 @@ def attr_type(product_name, product_type):
 
 def clean_product_line(name, source, color):
     line = _JUNK.sub(" ", name or "")
+    line = _ENUM_STOCK.sub(" ", line)   # 옵션 열거자("1-1. ")·재고문구·모지바케
     line = _norm(line)
     line = re.sub(r"[（(][남여][)）]", " ", line)
     line = _strip_tokens(line, lex.GENDER_NAME_TOKENS)

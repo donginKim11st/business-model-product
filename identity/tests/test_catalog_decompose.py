@@ -156,3 +156,10 @@ def test_size_range_label_separates_numeric_alpha():
     assert cd.size_range_label(["OS"]) == "OS"                 # 단일=범위 아님
     assert cd.size_range_label(["230", "250", "XL"]) == "230~250 XL"  # 숫자/문자 분리
     assert cd.size_range_label(["S", "XL", "M"]) == "S~XL"     # 의류 순서
+
+
+def test_enum_stock_noise_stripped():
+    r = _row(source="nike", name="1-1. 에어 포스 1 품절", gender="남성", category="신발", color="")
+    d = cd.decompose_row(r)
+    assert "1-1." not in d["title_commerce"] and "품절" not in d["title_commerce"]
+    assert "에어 포스 1" in d["product_name"]
