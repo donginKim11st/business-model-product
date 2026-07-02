@@ -100,6 +100,18 @@ STAGES = {
         "lock_pid": Path("/tmp/_noop_catalog_geo.lock/pid"),
         "in_run_all": False,   # LLM canonical 배치 드레인 — /step/catalog_geo?batch=N (OPENAI_API_KEY 필요).
     },
+    "furniture": {
+        "step": ROOT.parent / "identity" / "step_furniture.sh",
+        "log": ROOT.parent / "identity" / "catalog_pipeline.log",
+        "lock_pid": Path("/tmp/_noop_furniture.lock/pid"),
+        "in_run_all": False,   # 가구 카탈로그 재빌드(무료·멱등) — /step/furniture.
+    },
+    "furniture_geo": {
+        "step": ROOT.parent / "identity" / "step_furniture_geo.sh",
+        "log": ROOT.parent / "identity" / "catalog_pipeline.log",
+        "lock_pid": Path("/tmp/_noop_furniture_geo.lock/pid"),
+        "in_run_all": False,   # 가구 canonical LLM 드레인 — /step/furniture_geo?batch=N (키 필요).
+    },
     "report": {
         "step": ROOT / "db" / "step_report.sh",
         "log": ROOT / "db" / "exports" / "export.log",
