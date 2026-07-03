@@ -63,6 +63,8 @@ def _promote_option(opt):
     내부코드(5자리+)는 제거 — 승격 후 잔여만 option 에 남긴다(통짜 원문이 제목에 박히는 것 방지)."""
     out = {"option": "", "color": "", "size": "", "firm": "", "watt": "", "cct": "",
            "form": "", "usage": ""}
+    # 괄호 복합값("50W(주광색)")은 공백 정규화해야 토큰 분배 가능 — 통짜 라벨 폴백 오염 방지
+    opt = _WS.sub(" ", re.sub(r"[()\[\]{}（）]", " ", opt)).strip()
     segs = [s.strip() for s in opt.split("/")] if "/" in opt else [opt.strip()]
     resid = []
     for seg in segs:
@@ -542,10 +544,15 @@ _OPT_ADDON_RE = re.compile(
 
 
 # 옵션 텍스트 정제: 가격차·품절·번호·내부코드 제거 (추가상품 필터보다 먼저!)
+# 옵션 열거자: "1. "·"1)"·"A1. "·"D2) "·"A. "(단독 문자는 공백 필수).
+# (?!\d) 가드 — "1.5인용" 소수점을 열거자로 오인 절단하지 않음.
+_OPT_ENUM_RE = re.compile(r"^\s*(?:[A-Za-z]?\d{1,2}[.)](?!\d)|[A-Za-z][.)](?=\s))\s*")
+
+
 def _clean_opt(o):
     o = re.sub(r"\[?\s*품절\s*\]?", " ", o)
     o = re.sub(r"\s*[:：]\s*\+?\s*[\d,]+\s*원", " ", o)   # ": +23,000원" 가격차
-    o = re.sub(r"^\s*\d+[.)]\s*", "", o)                    # "1. " 번호 prefix
+    o = _OPT_ENUM_RE.sub("", o)                              # "1. "/"A1. "/"A. " 열거자 prefix
     o = re.sub(r"_\d{5,}\s*$", "", o)                        # "_100370" 내부코드
     o = re.sub(r"\s+DF\d*\b", " ", o)                     # 동서 내부코드 접두(DF925364→DF 잔재)
     return re.sub(r"\s+", " ", o).strip()
@@ -709,6 +716,52 @@ def _clean_val(v):
     return v
 
 
+# ── 속성값 2차 검증 (추출 후 재검사 — 교차축 혼입 분리·노이즈 제거) ──────────
+
+_AXIS_WORD_RE = re.compile(r"^(?:색상|컬러|사이즈|규격|타입|종류|구분|선택|옵션)$")
+_REFINE_AXES = ("option", "color", "size", "form", "usage")
+_PROMOTE_AXES = ("color", "size", "firm", "watt", "cct", "form", "usage")
+
+
+def refine_attrs(d):
+    """추출된 속성값 재검증 — 모든 변형 emit 경로의 finalize(_clean_val 후)에서 호출.
+
+    ① 한 값에 섞인 타 축 분리: color="50W 주광색" → watt=50W·cct=주광색
+       (옵션군 라벨 폴백 등 _promote_option 을 우회한 경로의 오염을 회수)
+    ② 열거자 노이즈: "A1. 원형방등 일반" → "원형방등 일반"
+    ③ 축명 잔여어("색상"/"타입" 단독 토큰)·기존 축과 중복 토큰 제거
+    보수 원칙: 자기 축 값을 재확인 못 했는데 잔여가 남으면 원값 유지(정보 파괴 금지)."""
+    out = dict(d)
+    for ax in _REFINE_AXES:
+        v = out.get(ax)
+        if not isinstance(v, str) or not v:
+            continue
+        v2 = _OPT_ENUM_RE.sub("", v).strip()
+        if " " not in v2:
+            if v2 != v:
+                out[ax] = v2
+            continue
+        po = _promote_option(v2)
+        resid = " ".join(t for t in po["option"].split()
+                         if not _AXIS_WORD_RE.match(t)
+                         and not any(out.get(a) == t for a in _PROMOTE_AXES))
+        if ax == "option":
+            for a in _PROMOTE_AXES:
+                if po[a] and not out.get(a):
+                    out[a] = po[a]
+            out["option"] = resid
+        elif po[ax] or not resid:
+            out[ax] = po[ax]  # 재확인값(전부 타 축으로 재분류됐으면 비움)
+            for a in _PROMOTE_AXES:
+                if a != ax and po[a] and not out.get(a):
+                    out[a] = po[a]
+            if resid and not out.get("option"):
+                out["option"] = resid
+        else:
+            out[ax] = v2      # 보수 유지 — 열거자만 벗김
+    return {k: v for k, v in out.items() if v}
+
+
 _ENUM_RE = re.compile(r"(?:(?<=\s)|^)\d{1,2}(?:-\d{1,2})?[.)](?=\s|[가-힣])\s*")  # "1-1. " "01.옷장" 열거자(소수점 2.5 비매칭)
 _STOCK_RE = re.compile(r"일시품절|재고소진|입고예정|품절")            # 재고 상태 문구
 _PICK_RE = re.compile(r"(?:(?<=\s)|^)(?:선택|모음|국내제작|국내생산|당일출고|무료배송)(?=\s|$)")  # 옵션 지시어·마케팅 문구
@@ -844,8 +897,7 @@ def run_group():
                     va_v.update(cv)
                     if va_v.get("color"):
                         all_colors.add(va_v["color"])
-                    va_v = {k: _clean_val(x) for k, x in va_v.items()}
-                    va_v = {k: x for k, x in va_v.items() if x}
+                    va_v = refine_attrs({k: _clean_val(x) for k, x in va_v.items()})
                     variants.append({
                         "catalog_key": key, "mall": r["mall"], "url": r["url"],
                         "title_commerce": title_commerce(r["brand"], r["canonical"], va_v),
@@ -881,8 +933,7 @@ def run_group():
                         sm = re.search(r"(?<![A-Za-z])(SS|EK|LK|KK|[SQKD])(?![A-Za-z])", opt)
                         if sm:
                             va_v["size"] = sm.group(1)
-                    va_v = {k: _clean_val(x) for k, x in va_v.items()}
-                    va_v = {k: x for k, x in va_v.items() if x}
+                    va_v = refine_attrs({k: _clean_val(x) for k, x in va_v.items()})
                     variants.append({
                         "catalog_key": key, "mall": r["mall"], "url": r["url"],
                         "title_commerce": title_commerce(r["brand"], r["canonical"], va_v),
@@ -946,8 +997,7 @@ def run_group():
                     va_v["watt"] = wt if str(wt).upper().endswith("W") else f"{wt}W"
                 if ct:
                     va_v["cct"] = ct
-                va_v = {k: _clean_val(x) for k, x in va_v.items()}
-                va_v = {k: x for k, x in va_v.items() if x}
+                va_v = refine_attrs({k: _clean_val(x) for k, x in va_v.items()})
                 variants.append({
                     "catalog_key": key, "mall": r["mall"], "url": r["url"],
                     "title_commerce": title_commerce(r["brand"], r["canonical"], va_v),
@@ -1173,6 +1223,33 @@ def run_verify():
                 fails.append(msg)
         if hits and not any(sub in f for f in fails):
             print(f"  [PASS-정제] {sub}")
+    # 속성값 오염 감사 (2026-07-03: 추출 후 재검증 — 교차축 혼입·열거자 노이즈 0 유지)
+    try:
+        vrows = list(csv.DictReader(open(VARIANT_OUT, encoding="utf-8-sig")))
+    except FileNotFoundError:
+        vrows = []
+    _cct_tok = re.compile(r"주광색|전구색|주백색")
+    _watt_tok = re.compile(r"(?<![A-Za-z0-9.])\d{1,3}\s*[wW](?![A-Za-z가-힣])")
+    n_enum = n_cross = 0
+    for v in vrows:
+        try:
+            a = json.loads(v["variant_attrs"] or "{}")
+        except ValueError:
+            continue
+        for k, x in a.items():
+            if not isinstance(x, str):
+                continue
+            if _OPT_ENUM_RE.match(x):
+                n_enum += 1
+            if k in ("color", "size", "form", "usage") and \
+                    (_cct_tok.search(x) or _watt_tok.search(x)):
+                n_cross += 1
+    if n_enum or n_cross:
+        msg = f"[FAIL-속성오염] 열거자 잔존 {n_enum} · 교차축 혼입(color/size/form/usage↔watt/cct) {n_cross}"
+        print(f"  {msg}"); fails.append(msg)
+    elif vrows:
+        print(f"  [PASS-속성오염] variant {len(vrows)}행 — 열거자·교차축 혼입 0")
+
     if fails:
         print(f"[verify] 실패 {len(fails)}건")
         sys.exit(1)

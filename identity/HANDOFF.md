@@ -58,6 +58,7 @@ python3 refetch_options.py dongsuh --cascade  # 종속 2·3차 병합
 - **엔티티 해상도**: 콜라보/에디션 보존 프롬프트 + `--redo-collisions`. 스포츠 과병합 7.7→4.9%.
 - 모음전(옵션=서로 다른 상품 열거)은 모델분해 합성행(`_opt_src`) — options 비는 게 정상.
 - `_is_variantish`에 한글 사이즈(슈퍼싱글/퀸/소중대) 필수 — 없으면 사이즈 옵션이 모델분해로 오판.
+- **속성값 2차 검증 `refine_attrs`**(7/3) — 모든 변형 emit finalize(_clean_val 후)에서 축 값 재검사: 교차축 혼입 분리("50W(주광색)" 라벨폴백→watt+cct)·열거자("A1.", 소수점 가드) 제거·축명 잔여어 제거. 보수 원칙: 자기 축 재확인 실패+잔여 있으면 원값 유지. verify에 속성오염 게이트(열거자·교차축 0 유지) 추가.
 
 ## 7. 현재 수치(재빌드 시 변동)
 스포츠: 유형커버 75% · 성별 84% · needs_llm 2.5% · 과병합 4.9%
@@ -66,7 +67,7 @@ python3 refetch_options.py dongsuh --cascade  # 종속 2·3차 병합
 ## 8. 남은 일 (우선순위)
 1. **비정형(리뷰) 조인** — 후순위 지정됨. 입력: `catalog_entities.csv`(스포츠)/`catalogs_furniture.csv`의 title_geo + `catalog_review_dims.dims_for()`. insight/ 엔진 재사용해 배치+n8n(catalog_geo 패턴).
 2. ~~Mongo 적재~~ **완료(7/3)** — insights DB(47017): sports_products/catalogs/variants(61K/36K/264K) · furniture_products/variants/catalogs(19K/46K/20K) · **furniture_catalog_variants(156K, title_commerce SKU 층 신설, _id=내용해시 멱등)**. 재빌드 후 두 로더 재실행이 갱신 절차(run_furniture_pipeline.py가 가구 로더 호출).
-3. OCR 백필 — "상세페이지 참고"/이미지 옵션·침구 사이즈 42% 공백 (`ocr_gosi_furniture.py`).
+3. OCR 백필 — 지원 6몰 잔여 소진(7/3): flora 220·wooree 175 옵션 수집 완료, bflamp 18 이미지fetch실패·vittz 2 soft-block만 잔존. 미지원 몰(dongsuh/godomall계)은 `ocr_gosi_furniture.py` BRAND_CFG 추가 필요.
 4. 가격편차 리뷰 큐 340건(needs_review=price_spread).
 5. 재추출(크롤) 스케줄 — n8n엔 재빌드만 있음. `run_furniture_pipeline.py --force` 주1회 후보.
 6. 가구 신규 canonical 키 잔여분 — n8n furniture_geo가 증분 처리 중(또는 §5 수동).
