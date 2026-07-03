@@ -311,7 +311,7 @@ _WATT_TOK_RE = re.compile(r"\d+(?:\.\d)?\s*[wW]")
 _CCT_RE = re.compile(r"주광색|전구색|주백색|\d{4}[kK]\b")
 _SIZE_BR_RE = re.compile(r"\[([SQKD/,\sEL]+)\]")
 _SIZE_BARE_RE = re.compile(r"(?<![A-Za-z0-9가-힣])(S/SS|Q/K|SS|EK|LK|KK|[SQKD])(?![A-Za-z0-9가-힣])")
-_DIM_CM_RE = re.compile(r"(?<![\dx×*.])(\d{2,3})\s*cm\b")
+_DIM_CM_RE = re.compile(r"(?<![\dx×*.])(\d{2,3}(?:\.\d)?)\s*cm\b")  # 소수점 직경("136.9cm") 포함
 _MM_RE = re.compile(r"\(?(\d{3,4})\s*mm\)?")
 _DASH_COLOR_RE = re.compile(r"\s*-\s*([가-힣A-Za-z_]+)\s*$")
 
@@ -330,6 +330,12 @@ def extract_variants(n, cc, rec):
         if len(toks) >= 3 and _color_token(toks[0]):
             va.setdefault("color", toks[0])
             n = " ".join(toks[1:])
+    # 형태 슬래시 열거("저상형/일반형") — 전 멤버가 ~형/~용일 때만 form 축("/"=변형 전개 단위).
+    # "멀바우/본넬"(소재)·"라온/리노"(모델 열거)는 비매칭 — 보존.
+    m = re.search(r"(?<![가-힣/])[가-힣]{1,5}(?:형|용)(?:/[가-힣]{1,5}(?:형|용))+(?![가-힣])", n)
+    if m:
+        va["form"] = m.group(0)
+        n = n[: m.start()] + " " + n[m.end():]
     # 사이즈 브래킷/bare (침구·침대)
     if cc in ("bedding", "bed"):
         m = _SIZE_BR_RE.search(n)
@@ -379,6 +385,18 @@ def extract_variants(n, cc, rec):
         if m:
             va["cm"] = m.group(1)
             n = n[: m.start()] + " " + n[m.end():]
+    # 실링팬 직경 cm — 사이즈 변형. 카테고리 무관("실링팬" 키워드 가드 — 미분류 몰 카테고리 대비)
+    if "실링팬" in n:
+        m = _DIM_CM_RE.search(n)
+        if m:
+            va["cm"] = m.group(1)
+            n = n[: m.start()] + " " + n[m.end():]
+            n = re.sub(r"\d+\s*인치(?![가-힣])", " ", n)   # 중복 인치 병기는 노이즈
+        else:
+            m = re.search(r"(\d{2,3})\s*인치(?![가-힣])", n)
+            if m:   # 인치 단독 표기 — cm 환산(사이즈 표기 일원화)
+                va["cm"] = str(int(round(int(m.group(1)) * 2.54)))
+                n = n[: m.start()] + " " + n[m.end():]
     # 팩 수량 (전 카테고리)
     m = re.search(lex.PACK_RE, n)
     if m:
@@ -388,6 +406,10 @@ def extract_variants(n, cc, rec):
     if re.search(lex.RENTAL_RE, n):
         va["offer"] = "rental"
         n = re.sub(lex.RENTAL_RE, " ", n)
+    # 행사 1+1 (전 카테고리) — 상품 자체가 아닌 프로모션 구성
+    if re.search(r"(?<![\d+])1\+1(?![\d+])", n):
+        va.setdefault("offer", "1+1")
+        n = re.sub(r"(?<![\d+])1\+1(?![\d+])", " ", n)
     return _WS.sub(" ", n).strip(), va
 
 
@@ -522,6 +544,9 @@ def make_key(rec):
         n = re.sub(r"(?:\s+[/,]\s*)+", " ", n)            # 고아 슬래시·콤마
         n = re.sub(r"\s+[~∼]\s*", " ", n)
         n = _WS.sub(" ", n).strip(" -/,~")
+    # 동일 토큰 중복 제거("실링팬 방등 선풍기 방등" — 축 추출·열거 정리 후 잔재), 첫 등장 유지
+    _seen = set()
+    n = " ".join(w for w in n.split() if not (w in _seen or _seen.add(w)))
 
     code = find_model_code(n)
     if code:                                              # E2 code-first
@@ -782,7 +807,7 @@ def refine_attrs(d):
     return {k: v for k, v in out.items() if v}
 
 
-_ENUM_RE = re.compile(r"(?:(?<=\s)|^)\d{1,2}(?:-\d{1,2})?[.)](?=\s|[가-힣])\s*")  # "1-1. " "01.옷장" 열거자(소수점 2.5 비매칭)
+_ENUM_RE = re.compile(r"(?:(?<=\s)|^)[A-Za-z]?\d{1,2}(?:-\d{1,2})?[.)](?=\s|[가-힣])\s*")  # "1-1. " "N1. " "01.옷장" 열거자(소수점 2.5·모델명 PAR30 비매칭)
 _STOCK_RE = re.compile(r"일시품절|재고소진|입고예정|품절")            # 재고 상태 문구
 _PICK_RE = re.compile(r"(?:(?<=\s)|^)(?:선택|모음|국내제작|국내생산|당일출고|무료배송)(?=\s|$)")  # 옵션 지시어·마케팅 문구
 _MOJIBAKE_RE = re.compile(r"[�]+")                              # 깨진 인코딩(�)
@@ -818,7 +843,11 @@ def _fcanon():
 
 def title_geo(brand, canonical, l2):
     canonical = _fcanon().get(f"{brand}|{canonical}", canonical)  # LLM canonical 우선(없으면 규칙값)
-    t = f"{brand} {canonical}".strip()
+    # 브랜드 중복 방지("도토로 도토로 트리") — 콜라보("잠자리X동서가구")는 선두가 아니라 비해당
+    if canonical == brand or canonical.startswith(brand + " "):
+        t = canonical
+    else:
+        t = f"{brand} {canonical}".strip()
     # 유형 보충 (§3.1-3): head noun에 유형 없으면 l2로
     has_type = any(k in canonical for k in
                    ("소파", "침대", "이불", "조명", "트리", "커버", "베개", "매트",
@@ -827,7 +856,13 @@ def title_geo(brand, canonical, l2):
     l2_overlap = l2 and any(w in canonical for w in l2.replace("/", " ").split())
     if l2 and l2 != "리퍼/전시/중고" and not has_type and not l2_overlap:
         t += f" {l2}"
-    return _clean_title(t)
+    t = _clean_title(t)
+    # LLM canonical 캐시에 잔존하는 수량/행사·중복 토큰 최종 제거(규칙 경로는 decompose가 이미 제거)
+    t = re.sub(lex.PACK_RE, " ", t)
+    t = re.sub(r"(?<![\d+])1\+1(?![\d+])", " ", t)
+    _seen = set()
+    t = " ".join(w for w in t.split() if not (w in _seen or _seen.add(w)))
+    return _WS.sub(" ", t).strip(" -/,+~")
 
 
 # 사이즈 표기 — 영문 코드 통일 (S/SS/D/Q/K/EK/LK, 2026-07-02 정책)
@@ -980,9 +1015,10 @@ def run_group():
             seat_list = _split_axis("seat")
             watt_list = _split_axis("watt")
             cct_list = _split_axis("cct")
+            form_list = _split_axis("form")   # "저상형/일반형" 슬래시 열거 전개
             import itertools
-            for c, sz, st, wt, ct in itertools.product(
-                    (colors or [""]), sz_list, seat_list, watt_list, cct_list):
+            for c, sz, st, wt, ct, ft in itertools.product(
+                    (colors or [""]), sz_list, seat_list, watt_list, cct_list, form_list):
                 va_v = dict(va)
                 # 색상 축 정합성: 조합/코드 섞인 긴 값은 option으로, color엔 토큰만
                 opt_size = ""
@@ -1017,6 +1053,8 @@ def run_group():
                     va_v["watt"] = wt if str(wt).upper().endswith("W") else f"{wt}W"
                 if ct:
                     va_v["cct"] = ct
+                if ft:
+                    va_v["form"] = ft
                 va_v = refine_attrs({k: _clean_val(x) for k, x in va_v.items()})
                 variants.append({
                     "catalog_key": key, "mall": r["mall"], "url": r["url"],
