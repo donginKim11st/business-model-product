@@ -69,7 +69,10 @@ def pending(in_path, store, brand_col="brand_norm", name_col="product_name",
 def _prompt(brand, pn, ptype):
     return (
         "상품명에서 'canonical 모델명'만 남기세요.\n"
-        "제거: 브랜드·성별·색상·사이즈·소재·마케팅 수식어(벨크로·경량·그래픽·스트레치 등).\n"
+        "제거: 브랜드·성별·색상·사이즈·소재·마케팅 수식어(벨크로·경량·그래픽·스트레치 등), "
+        "수량·행사 표기(2개입, 1+1), SEO 키워드 나열(용도·대상·연관검색어를 늘어놓은 꼬리 — "
+        "예: '무드등 곰돌이 토끼 별 취침등 아기 인테리어 생일' → '무드등').\n"
+        "결과는 핵심 모델명(시리즈/펫네임)+제품 유형의 짧은 명사구(대개 2~5어절)여야 합니다.\n"
         "반드시 유지(다른 상품과 구분되는 정체성): 콜라보/파트너명(X 언더커버, 잔망루피, 미키, "
         "스타워즈 등), 에디션/버전(프리미엄, 레트로, '07, 2.0, OG), 제품 라인·핏(로우/미드/하이, "
         "루즈핏/베이직핏, 슬립인스). 서로 다른 콜라보·에디션이 같은 이름이 되면 안 됩니다.\n"
@@ -165,6 +168,19 @@ def redo_collisions(in_path=IN_DEFAULT, workers=8, api_key=None, **kw):
     return run_batch(in_path, batch=0, api_key=api_key, workers=workers, **kw)
 
 
+def redo_long(limit, in_path=IN_DEFAULT, workers=8, api_key=None, **kw):
+    """canonical 값이 limit 자 이상인 키(SEO 키워드 나열 압축 실패)를 새 프롬프트로 재계산."""
+    store_path = kw.get("store_path", STORE)
+    store = store_load(store_path)
+    ks = [k for k, v in store.items() if len(v) >= limit]
+    for k in ks:
+        del store[k]
+    store_save(store, store_path)
+    print(json.dumps({"stage": kw.get("stage_key", "catalog_geo") + "_redo_long",
+                      "invalidated": len(ks), "limit": limit}, ensure_ascii=False))
+    return run_batch(in_path, batch=0, api_key=api_key, workers=workers, **kw)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="in_path", default=IN_DEFAULT)
@@ -177,11 +193,16 @@ def main():
     ap.add_argument("--stage-key", default="catalog_geo")
     ap.add_argument("--redo-collisions", action="store_true",
                     help="canonical 충돌(다른 상품→같은 이름) 키를 새 프롬프트로 재계산")
+    ap.add_argument("--redo-long", type=int, default=0, metavar="N",
+                    help="canonical 값이 N자 이상인 키(키워드 나열 압축 실패)를 재계산")
     args = ap.parse_args()
     kw = dict(store_path=args.store, brand_col=args.brand_col, name_col=args.name_col,
               type_col=args.type_col, stage_key=args.stage_key)
     if args.redo_collisions:
         print(json.dumps(redo_collisions(args.in_path, args.workers, **kw), ensure_ascii=False))
+    elif args.redo_long:
+        print(json.dumps(redo_long(args.redo_long, args.in_path, args.workers, **kw),
+                         ensure_ascii=False))
     else:
         print(json.dumps(run_batch(args.in_path, args.batch, workers=args.workers, **kw),
                          ensure_ascii=False))
