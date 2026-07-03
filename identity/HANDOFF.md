@@ -65,7 +65,7 @@ python3 refetch_options.py dongsuh --cascade  # 종속 2·3차 병합
 
 ## 8. 남은 일 (우선순위)
 1. **비정형(리뷰) 조인** — 후순위 지정됨. 입력: `catalog_entities.csv`(스포츠)/`catalogs_furniture.csv`의 title_geo + `catalog_review_dims.dims_for()`. insight/ 엔진 재사용해 배치+n8n(catalog_geo 패턴).
-2. Mongo 적재 — `furniture_load_mongo.py`·`sports_load_mongo.py` **미실행**(insights_demo에 0건).
+2. ~~Mongo 적재~~ **완료(7/3)** — insights DB(47017): sports_products/catalogs/variants(61K/36K/264K) · furniture_products/variants/catalogs(19K/46K/20K) · **furniture_catalog_variants(156K, title_commerce SKU 층 신설, _id=내용해시 멱등)**. 재빌드 후 두 로더 재실행이 갱신 절차(run_furniture_pipeline.py가 가구 로더 호출).
 3. OCR 백필 — "상세페이지 참고"/이미지 옵션·침구 사이즈 42% 공백 (`ocr_gosi_furniture.py`).
 4. 가격편차 리뷰 큐 340건(needs_review=price_spread).
 5. 재추출(크롤) 스케줄 — n8n엔 재빌드만 있음. `run_furniture_pipeline.py --force` 주1회 후보.
