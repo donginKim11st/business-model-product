@@ -131,13 +131,18 @@ _OPT_PAREN_RE = re.compile(
 
 def extract_parens(n, cc):
     """괄호 분리·분류 → (본문, {coverage, module, spec, dropped})."""
-    info = {"coverage": "", "module": "", "specs": []}
+    info = {"coverage": "", "module": "", "specs": [], "form": ""}
 
     def repl(m):
         inner = m.group(1).strip()
         cm = re.match(r"(전체|전면|전측면)가죽적용$", inner)
         if cm:
             info["coverage"] = cm.group(1) + "가죽"
+            return " "
+        # 형태/용도 한정어 "(대형)(땅콩형)(캠핑형)(아동용)" — 변형 축으로 승격(이름에서 분리)
+        if re.fullmatch(r"[가-힣]{1,5}(?:형|용)(?:\s*1\+1)?", inner):
+            if not info["form"]:
+                info["form"] = inner
             return " "
         if re.match(r"^[A-Z](\+[A-Z])*$", inner):
             info["module"] = inner
@@ -357,6 +362,8 @@ def make_key(rec):
         va["coverage"] = pinfo["coverage"]
     if pinfo["module"]:
         va["module"] = pinfo["module"]
+    if pinfo.get("form"):
+        va["form"] = pinfo["form"]
     if mattress:
         va["mattress"] = mattress
     n = strip_key_noise(n, cc)                            # D
@@ -365,7 +372,8 @@ def make_key(rec):
         n = re.sub(r"([\[(][^\])]*?)[\s,/]{2,}([^\])]*[\])])", r"\1 \2", n)
         n = re.sub(r"([\[(][^\])]*?)[\s,/]+([\])])", r"\1\2", n)   # 닫힘 직전 구분자
         n = re.sub(r"[\[(]\s*[,/\s]*\s*[\])]", " ", n)              # 빈 그룹
-        n = re.sub(r"\(\s*[가-힣A-Za-z]*\s*[:：]?\s*[/,·]*\s*\)", " ", n)
+        # 라벨-빈 괄호("(색상:)")·구분자만 남은 괄호만 제거 — 단어 괄호("(대형)")는 extract_parens 소관
+        n = re.sub(r"\(\s*[가-힣A-Za-z]*\s*[:：]\s*[/,·]*\s*\)|\(\s*[/,·\s]*\)", " ", n)
         n = re.sub(r"(?:\s+[/,]\s*)+", " ", n)            # 고아 슬래시·콤마
         n = re.sub(r"\s+[~∼]\s*", " ", n)
         n = _WS.sub(" ", n).strip(" -/,~")
@@ -653,7 +661,7 @@ def title_commerce(brand, name_clean, va):
     name_clean = _WS.sub(" ", _strip_dup_values(name_clean, dup_vals)).strip()
     parts = [brand, name_clean]
     # 변형값 슬롯 순서(§3.2): 잔여옵션(형태/구성) → 색상 → 규격 → 사이즈 → 색온도 → 개입수 → 번들구성
-    order = ["option", "color", "watt", "mm", "cm", "seat", "size", "cct", "pack",
+    order = ["option", "form", "color", "watt", "mm", "cm", "seat", "size", "cct", "pack",
              "module", "coverage", "mattress"]
     label = {"seat": "인용", "pack": "개입"}
     for k in order:

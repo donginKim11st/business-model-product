@@ -18,3 +18,10 @@ def test_parse_opt_composite():
 
 def test_marketing_tokens_stripped():
     assert "국내제작" not in fc._clean_title("라온 패밀리침대 국내제작 슬림형")
+
+
+def test_paren_form_promoted_to_axis():
+    n, info = fc.extract_parens("NR 천연 라텍스 베개(대형)", "bedding")
+    assert info["form"] == "대형" and "대형" not in n
+    n2, info2 = fc.extract_parens("NR 천연 라텍스 베개(땅콩형)", "bedding")
+    assert info2["form"] == "땅콩형"
