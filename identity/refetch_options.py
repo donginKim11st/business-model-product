@@ -215,15 +215,85 @@ def run(slug, limit=0):
     print(f"[{slug}] 완료 — {n_ok}건 수집, 옵션 존재 {n_opt}건 → {out_path}")
 
 
+def _ps_next(base, gno, chosen):
+    """godomall goods_ps.php option_select — 선택값 체인 → 다음 레벨 옵션값 리스트."""
+    params = [("mode", "option_select"), ("optionKey", str(len(chosen) - 1)),
+              ("goodsNo", gno), ("mileageFl", "y")] + [("optionVal[]", v) for v in chosen]
+    req = urllib.request.Request(
+        base + "/goods/goods_ps.php",
+        data=urllib.parse.urlencode(params).encode(),
+        headers={"User-Agent": UA, "X-Requested-With": "XMLHttpRequest",
+                 "Referer": base + f"/goods/goods_view.php?goodsNo={gno}"})
+    with urllib.request.urlopen(req, timeout=12, context=CTX) as r:
+        d = json.loads(r.read().decode("utf-8", "replace"))
+    return [v for v in (d.get("nextOption") or []) if v]
+
+
+_CASCADE_BASE = {"dongsuh": "https://www.dongsuhfurniture.co.kr"}
+
+
+def run_cascade(slug):
+    """_cascade 마커 PDP 의 종속(2·3차) 옵션을 goods_ps.php 로 수집해 군 JSON 에 병합."""
+    base = _CASCADE_BASE.get(slug)
+    if not base:
+        print(f"[{slug}] cascade 어댑터 없음 — 스킵")
+        return
+    path = os.path.join(OUT, f"options_groups_furniture_{slug}.csv")
+    rows = list(csv.DictReader(open(path, encoding="utf-8-sig")))
+    todo = []
+    for r in rows:
+        gs = json.loads(r["option_groups"] or "[]")
+        if any(g["label"] == "_cascade" for g in gs) and \
+                not any(g["label"].startswith("종속") for g in gs):
+            todo.append(r)
+    print(f"[{slug}] cascade 대상 {len(todo)}건")
+
+    def one(r):
+        gs = json.loads(r["option_groups"] or "[]")
+        depth = int(next(g["values"][0] for g in gs if g["label"] == "_cascade"))
+        depth = max(1, depth // 2)   # PC+모바일 중복 → 실질 종속 레벨 수
+        lvl0 = next((g["values"] for g in gs if g["label"] not in ("_cascade",)
+                     and not _ADDON_HINT.search(g["label"])), [])[:10]
+        try:
+            l1 = list(dict.fromkeys(v for v0 in lvl0 for v in _ps_next(base, r["model_no"], [v0])))
+            if l1:
+                gs.append({"label": "종속1", "values": l1[:30]})
+            if depth >= 2 and lvl0 and l1:
+                l2 = list(dict.fromkeys(
+                    v for v0 in lvl0[:5] for v in _ps_next(base, r["model_no"], [v0, l1[0]])))
+                if l2:
+                    gs.append({"label": "종속2", "values": l2[:30]})
+        except Exception:
+            return r, None
+        return r, json.dumps(gs, ensure_ascii=False)
+
+    n = 0
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        for r, gj in ex.map(lambda x: one(x), todo):
+            if gj:
+                r["option_groups"] = gj
+                n += 1
+    with open(path, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["model_no", "option_groups"])
+        w.writeheader()
+        w.writerows(rows)
+    print(f"[{slug}] cascade 병합 {n}건 → {path}")
+
+
+_ADDON_HINT = re.compile(r"추가|커버|사은|선반|방수|배송")
+
 _ALL = ["dongsuh", "vittz", "dotoro", "jakomo", "prielle", "bflamp",
         "wooree", "flora", "mothershome"]
 
 if __name__ == "__main__":
-    args = [a for a in sys.argv[1:] if a != "--groups"]
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
     groups_mode = "--groups" in sys.argv
     slug = args[0]
     limit = int(args[1]) if len(args) > 1 else 0
-    fn = run_groups if groups_mode else run
+    if "--cascade" in sys.argv:
+        fn = lambda s, *_: run_cascade(s)
+    else:
+        fn = run_groups if groups_mode else run
     if slug == "all":
         for s in _ALL:
             fn(s)
