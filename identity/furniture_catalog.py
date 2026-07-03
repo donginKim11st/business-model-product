@@ -56,12 +56,19 @@ _WATT_OPT_RE = re.compile(r"^(\d{1,3})\s*[Ww]$")
 _CCT_SET = ("주광색", "전구색", "주백색", "주광", "주백")
 
 
-def _strip_type_enum(n):
-    """용도/등류 슬래시 열거군 제거 — 멤버 과반이 용도(_USAGE_RE)·등류(LIGHT_TYPE_ENUM)면
-    사전 밖 멤버(직부등/센서등 등)까지 열거 **전체**를 제거한다.
+# 단위 열거 런: "3인치/4인치/6인치/8인치"·"25mm/35mm" — 같은 단위(\1) 반복일 때만.
+# 선행 한글 허용("전나무120cm/150cm") — 숫자/영문("1100x2000mm"의 x)은 차단.
+_UNIT_ENUM_RE = re.compile(
+    r"(?<![0-9A-Za-z./])\d+(?:\.\d+)?\s*(인치|cm|mm)(?:\s*/\s*\d+(?:\.\d+)?\s*\1)+(?![\w가-힣])")
 
-    열거는 옵션 나열(변형은 옵션군·용도축이 담당) — 단어 단위 제거만 하면 사전 밖
-    꼬리("직부등/센서등")가 모델명에 남는다. "책상/의자 세트"류(과반 비매칭)는 보존."""
+
+def _strip_type_enum(n):
+    """용도/등류·단위 슬래시 열거군 제거 — 모음 상품의 옵션 나열은 모델명이 아니다.
+
+    ① 멤버 과반이 용도(_USAGE_RE)·등류(LIGHT_TYPE_ENUM)면 사전 밖 멤버(직부등/센서등)까지
+      열거 **전체** 제거. ② 같은 단위 반복 런("3인치/4인치")도 제거(변형은 옵션군이 보유).
+    "책상/의자 세트"(과반 비매칭)·단독 치수("135cm")·복합 스펙("1100x2000mm")은 보존."""
+    n = _UNIT_ENUM_RE.sub(" ", n)
     for m in list(re.finditer(r"[^\s/]+(?:/[^\s/]+)+", n)):
         mem = [t for t in m.group(0).split("/") if t]
         hits = sum(1 for t in mem
@@ -511,6 +518,9 @@ def make_key(rec):
         n = n[:mm_.start()] + " " + n[mm_.end():]
     n = re.sub(lex.BUNDLE_SUFFIX_RE, " ", n)              # B2 (B1 이후!)
     n = re.sub(r"\+\s*[가-힣A-Za-z ]{1,12}\d*\s*(?:증정)?$", " ", n)
+    # 열거군 제거는 축 추출보다 먼저 — 아니면 치수/와트 축이 런의 첫 멤버만 소비해 런을 깨뜨림
+    # ("가랜드 120cm/210cm": cm축이 120 추출 → "/210cm" 잔존)
+    n = _strip_type_enum(n)
     n, va = extract_variants(n, cc, rec)                  # C
     if pinfo["coverage"]:
         va["coverage"] = pinfo["coverage"]
@@ -518,7 +528,6 @@ def make_key(rec):
         va["module"] = pinfo["module"]
     if pinfo.get("form"):
         va["form"] = pinfo["form"]
-    n = _strip_type_enum(n)   # 용도/등류 슬래시 열거군 통째 제거("방등/주방등/…/센서등")
     um = list(dict.fromkeys(_USAGE_RE.findall(n)))
     if um:   # 설치공간 → 용도 축. 이름엔 첫 용도만 남기고 나머지 열거는 제거(상품명 정리)
         va["usage"] = "|".join(um)
