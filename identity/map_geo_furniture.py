@@ -407,8 +407,17 @@ _COLOR_VOCAB = sorted([
 _COLOR_NOISE_RE = re.compile(
     r"language|한국어|english|구매\s*안\s*함|상세\s*페이지|선택|옵션|배송|스툴|쿠션|단품"
     r"|추가|증정|사은품|발받침|깔판"  # 추가구매 유도 옵션 제외 (2026-07-02)
+    r"|운임|착불|반품|교환"          # 배송/정책 문구 오염 (vittz 504건 실측, 2026-07-03)
     r"|\+\s*[\d,]+|\d+\s*[wW]\b|숏넥|롱넥|^\s*[A-Z0-9_-]{6,}\s*$", re.IGNORECASE)
 _CCT_RE = re.compile(r"주광색|전구색|주백색|백색광|\d{4}[kK]\b")  # 색온도(광원색)
+
+
+# '상세페이지 참조'류 placeholder — CP-04(근거 없으면 빈값). 오탈자 '잠조' 31건 실측 포함.
+_PLACEHOLDER_RE = re.compile(r"(?:상세|상품\s*상세)\s*(?:페이지|설명)?\s*(?:참조|참고|잠조)")
+
+
+def _no_placeholder(v):
+    return "" if _PLACEHOLDER_RE.search(v or "") else v
 
 
 def norm_color(raw, is_lighting=False):
@@ -548,17 +557,17 @@ def map_row(row):
         # 침대사이즈 — 영문 코드 통일 (S/SS/D/Q/K, 2026-07-02 정책)
         "size": (row.get("bed_size", "")
                  if l1 in ("침실가구", "침구", "아동/주니어가구") else ""),
-        "material": norm_material(row.get("material", "")),
+        "material": norm_material(_no_placeholder(row.get("material", ""))),
         "width_cm": row.get("width_cm", ""),
         "depth_cm": row.get("depth_cm", ""),
         "height_cm": row.get("height_cm", ""),
         "net_weight_kg": "",
         "count_pcs": parse_count(name),
-        "country_of_origin": row.get("origin", ""),
+        "country_of_origin": _no_placeholder(row.get("origin", "")),
         "is_assembly_required": row.get("assembly", ""),
         "installation_service": row.get("installation_service", ""),
         "package_type": "",
-        "safety_cert": row.get("safety_cert", ""),
+        "safety_cert": _no_placeholder(row.get("safety_cert", "")),
         "warranty_period": "",
         "additive_free_claim": "",
         "key_features": "",
@@ -680,7 +689,7 @@ def map_row(row):
         "l1_category": l1,
         "l2_category": l2,
         "name": name,
-        "price": row.get("price", ""),
+        "price": ("" if row.get("price", "") == "999999" else row.get("price", "")),  # 더미가 실측(mothershome)
         "attributes": attrs,
         "source": {"mall": source, "url": row.get("url", ""),
                    "extract_source": "공식몰PDP"},

@@ -44,6 +44,12 @@ def test_unit_enum_removed():
     assert _strip_type_enum("고급 PE 전나무 120cm/150cm") == "고급 PE 전나무"
 
 
+def test_unit_enum_with_paren_annotation():
+    # 괄호 병기("62mm(2인치)/83mm(3인치)")도 한 런 — 매입등 타공경 모음 열거
+    assert _strip_type_enum("뭉클 LED 62mm(2인치)/83mm(3인치) 움푹 매입등") == \
+        "뭉클 LED 움푹 매입등"
+
+
 def test_unit_enum_attached_to_korean():
     # 한글에 붙은 열거("전나무120cm/150cm")도 제거 — 숫자/영문 선행(1100x2000mm)은 보존
     assert _strip_type_enum("최고급 전나무120cm/150cm 세트") == "최고급 전나무 세트"

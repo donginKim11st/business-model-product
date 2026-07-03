@@ -46,7 +46,8 @@ def test_group_combos_cross_product():
     combos = fc._group_combos(gj)
     assert len(combos) == 4                       # 색상2 × 사이즈2 (추가상품 군 제외)
     assert {"color": "화이트", "size": "SS"} in combos
-    assert {"color": "그레이", "size": "Q"} in combos
+    # 2026-07-03: 가격병기(": +18,000원")는 델타로 분리 캡처 — 변형가 = 상품가+델타
+    assert {"color": "그레이", "size": "Q", "_delta": 18000} in combos
 
 
 def test_group_combos_label_fallback():
