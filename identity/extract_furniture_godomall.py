@@ -10,6 +10,7 @@ extract_furniture_base 를 그대로 사용한다.
 """
 import html as _html
 import re
+import signal
 import socket
 import ssl
 import time
@@ -258,17 +259,27 @@ def fetch_detail(base_url, goods_no, title_suffix=None):
 
 # ── 브랜드 실행 공통 ──────────────────────────────────────────────────────────
 
+def _item_watchdog(signum, frame):
+    raise TimeoutError("PDP 워치독(90s) — 핸드셰이크/파싱 무한 대기 차단")
+
+
 def run_brand(slug, brand_ko, base_url, categories, limit=0, title_suffix=None):
     print(f"[{slug}] 목록 수집 시작 (limit={limit or '전체'})")
     items = crawl_categories(base_url, categories, limit=limit)
     print(f"[{slug}] 고유 상품 {len(items)}개 → 상세 수집")
     rows = []
+    # 아이템당 벽시계 워치독 — 소켓 타임아웃을 비껴가는 SSL 핸드셰이크 루프
+    # (2026-07-04 dongsuh #731 30분+ 행 3회 실측)까지 하드 차단, 해당 상품만 스킵.
+    signal.signal(signal.SIGALRM, _item_watchdog)
     for i, (goods_no, cate_name) in enumerate(items, 1):
         try:
+            signal.alarm(90)
             d = fetch_detail(base_url, goods_no, title_suffix=title_suffix)
         except Exception as e:
             print(f"  [detail] goodsNo={goods_no} 실패: {e}")
             continue
+        finally:
+            signal.alarm(0)
         if d is None:
             print(f"  [detail] goodsNo={goods_no} 구매불가/무효 → 제외")
             time.sleep(SLEEP)
