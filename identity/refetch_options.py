@@ -76,6 +76,7 @@ def extract_option_groups(body):
     UI성 select(배송/수량/리뷰)는 name 속성으로 제외. 평탄화("|" join) 대신 군별 유지 —
     다중 군(색상×사이즈)의 정확한 교차 조합 전개가 목적."""
     groups = []
+    n_empty = 0   # 값이 placeholder뿐인 select — 캐스케이드(1차 선택 후 로딩) 신호
     for m in re.finditer(r"<select([^>]*)>(.*?)</select>", body, re.DOTALL | re.I):
         attrs, inner = m.group(1), m.group(2)
         if _UI_SELECT_RE.search(attrs):
@@ -88,6 +89,8 @@ def extract_option_groups(body):
             seen.add(t)
             vals.append(t)
         if not vals:
+            if re.search(r"<option", inner, re.I):
+                n_empty += 1   # option 은 있는데 전부 placeholder → 종속 select 의심
             continue
         pre = body[max(0, m.start() - 300):m.start()]
         lab = re.findall(r"<(?:th|label|dt)[^>]*>(.*?)</(?:th|label|dt)>", pre, re.DOTALL)
@@ -106,6 +109,8 @@ def extract_option_groups(body):
             continue
         seen_g.add(k)
         uniq.append(g)
+    if n_empty:
+        uniq.append({"label": "_cascade", "values": [str(n_empty)]})  # 종속 select 수(탐지 마커)
     return uniq
 
 

@@ -151,6 +151,8 @@ def _group_combos(grp_json, cap=100):
         label = (g.get("label") or "").strip()
         vals = [_clean_opt(v) for v in (g.get("values") or [])]
         vals = [v for v in vals if v and not _OPT_HEADER_RE.match(v)]
+        if label == "_cascade":
+            continue   # 캐스케이드 탐지 마커(수집 메타) — 변형 아님
         if _ADDON_GROUP_RE.search(label) or (vals and vals[0] == "추가상품"):
             continue   # 추가상품/부속 군 — 변형 아님
         vals = list(dict.fromkeys(v for v in vals if not _OPT_ADDON_RE.search(v)))
