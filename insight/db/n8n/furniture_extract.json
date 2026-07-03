@@ -1,0 +1,65 @@
+{
+  "name": "furniture_extract (가구 전량 재추출 주1회)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1,
+              "triggerAtDay": [1],
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "sched-furniture-extract",
+      "name": "매주 월 06:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8766/step/furniture_extract",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Token",
+              "value": "={{ $env.TRIGGER_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "http-step-furniture-extract",
+      "name": "POST /step/furniture_extract",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 320],
+      "notes": "step_furniture_extract.sh: run_furniture_pipeline.py --force 를 백그라운드 킥(비동기) 후 즉시 JSON. 크롤 수 시간 — 진행은 identity/furniture_extract.log. 신규 키 canonical 은 furniture_geo 드레인이 처리."
+    },
+    {
+      "parameters": {},
+      "id": "noop-done",
+      "name": "완료",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [700, 320]
+    }
+  ],
+  "connections": {
+    "매주 월 06:00": {
+      "main": [[{"node": "POST /step/furniture_extract", "type": "main", "index": 0}]]
+    },
+    "POST /step/furniture_extract": {
+      "main": [[{"node": "완료", "type": "main", "index": 0}]]
+    }
+  }
+}

@@ -30,7 +30,8 @@
 - 트리거 서버: `insight/db/pipeline_trigger.py` — launchd `com.steve.pipeline-trigger`(:8766, plist에 OPENAI_API_KEY 있음). 재기동: `launchctl kickstart -k gui/$(id -u)/com.steve.pipeline-trigger`
 - STAGES: catalog · catalog_geo · furniture · furniture_geo (+기존 structured/unstructured/youtube/rebuild/identity/report/excel/dashboard)
 - step 스크립트: `identity/step_catalog(.sh|_geo.sh)` `step_furniture(.sh|_geo.sh)` — JSON 1줄 반환(progress.<stage>.remaining)
-- n8n(localhost:5678, 활성): `catalog`(UboDgcgC24jq0Sug, 매일) · `catalog_geo`(0qdeoWrfCFTdXK4V, 10분 드레인→완료시 /step/catalog) · `furniture`(2XugD6j47WYe1oB0) · `furniture_geo`(4J2OyMxhJfHiEKbA). 사본 `insight/db/n8n/*.json`
+- n8n(localhost:5678, 활성): `catalog`(UboDgcgC24jq0Sug, 매일) · `catalog_geo`(0qdeoWrfCFTdXK4V, 10분 드레인→완료시 /step/catalog) · `furniture`(2XugD6j47WYe1oB0) · `furniture_geo`(4J2OyMxhJfHiEKbA) · `furniture_extract`(SMfDX6xhw9QuM3sF, 주1회 월 06:00 — **비활성, 사용자 활성화 대기**). 사본 `insight/db/n8n/*.json`
+- 가구 재추출: `identity/run_furniture_extract.sh`(락 /tmp/furniture_extract.lock, 로그 furniture_extract.log) ← `step_furniture_extract.sh`가 비동기 킥(step 동기 900s 상한 회피). 수동: `curl -X POST -H "X-Token:…" localhost:8766/step/furniture_extract`
 - OPENAI 키: **gitignore된 `insight/run.sh`** (root run.sh는 심링크). 절대 커밋 금지.
 
 ## 5. 실행 치트시트
@@ -69,7 +70,7 @@ python3 refetch_options.py dongsuh --cascade  # 종속 2·3차 병합
 2. ~~Mongo 적재~~ **완료(7/3)** — insights DB(47017): sports_products/catalogs/variants(61K/36K/264K) · furniture_products/variants/catalogs(19K/46K/20K) · **furniture_catalog_variants(156K, title_commerce SKU 층 신설, _id=내용해시 멱등)**. 재빌드 후 두 로더 재실행이 갱신 절차(run_furniture_pipeline.py가 가구 로더 호출).
 3. OCR 백필 — 지원 6몰 잔여 소진(7/3): flora 220·wooree 175 옵션 수집 완료, bflamp 18 이미지fetch실패·vittz 2 soft-block만 잔존. 미지원 몰(dongsuh/godomall계)은 `ocr_gosi_furniture.py` BRAND_CFG 추가 필요.
 4. 가격편차 리뷰 큐 340건(needs_review=price_spread).
-5. 재추출(크롤) 스케줄 — n8n엔 재빌드만 있음. `run_furniture_pipeline.py --force` 주1회 후보.
+5. ~~재추출(크롤) 스케줄~~ **인프라 완료(7/3)** — furniture_extract 스테이지(§4) + n8n 주1회 워크플로우 생성. 첫 전량 재추출 7/3 13:24 기동. **잔여: n8n 워크플로우 활성화만 사용자 확인 필요**(상시 크롤 등록이라 임의 활성화 안 함).
 6. 가구 신규 canonical 키 잔여분 — n8n furniture_geo가 증분 처리 중(또는 §5 수동).
 
 ## 9. 규칙(반드시)

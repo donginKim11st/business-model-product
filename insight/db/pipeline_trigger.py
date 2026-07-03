@@ -112,6 +112,13 @@ STAGES = {
         "lock_pid": Path("/tmp/_noop_furniture_geo.lock/pid"),
         "in_run_all": False,   # 가구 canonical LLM 드레인 — /step/furniture_geo?batch=N (키 필요).
     },
+    "furniture_extract": {
+        "script": ROOT.parent / "identity" / "run_furniture_extract.sh",
+        "step": ROOT.parent / "identity" / "step_furniture_extract.sh",
+        "log": ROOT.parent / "identity" / "furniture_extract.log",
+        "lock_pid": Path("/tmp/furniture_extract.lock/pid"),
+        "in_run_all": False,   # 가구 전량 재추출(크롤, 수 시간) — 주1회. step 은 비동기 킥 후 즉시 반환.
+    },
     "report": {
         "step": ROOT / "db" / "step_report.sh",
         "log": ROOT / "db" / "exports" / "export.log",
