@@ -37,3 +37,20 @@ def test_promote_option_axes():
     assert po["watt"] == "60W" and po["cct"] == "주광색" and po["option"] == ""
     po = fc._promote_option("매트리스 방수커버 SS 화이트 102645")
     assert "102645" not in po["option"]   # 내부코드 제거
+
+
+def test_group_combos_cross_product():
+    gj = ('[{"label":"색상","values":["화이트","그레이"]},'
+          '{"label":"사이즈","values":["슈퍼싱글","퀸 : +18,000원"]},'
+          '{"label":"매트리스 방수 커버","values":["추가상품","[추가구매] SS 방수커버 ( +9,900원 )"]}]')
+    combos = fc._group_combos(gj)
+    assert len(combos) == 4                       # 색상2 × 사이즈2 (추가상품 군 제외)
+    assert {"color": "화이트", "size": "SS"} in combos
+    assert {"color": "그레이", "size": "Q"} in combos
+
+
+def test_group_combos_label_fallback():
+    gj = '[{"label":"형태","values":["무헤드형","슬림헤드형"]},{"label":"색상","values":["오크"]}]'
+    combos = fc._group_combos(gj)
+    assert len(combos) == 2
+    assert all(c.get("form") in ("무헤드형", "슬림헤드형") and c.get("color") == "오크" for c in combos)

@@ -106,6 +106,55 @@ def _parse_opt_composite(opt):
     return o["option"], o["color"], o["size"]
 
 
+_ADDON_GROUP_RE = re.compile(r"추가|커버|사은|선반|방수|배송")
+
+
+def _group_combos(grp_json, cap=100):
+    """옵션군 JSON([{"label","values"}…]) → 군 간 교차 조합 [ {축:값}… ].
+
+    군별: 값 정제 → _promote_option 으로 축 판정(값 우선) → 못 알아낸 잔여는 라벨로 축 지정.
+    추가상품 군(라벨/선두값 신호)은 통째 제외. 조합 수는 cap 상한(폭발 방지)."""
+    grp_json = (grp_json or "").strip()
+    if not grp_json or grp_json == "[]":
+        return []
+    try:
+        groups = json.loads(grp_json)
+    except ValueError:
+        return []
+    axes = []
+    for g in groups:
+        label = (g.get("label") or "").strip()
+        vals = [_clean_opt(v) for v in (g.get("values") or [])]
+        vals = [v for v in vals if v and not _OPT_HEADER_RE.match(v)]
+        if _ADDON_GROUP_RE.search(label) or (vals and vals[0] == "추가상품"):
+            continue   # 추가상품/부속 군 — 변형 아님
+        vals = list(dict.fromkeys(v for v in vals if not _OPT_ADDON_RE.search(v)))
+        parsed = []
+        for v in vals:
+            po = _promote_option(v)
+            d = {k: po[k] for k in ("color", "size", "firm", "watt", "cct", "form") if po[k]}
+            resid = po["option"]
+            if resid:
+                if not d and re.search(r"색상|컬러", label):
+                    d["color"] = resid
+                elif not d and re.search(r"사이즈|규격", label):
+                    d["size"] = resid
+                elif not d and re.search(r"형태|타입|유형", label):
+                    d["form"] = resid
+                else:
+                    d["option"] = resid
+            if d:
+                parsed.append(d)
+        if parsed:
+            axes.append(parsed)
+    if not axes:
+        return []
+    combos = [{}]
+    for ax in axes:
+        combos = [dict(c, **p) for c in combos for p in ax][:cap]
+    return combos
+
+
 def cat_class(l1, l2, name):
     if "타일" in name or "벽지" in name or "도기" in name:
         return "tile"       # 색상=모델 예외
@@ -573,6 +622,7 @@ def run_decompose(in_path=IN_JSONL, out_path=DECOMP_OUT):
             "model_code": k["model_code"],
             "variant_attrs": json.dumps(k["variant_attrs"], ensure_ascii=False),
             "options": "|".join(opt_list),
+            "option_groups": ("" if "_opt_src" in r else (r.get("raw_option_groups") or "")),
             "bundle_flag": int(k["bundle_flag"]),
             "l1": r["l1_category"], "l2": r["l2_category"],
             "name": r["name"], "price": r["price"],
@@ -741,6 +791,24 @@ def run_group():
             colors = opts or ([va["color"]] if va.get("color") else [])
             all_colors.update(colors)
             # ── 드롭다운 옵션 팬아웃 (2026-07-02: PDP 옵션 = 변형 열거) ──
+            # ── 옵션군 교차 전개 (2026-07-03: select 군 구조 보존 → 색상×사이즈 정확 조합) ──
+            combos = _group_combos(r.get("option_groups") or "")
+            if len(combos) >= 2:
+                for cv in combos:
+                    va_v = dict(va)
+                    va_v.update(cv)
+                    if va_v.get("color"):
+                        all_colors.add(va_v["color"])
+                    va_v = {k: _clean_val(x) for k, x in va_v.items()}
+                    va_v = {k: x for k, x in va_v.items() if x}
+                    variants.append({
+                        "catalog_key": key, "mall": r["mall"], "url": r["url"],
+                        "title_commerce": title_commerce(r["brand"], r["canonical"], va_v),
+                        "variant_attrs": json.dumps(va_v, ensure_ascii=False),
+                        "price": r["price"], "name": r["name"],
+                    })
+                    n_var += 1
+                continue  # 군 조합이 변형 전체 — 평탄 옵션/교차 전개 생략
             # 비변형 옵션 제거: 카드혜택/은행 열거는 상품 변형이 아님
             opt_list = [o for o in (r.get("options") or "").split("|")
                         if o and not re.search(r"은행$|카드$|카드혜택", o.strip())]
