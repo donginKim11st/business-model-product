@@ -547,6 +547,7 @@ def _clean_opt(o):
     o = re.sub(r"\s*[:：]\s*\+?\s*[\d,]+\s*원", " ", o)   # ": +23,000원" 가격차
     o = re.sub(r"^\s*\d+[.)]\s*", "", o)                    # "1. " 번호 prefix
     o = re.sub(r"_\d{5,}\s*$", "", o)                        # "_100370" 내부코드
+    o = re.sub(r"\s+DF\d*\b", " ", o)                     # 동서 내부코드 접두(DF925364→DF 잔재)
     return re.sub(r"\s+", " ", o).strip()
 
 
