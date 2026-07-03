@@ -10,9 +10,10 @@ def test_clean_title_strips_enum_stock_mojibake():
 
 
 def test_parse_opt_composite():
-    resid, color, size = fc._parse_opt_composite("슬림형/아이보리/슈퍼싱글+슈퍼싱글")
-    assert (resid, color, size) == ("슬림형", "아이보리", "SS+SS")
-    assert fc._parse_opt_composite("단품")[0] == "단품"          # 비복합은 그대로
+    po = fc._promote_option("슬림형/아이보리/슈퍼싱글+슈퍼싱글")
+    # 슬림형은 form 축으로 승격(2026-07-03), 잔여 없음
+    assert (po["form"], po["color"], po["size"], po["option"]) == ("슬림형", "아이보리", "SS+SS", "")
+    assert fc._parse_opt_composite("단품")[0] == "단품"          # 비복합·비축 값은 그대로
     assert fc._parse_opt_composite("화이트/Q") == ("", "화이트", "Q")
 
 
@@ -25,3 +26,14 @@ def test_paren_form_promoted_to_axis():
     assert info["form"] == "대형" and "대형" not in n
     n2, info2 = fc.extract_parens("NR 천연 라텍스 베개(땅콩형)", "bedding")
     assert info2["form"] == "땅콩형"
+
+
+def test_promote_option_axes():
+    po = fc._promote_option("라이트그레이")
+    assert po["color"] == "라이트그레이" and po["option"] == ""
+    po = fc._promote_option("약간하드")
+    assert po["firm"] == "약간하드" and po["option"] == ""
+    po = fc._promote_option("60W/주광색")
+    assert po["watt"] == "60W" and po["cct"] == "주광색" and po["option"] == ""
+    po = fc._promote_option("매트리스 방수커버 SS 화이트 102645")
+    assert "102645" not in po["option"]   # 내부코드 제거

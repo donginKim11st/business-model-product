@@ -47,19 +47,40 @@ _KO_SIZE = [("슈퍼싱글", "SS"), ("라지킹", "LK"), ("이스턴킹", "EK"),
             ("싱글", "S"), ("더블", "D"), ("퀸", "Q"), ("킹", "K")]
 
 
-def _parse_opt_composite(opt):
-    """슬래시 복합 옵션("슬림형/아이보리/슈퍼싱글+슈퍼싱글") → (잔여옵션, color, size).
+_FIRM_RE = re.compile(r"^(푹신|소프트|약간\s*하드|미디움|미디엄|하드)$")
+_WATT_OPT_RE = re.compile(r"^(\d{1,3})\s*[Ww]$")
+_CCT_SET = ("주광색", "전구색", "주백색", "주광", "주백")
 
-    세그먼트를 축으로 승격: 색상 토큰 → color, 한글/코드 사이즈("+"조합 유지: 패밀리침대 SS+SS) → size.
-    잔여(슬림형 등)만 option 에 남긴다 — 통짜 문자열이 제목에 그대로 박히는 것 방지."""
-    if "/" not in opt:
-        return opt, "", ""
-    resid, color, size = [], "", ""
-    for seg in (s.strip() for s in opt.split("/")):
+
+def _promote_option(opt):
+    """옵션 값(슬래시 복합/단일)을 축으로 승격 → {option,color,size,firm,watt,cct}.
+
+    색상(복합색 '라이트그레이' 포함)·경도(푹신/하드)·와트·색온도·사이즈("+"조합 유지)를 분리하고
+    내부코드(5자리+)는 제거 — 승격 후 잔여만 option 에 남긴다(통짜 원문이 제목에 박히는 것 방지)."""
+    out = {"option": "", "color": "", "size": "", "firm": "", "watt": "", "cct": "", "form": ""}
+    segs = [s.strip() for s in opt.split("/")] if "/" in opt else [opt.strip()]
+    resid = []
+    for seg in segs:
         if not seg:
             continue
-        if not color and (seg in lex.COLOR_BASE or _color_token(seg)):
-            color = seg
+        if not out["color"] and (seg in lex.COLOR_BASE or _color_token(seg) or
+                                 (" " not in seg and len(seg) <= 8
+                                  and any(seg.endswith(cb) for cb in lex.COLOR_BASE))):
+            out["color"] = seg
+            continue
+        if not out["firm"] and _FIRM_RE.match(seg):
+            out["firm"] = seg
+            continue
+        m = _WATT_OPT_RE.match(seg)
+        if m and not out["watt"]:
+            out["watt"] = m.group(1) + "W"
+            continue
+        if not out["cct"] and any(seg.startswith(c) for c in _CCT_SET):
+            out["cct"] = seg.split()[0]
+            continue
+        # 형태 한정어(양문형/서랍형 등) — 괄호 form 과 동일 축
+        if not out.get("form") and re.fullmatch(r"[가-힣]{1,5}(?:형|용)", seg):
+            out["form"] = seg
             continue
         parts = [p.strip() for p in seg.split("+")]
         codes = []
@@ -69,11 +90,20 @@ def _parse_opt_composite(opt):
                 cd = p
             if cd:
                 codes.append(cd)
-        if codes and len(codes) == len(parts):
-            size = "+".join(codes)
+        if codes and len(codes) == len(parts) and not out["size"]:
+            out["size"] = "+".join(codes)
             continue
-        resid.append(seg)
-    return " ".join(resid), color, size
+        seg = _WS.sub(" ", re.sub(r"(?<!\d)\d{5,}(?:-\d+)?(?!\d)", " ", seg)).strip()  # 내부코드
+        if seg:
+            resid.append(seg)
+    out["option"] = " ".join(resid)
+    return out
+
+
+def _parse_opt_composite(opt):
+    """(하위호환) → (잔여옵션, color, size)."""
+    o = _promote_option(opt)
+    return o["option"], o["color"], o["size"]
 
 
 def cat_class(l1, l2, name):
@@ -661,7 +691,7 @@ def title_commerce(brand, name_clean, va):
     name_clean = _WS.sub(" ", _strip_dup_values(name_clean, dup_vals)).strip()
     parts = [brand, name_clean]
     # 변형값 슬롯 순서(§3.2): 잔여옵션(형태/구성) → 색상 → 규격 → 사이즈 → 색온도 → 개입수 → 번들구성
-    order = ["option", "form", "color", "watt", "mm", "cm", "seat", "size", "cct", "pack",
+    order = ["option", "form", "color", "firm", "watt", "mm", "cm", "seat", "size", "cct", "pack",
              "module", "coverage", "mattress"]
     label = {"seat": "인용", "pack": "개입"}
     for k in order:
@@ -708,18 +738,23 @@ def run_group():
             colors = opts or ([va["color"]] if va.get("color") else [])
             all_colors.update(colors)
             # ── 드롭다운 옵션 팬아웃 (2026-07-02: PDP 옵션 = 변형 열거) ──
-            opt_list = [o for o in (r.get("options") or "").split("|") if o]
+            # 비변형 옵션 제거: 카드혜택/은행 열거는 상품 변형이 아님
+            opt_list = [o for o in (r.get("options") or "").split("|")
+                        if o and not re.search(r"은행$|카드$|카드혜택", o.strip())]
             if len(opt_list) >= 2:
                 for opt in opt_list:
                     va_v = dict(va)
-                    # 복합 옵션(슬래시)을 축으로 분해 — 잔여만 option 에
-                    resid, pc, ps = _parse_opt_composite(opt)
-                    va_v["option"] = resid
-                    if pc:
-                        va_v["color"] = pc
-                        all_colors.add(pc)
-                    if ps:
-                        va_v["size"] = ps
+                    # 옵션을 축으로 분해(색상/사이즈/경도/와트/색온도) — 잔여만 option 에
+                    po = _promote_option(opt)
+                    va_v["option"] = po["option"]
+                    if po["color"]:
+                        va_v["color"] = po["color"]
+                        all_colors.add(po["color"])
+                    if po["size"]:
+                        va_v["size"] = po["size"]
+                    for ax in ("firm", "watt", "cct", "form"):
+                        if po[ax]:
+                            va_v[ax] = po[ax]
                     # 폴백: 복합 파싱이 못 채운 축은 문자열 스캔으로
                     if not va_v.get("color"):
                         cm = next((cb for cb in lex.COLOR_BASE if cb in opt), "")
@@ -766,14 +801,17 @@ def run_group():
                 opt_size = ""
                 if c and (len(c) > 12 or re.search(r"\d{4,}|상판|측판|커버|매트리스|프레임|수납장", c)
                           or ("/" in c and _parse_opt_composite(c)[1:] != ("", ""))):
-                    resid, pc, ps = _parse_opt_composite(c)
-                    va_v["option"] = resid or c
-                    va_v["color"] = pc or next((cb for cb in lex.COLOR_BASE if cb in c), "")
+                    po = _promote_option(c)
+                    va_v["option"] = po["option"]
+                    va_v["color"] = po["color"] or next((cb for cb in lex.COLOR_BASE if cb in c), "")
                     if va_v["color"]:
                         all_colors.add(va_v["color"])
+                    for ax in ("firm", "watt", "cct", "form"):
+                        if po[ax]:
+                            va_v[ax] = po[ax]
                     # 옵션 문구에 사이즈가 있으면 그 사이즈가 권위 — 이름축과의 모순 교차 방지
-                    if ps:
-                        opt_size = ps
+                    if po["size"]:
+                        opt_size = po["size"]
                     else:
                         sm = re.search(r"(?<![A-Za-z])(SS|EK|LK|KK|[SQKD])(?![A-Za-z])", c)
                         if sm:
@@ -983,7 +1021,9 @@ def run_verify():
         pass
     for r in rows:
         prod_by_url[r["url"]] += 1
-        n_o = len([o for o in (r.get("options") or "").split("|") if o])
+        # 팬아웃과 동일 필터: 카드혜택/은행 열거는 변형이 아님 — 감사 분모에서도 제외
+        n_o = len([o for o in (r.get("options") or "").split("|")
+                   if o and not re.search(r"은행$|카드$|카드혜택", o.strip())])
         if n_o >= 2:
             opts_by_url[r["url"]] = max(opts_by_url.get(r["url"], 0), n_o)
     under = [u for u, n in opts_by_url.items()
