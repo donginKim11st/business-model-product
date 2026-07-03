@@ -29,6 +29,8 @@ from extract_furniture_base import (  # noqa: F401
 )
 
 SLEEP = 0.2          # 요청 간 대기
+# 몰별 감속 — dongsuh: ~300요청마다 타르핏(IP 스로틀) 실측(2026-07-04) → 1.2s 로 순항
+SLEEP_OVERRIDE = {"dongsuh": 1.2}
 RETRIES = 2          # 재시도 횟수
 PAGE_CAP = 100       # 카테고리당 페이지 상한
 
@@ -320,6 +322,7 @@ def run_brand(slug, brand_ko, base_url, categories, limit=0, title_suffix=None):
         pw.writeheader()
     jf = open(jr_path, "a", encoding="utf-8")
 
+    sleep_s = SLEEP_OVERRIDE.get(slug, SLEEP)
     signal.signal(signal.SIGALRM, _item_watchdog)
     for i, (goods_no, cate_name) in enumerate(items, 1):
         g = str(goods_no)
@@ -346,7 +349,7 @@ def run_brand(slug, brand_ko, base_url, categories, limit=0, title_suffix=None):
             print(f"  [detail] goodsNo={goods_no} 구매불가/무효 → 제외")
             jf.write(f"O {g}\n")
             jf.flush()
-            time.sleep(SLEEP)
+            time.sleep(sleep_s)
             continue
         row = {k: "" for k in HEADER}
         row.update(d)
@@ -364,7 +367,7 @@ def run_brand(slug, brand_ko, base_url, categories, limit=0, title_suffix=None):
         jf.flush()
         if i % 10 == 0 or i == len(items):
             print(f"  [detail] {i}/{len(items)}")
-        time.sleep(SLEEP)
+        time.sleep(sleep_s)
     pf.close()
     jf.close()
 
