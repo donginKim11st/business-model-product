@@ -48,6 +48,12 @@ def cat_class(l1, l2, name):
     if l2 == "소파" or re.search(r"소파|스툴|등방석", name):
         return "sofa"
     if l1 == "조명":
+        # "LED 조명 패브릭 침대"처럼 침대가 머리명사(더 뒤)면 침대가 본체 — 조명몰 분류보다 우선.
+        # 반대로 "침대 무드등"은 등이 머리명사 → lighting 유지.
+        bed_pos = name.rfind("침대")
+        light_pos = max(name.rfind(w) for w in ("조명", "스탠드", "무드등", "등"))
+        if bed_pos > light_pos:
+            return "bed"
         return "lighting"
     if l1 == "침구":
         return "bedding"
@@ -531,6 +537,7 @@ def _clean_val(v):
 
 _ENUM_RE = re.compile(r"(?:(?<=\s)|^)\d{1,2}(?:-\d{1,2})?[.)](?=\s|[가-힣])\s*")  # "1-1. " "01.옷장" 열거자(소수점 2.5 비매칭)
 _STOCK_RE = re.compile(r"일시품절|재고소진|입고예정|품절")            # 재고 상태 문구
+_PICK_RE = re.compile(r"(?:(?<=\s)|^)(?:선택|모음)(?=\s|$)")        # 옵션 지시어("SS/Q 선택", "모음")
 _MOJIBAKE_RE = re.compile(r"[�]+")                              # 깨진 인코딩(�)
 
 
@@ -541,6 +548,7 @@ def _clean_title(t):
     t = _STOCK_RE.sub(" ", t)
     t = re.sub(r"[()\[\]{}〔〕（）<>「」]", " ", t)
     t = _ENUM_RE.sub(" ", t)          # 괄호 제거로 공백이 생긴 열거자("01.옷장(…)" 케이스) 재적용
+    t = _PICK_RE.sub(" ", t)          # "선택"/"모음" 옵션 지시어
     t = re.sub(r"(?:\s+[/,+·]\s*)+", " ", t)   # 괄호 제거 후 고아 구분자
     return _WS.sub(" ", t).strip(" -/,+~")
 
