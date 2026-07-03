@@ -850,8 +850,17 @@ def _fcanon():
     return _FCANON
 
 
-def title_geo(brand, canonical, l2):
-    canonical = _fcanon().get(f"{brand}|{canonical}", canonical)  # LLM canonical 우선(없으면 규칙값)
+def title_geo(brand, canonical, l2, name=""):
+    llm = _fcanon().get(f"{brand}|{canonical}", "")
+    if llm:
+        # LLM 환각 가드: 원문(규칙 canonical)과 공유 토큰이 전무하면 불신 — 규칙값 유지.
+        # (오분류 l2가 프롬프트 '유형'으로 들어가 LLM이 메아리친 케이스: 도토로
+        #  장식볼→'크리스마스 트리' 105건 등 133건 실측. 재산출로도 재발해 조립층에서 차단.)
+        lt = [t for t in llm.split() if len(t) >= 2]
+        if llm == canonical or not lt \
+                or set(lt) & {t for t in canonical.split() if len(t) >= 2} \
+                or any(t in canonical for t in lt):
+            canonical = llm
     # 브랜드 중복 방지("도토로 도토로 트리") — 콜라보("잠자리X동서가구")는 선두가 아니라 비해당
     if canonical == brand or canonical.startswith(brand + " "):
         t = canonical
@@ -864,7 +873,14 @@ def title_geo(brand, canonical, l2):
                     "테이블", "스툴", "패드", "램프", "전구"))
     l2_overlap = l2 and any(w in canonical for w in l2.replace("/", " ").split())
     if l2 and l2 != "리퍼/전시/중고" and not has_type and not l2_overlap:
-        t += f" {l2}"
+        # 유형보강 가드(LLM 심사 도출): l2가 몰 카테고리 근거 오분류일 수 있음 —
+        # 원본명에 실제로 있는 세그먼트만 부착(슬래시 l2 통짜 부착 금지).
+        if name:
+            seg = next((s for s in l2.split("/") if s and s in name), "")
+            if seg:
+                t += f" {seg}"
+        else:
+            t += f" {l2}"   # name 미전달 구 호출부 — 기존 동작
     t = _clean_title(t)
     # LLM canonical 캐시에 잔존하는 수량/행사·중복 토큰 최종 제거(규칙 경로는 decompose가 이미 제거)
     t = re.sub(lex.PACK_RE, " ", t)
@@ -1073,7 +1089,7 @@ def run_group():
                 })
                 n_var += 1
         va0 = json.loads(r0["variant_attrs"])
-        tg = title_geo(r0["brand"], r0["canonical"], r0["l2"])
+        tg = title_geo(r0["brand"], r0["canonical"], r0["l2"], name=r0["name"])
         if va0.get("mattress"):
             tg += f" +{va0['mattress']}"
         catalogs.append({
