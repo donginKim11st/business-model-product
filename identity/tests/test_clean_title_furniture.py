@@ -7,3 +7,14 @@ def test_clean_title_strips_enum_stock_mojibake():
     assert "품절" not in fc._clean_title("라움 침대 SS 오크 품절")
     assert "�" not in fc._clean_title("비츠온 �������� LED 조명")
     assert fc._clean_title("국민바지2.5 210") == "국민바지2.5 210"   # 소수점 보존
+
+
+def test_parse_opt_composite():
+    resid, color, size = fc._parse_opt_composite("슬림형/아이보리/슈퍼싱글+슈퍼싱글")
+    assert (resid, color, size) == ("슬림형", "아이보리", "SS+SS")
+    assert fc._parse_opt_composite("단품")[0] == "단품"          # 비복합은 그대로
+    assert fc._parse_opt_composite("화이트/Q") == ("", "화이트", "Q")
+
+
+def test_marketing_tokens_stripped():
+    assert "국내제작" not in fc._clean_title("라온 패밀리침대 국내제작 슬림형")

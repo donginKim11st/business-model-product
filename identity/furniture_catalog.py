@@ -43,6 +43,37 @@ def nfkc(s):
 # ── 카테고리 클래스 판정 (축 레지스트리 cats 매칭용) ─────────────────────────
 
 _SIZE_ENUM_RE = re.compile(r"(?<![A-Za-z])(?:SS|EK|LK|KK|[SQKD])(?:/(?:SS|EK|LK|KK|[SQKD]))+(?![A-Za-z])")
+_KO_SIZE = [("슈퍼싱글", "SS"), ("라지킹", "LK"), ("이스턴킹", "EK"),
+            ("싱글", "S"), ("더블", "D"), ("퀸", "Q"), ("킹", "K")]
+
+
+def _parse_opt_composite(opt):
+    """슬래시 복합 옵션("슬림형/아이보리/슈퍼싱글+슈퍼싱글") → (잔여옵션, color, size).
+
+    세그먼트를 축으로 승격: 색상 토큰 → color, 한글/코드 사이즈("+"조합 유지: 패밀리침대 SS+SS) → size.
+    잔여(슬림형 등)만 option 에 남긴다 — 통짜 문자열이 제목에 그대로 박히는 것 방지."""
+    if "/" not in opt:
+        return opt, "", ""
+    resid, color, size = [], "", ""
+    for seg in (s.strip() for s in opt.split("/")):
+        if not seg:
+            continue
+        if not color and (seg in lex.COLOR_BASE or _color_token(seg)):
+            color = seg
+            continue
+        parts = [p.strip() for p in seg.split("+")]
+        codes = []
+        for p in parts:
+            cd = next((c for k, c in _KO_SIZE if p == k), "")
+            if not cd and re.fullmatch(r"SS|EK|LK|KK|[SQKD]", p):
+                cd = p
+            if cd:
+                codes.append(cd)
+        if codes and len(codes) == len(parts):
+            size = "+".join(codes)
+            continue
+        resid.append(seg)
+    return " ".join(resid), color, size
 
 
 def cat_class(l1, l2, name):
@@ -544,7 +575,7 @@ def _clean_val(v):
 
 _ENUM_RE = re.compile(r"(?:(?<=\s)|^)\d{1,2}(?:-\d{1,2})?[.)](?=\s|[가-힣])\s*")  # "1-1. " "01.옷장" 열거자(소수점 2.5 비매칭)
 _STOCK_RE = re.compile(r"일시품절|재고소진|입고예정|품절")            # 재고 상태 문구
-_PICK_RE = re.compile(r"(?:(?<=\s)|^)(?:선택|모음)(?=\s|$)")        # 옵션 지시어("SS/Q 선택", "모음")
+_PICK_RE = re.compile(r"(?:(?<=\s)|^)(?:선택|모음|국내제작|국내생산|당일출고|무료배송)(?=\s|$)")  # 옵션 지시어·마케팅 문구
 _MOJIBAKE_RE = re.compile(r"[�]+")                              # 깨진 인코딩(�)
 
 
@@ -613,24 +644,24 @@ def title_commerce(brand, name_clean, va):
     # 색상은 개별 토큰까지 (병기 "화이트/블랙"의 각 색)
     if va.get("color"):
         dup_vals += re.split(r"[/_]", str(va["color"]))
-    name_clean = _strip_dup_values(name_clean, dup_vals)
-    parts = [brand, name_clean]
-    # 변형값 슬롯 순서(§3.2): 색상 → 규격 → 사이즈 → 색온도 → 개입수 → 번들구성
     if va.get("option"):
-        # 옵션 원문이 조합 전체를 서술 — 옵션만 부착 (색상/사이즈 개별 부착 생략)
-        name_clean = _strip_dup_values(name_clean, [va["option"]])
-        # 이름의 사이즈 잔재("( Q 사이즈)", 단독 코드)는 옵션과 모순 — 제거
+        dup_vals.append(va["option"])
+        # 이름의 사이즈 잔재("( Q 사이즈)", 단독 코드)는 축과 모순 — 제거
         name_clean = re.sub(r"\(\s*[SQKDELS/ ]+\s*사이즈?\s*\)", " ", name_clean)
         if va.get("size"):
             name_clean = re.sub(r"(?<![A-Za-z가-힣])(SS|EK|LK|KK|[SQKD])(?![A-Za-z가-힣])", " ", name_clean)
-        name_clean = _WS.sub(" ", name_clean).strip()
-        return _clean_title(f"{brand} {name_clean} {va['option']}")
-    order = ["color", "watt", "mm", "cm", "seat", "size", "cct", "pack",
+    name_clean = _WS.sub(" ", _strip_dup_values(name_clean, dup_vals)).strip()
+    parts = [brand, name_clean]
+    # 변형값 슬롯 순서(§3.2): 잔여옵션(형태/구성) → 색상 → 규격 → 사이즈 → 색온도 → 개입수 → 번들구성
+    order = ["option", "color", "watt", "mm", "cm", "seat", "size", "cct", "pack",
              "module", "coverage", "mattress"]
     label = {"seat": "인용", "pack": "개입"}
     for k in order:
         v = va.get(k)
         if not v:
+            continue
+        # 옵션 원문에 이미 포함된 색상/사이즈는 재부착 생략(중복 방지)
+        if k in ("color", "size") and va.get("option") and str(v) in str(va["option"]):
             continue
         if k == "size":
             parts.append(str(v))
@@ -673,15 +704,24 @@ def run_group():
             if len(opt_list) >= 2:
                 for opt in opt_list:
                     va_v = dict(va)
-                    va_v["option"] = opt
-                    # 옵션 문자열에서 색상·사이즈 파싱 시도
-                    cm = next((cb for cb in lex.COLOR_BASE if cb in opt), "")
-                    if cm:
-                        va_v["color"] = cm          # 파싱된 색상 토큰만 (옵션 원문은 option에)
-                        all_colors.add(cm)
-                    sm = re.search(r"(?<![A-Za-z])(SS|EK|LK|KK|[SQKD])(?![A-Za-z])", opt)
-                    if sm:
-                        va_v["size"] = sm.group(1)
+                    # 복합 옵션(슬래시)을 축으로 분해 — 잔여만 option 에
+                    resid, pc, ps = _parse_opt_composite(opt)
+                    va_v["option"] = resid
+                    if pc:
+                        va_v["color"] = pc
+                        all_colors.add(pc)
+                    if ps:
+                        va_v["size"] = ps
+                    # 폴백: 복합 파싱이 못 채운 축은 문자열 스캔으로
+                    if not va_v.get("color"):
+                        cm = next((cb for cb in lex.COLOR_BASE if cb in opt), "")
+                        if cm:
+                            va_v["color"] = cm
+                            all_colors.add(cm)
+                    if not va_v.get("size"):
+                        sm = re.search(r"(?<![A-Za-z])(SS|EK|LK|KK|[SQKD])(?![A-Za-z])", opt)
+                        if sm:
+                            va_v["size"] = sm.group(1)
                     va_v = {k: _clean_val(x) for k, x in va_v.items()}
                     va_v = {k: x for k, x in va_v.items() if x}
                     variants.append({
@@ -716,13 +756,20 @@ def run_group():
                 va_v = dict(va)
                 # 색상 축 정합성: 조합/코드 섞인 긴 값은 option으로, color엔 토큰만
                 opt_size = ""
-                if c and (len(c) > 12 or re.search(r"\d{4,}|상판|측판|커버|매트리스|프레임|수납장", c)):
-                    va_v["option"] = c
-                    va_v["color"] = next((cb for cb in lex.COLOR_BASE if cb in c), "")
-                    # 옵션 문구에 사이즈코드가 있으면 그 사이즈가 권위 — 이름축과의 모순 교차 방지
-                    sm = re.search(r"(?<![A-Za-z])(SS|EK|LK|KK|[SQKD])(?![A-Za-z])", c)
-                    if sm:
-                        opt_size = sm.group(1)
+                if c and (len(c) > 12 or re.search(r"\d{4,}|상판|측판|커버|매트리스|프레임|수납장", c)
+                          or ("/" in c and _parse_opt_composite(c)[1:] != ("", ""))):
+                    resid, pc, ps = _parse_opt_composite(c)
+                    va_v["option"] = resid or c
+                    va_v["color"] = pc or next((cb for cb in lex.COLOR_BASE if cb in c), "")
+                    if va_v["color"]:
+                        all_colors.add(va_v["color"])
+                    # 옵션 문구에 사이즈가 있으면 그 사이즈가 권위 — 이름축과의 모순 교차 방지
+                    if ps:
+                        opt_size = ps
+                    else:
+                        sm = re.search(r"(?<![A-Za-z])(SS|EK|LK|KK|[SQKD])(?![A-Za-z])", c)
+                        if sm:
+                            opt_size = sm.group(1)
                 else:
                     va_v["color"] = c
                 if opt_size:
