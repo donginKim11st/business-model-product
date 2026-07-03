@@ -259,8 +259,13 @@ def fetch_detail(base_url, goods_no, title_suffix=None):
 
 # ── 브랜드 실행 공통 ──────────────────────────────────────────────────────────
 
+class _WatchdogTimeout(BaseException):
+    """fetch 내부 재시도 루프의 `except Exception`에 삼켜지지 않도록 BaseException 상속.
+    (TimeoutError 기반 1차 워치독이 재시도 except에 흡수돼 무력화된 실측 — 2026-07-04)"""
+
+
 def _item_watchdog(signum, frame):
-    raise TimeoutError("PDP 워치독(90s) — 핸드셰이크/파싱 무한 대기 차단")
+    raise _WatchdogTimeout("PDP 워치독 — 핸드셰이크/파싱 무한 대기 차단")
 
 
 def run_brand(slug, brand_ko, base_url, categories, limit=0, title_suffix=None):
@@ -270,16 +275,20 @@ def run_brand(slug, brand_ko, base_url, categories, limit=0, title_suffix=None):
     rows = []
     # 아이템당 벽시계 워치독 — 소켓 타임아웃을 비껴가는 SSL 핸드셰이크 루프
     # (2026-07-04 dongsuh #731 30분+ 행 3회 실측)까지 하드 차단, 해당 상품만 스킵.
+    # 반복 타이머(90s 후 45s 간격) — C 블로킹 중 전달돼 유실돼도 다음 알람이 잡는다.
     signal.signal(signal.SIGALRM, _item_watchdog)
     for i, (goods_no, cate_name) in enumerate(items, 1):
         try:
-            signal.alarm(90)
+            signal.setitimer(signal.ITIMER_REAL, 90, 45)
             d = fetch_detail(base_url, goods_no, title_suffix=title_suffix)
+        except _WatchdogTimeout as e:
+            print(f"  [detail] goodsNo={goods_no} 워치독 스킵: {e}")
+            continue
         except Exception as e:
             print(f"  [detail] goodsNo={goods_no} 실패: {e}")
             continue
         finally:
-            signal.alarm(0)
+            signal.setitimer(signal.ITIMER_REAL, 0, 0)
         if d is None:
             print(f"  [detail] goodsNo={goods_no} 구매불가/무효 → 제외")
             time.sleep(SLEEP)
