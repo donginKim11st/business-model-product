@@ -48,6 +48,10 @@ _KO_SIZE = [("슈퍼싱글", "SS"), ("라지킹", "LK"), ("이스턴킹", "EK"),
 
 
 _FIRM_RE = re.compile(r"^(푹신|소프트|약간\s*하드|미디움|미디엄|하드)$")
+_NUMDUMP_RE = re.compile(r"(?:(?<=\s)|^)\d{3,4}(?:\s+\d{3,4}){2,}(?=\s|$)")  # 치수 나열 덤프
+# 용도(설치 공간) — 조명 '방등/주방등' 등. 긴 것 우선(주방등 ⊃ 방등)
+_USAGE_RE = re.compile(r"(?<![가-힣])(주방등|안방등|작은방등|거실등|현관등|욕실등|베란다등"
+                       r"|복도등|계단등|침실등|사무실등|매장등|주택등|방등)(?![가-힣])")
 _WATT_OPT_RE = re.compile(r"^(\d{1,3})\s*[Ww]$")
 _CCT_SET = ("주광색", "전구색", "주백색", "주광", "주백")
 
@@ -57,7 +61,8 @@ def _promote_option(opt):
 
     색상(복합색 '라이트그레이' 포함)·경도(푹신/하드)·와트·색온도·사이즈("+"조합 유지)를 분리하고
     내부코드(5자리+)는 제거 — 승격 후 잔여만 option 에 남긴다(통짜 원문이 제목에 박히는 것 방지)."""
-    out = {"option": "", "color": "", "size": "", "firm": "", "watt": "", "cct": "", "form": ""}
+    out = {"option": "", "color": "", "size": "", "firm": "", "watt": "", "cct": "",
+           "form": "", "usage": ""}
     segs = [s.strip() for s in opt.split("/")] if "/" in opt else [opt.strip()]
     resid = []
     for seg in segs:
@@ -94,8 +99,28 @@ def _promote_option(opt):
             out["size"] = "+".join(codes)
             continue
         seg = _WS.sub(" ", re.sub(r"(?<!\d)\d{5,}(?:-\d+)?(?!\d)", " ", seg)).strip()  # 내부코드
-        if seg:
-            resid.append(seg)
+        if not seg:
+            continue
+        # 다토큰 세그먼트("50W 주광색"·"레체 그레이") — 토큰 단위로 축 분배, 잔여만 option
+        left = []
+        for t in seg.split():
+            if not out["watt"] and _WATT_OPT_RE.match(t):
+                out["watt"] = _WATT_OPT_RE.match(t).group(1) + "W"
+            elif not out["cct"] and any(t.startswith(c) for c in _CCT_SET):
+                out["cct"] = t
+            elif not out["color"] and (t in lex.COLOR_BASE or
+                                       (len(t) <= 8 and any(t.endswith(cb) for cb in lex.COLOR_BASE))):
+                out["color"] = t
+            elif not out["size"] and re.fullmatch(r"(?:SS|EK|LK|KK|[SQKD])(?:\+(?:SS|EK|LK|KK|[SQKD]))*", t):
+                out["size"] = t
+            elif not out["form"] and re.fullmatch(r"[가-힣]{1,5}(?:형|용)", t):
+                out["form"] = t
+            elif not out["usage"] and _USAGE_RE.fullmatch(t):
+                out["usage"] = t
+            else:
+                left.append(t)
+        if left:
+            resid.append(" ".join(left))
     out["option"] = " ".join(resid)
     return out
 
@@ -132,18 +157,19 @@ def _group_combos(grp_json, cap=100):
         parsed = []
         for v in vals:
             po = _promote_option(v)
-            d = {k: po[k] for k in ("color", "size", "firm", "watt", "cct", "form") if po[k]}
+            d = {k: po[k] for k in ("color", "size", "firm", "watt", "cct", "form", "usage") if po[k]}
             resid = po["option"]
             # 표 헤더행이 옵션값으로 렌더된 경우("타입 색상 사이즈 가격") — 변형 아님
             if resid and all(t in ("타입", "색상", "사이즈", "가격", "구분", "선택", "규격")
                              for t in resid.split()):
                 resid = ""
             if resid:
-                if not d and re.search(r"색상|컬러", label):
+                # 라벨 폴백은 단일 토큰일 때만(다토큰 통짜가 축을 오염시키는 것 방지)
+                if not d and " " not in resid and re.search(r"색상|컬러", label):
                     d["color"] = resid
-                elif not d and re.search(r"사이즈|규격", label):
+                elif not d and " " not in resid and re.search(r"사이즈|규격", label):
                     d["size"] = resid
-                elif not d and re.search(r"형태|타입|유형", label):
+                elif not d and " " not in resid and re.search(r"형태|타입|유형", label):
                     d["form"] = resid
                 else:
                     d["option"] = resid
@@ -447,6 +473,18 @@ def make_key(rec):
         va["module"] = pinfo["module"]
     if pinfo.get("form"):
         va["form"] = pinfo["form"]
+    um = list(dict.fromkeys(_USAGE_RE.findall(n)))
+    if um:   # 설치공간 → 용도 축. 이름엔 첫 용도만 남기고 나머지 열거는 제거(상품명 정리)
+        va["usage"] = "|".join(um)
+        for u in um[1:]:
+            n = re.sub(r"(?<![가-힣])" + u + r"(?![가-힣])", " ", n, count=1)
+    n = _NUMDUMP_RE.sub(" ", n)   # 치수 나열 덤프("1100 1200 1400 1600 …") 제거
+    # 속성으로 추출된 토큰은 상품명에서 제거(색상/와트/색온도/경도/형태 — 이름·속성 중복 방지)
+    for _ax in ("color", "watt", "cct", "firm", "form"):
+        _tv = va.get(_ax)
+        if _tv and isinstance(_tv, str) and 1 < len(_tv) <= 10 and "+" not in _tv:
+            n = re.sub(r"(?<![가-힣A-Za-z])" + re.escape(_tv) + r"(?![가-힣A-Za-z])", " ", n)
+    n = _WS.sub(" ", n).strip()
     if mattress:
         va["mattress"] = mattress
     n = strip_key_noise(n, cc)                            # D
