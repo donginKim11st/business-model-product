@@ -480,13 +480,16 @@ def model_options(raw_options):
 # 이름 괄호 구성 열거: 한글 항 2개+ 슬래시 병기, 색상/사이즈/스펙 아님 → 모델 분해
 _PAREN_ENUM_RE = re.compile(r"\(([가-힣][가-힣A-Za-z0-9 ]{1,14}(?:/[가-힣][가-힣A-Za-z0-9 ]{1,14}){1,3})\)")
 _VARIANTISH_RE = re.compile(r"(?:SS|EK|LK|KK|[SQKD])(?![가-힣A-Za-z])|\d+\s*(?:인|[wW]|구|mm|cm|개입)"
-                            r"|주광색|전구색|주백색")
+                            r"|주광색|전구색|주백색"
+                            r"|슈퍼싱글|라지킹|이스턴킹|싱글|더블|퀸|킹"     # 한글 사이즈(모델 아님)
+                            r"|푹신|하드|소프트|미디움")                     # 경도(매트리스 변형)
 
 
 def _is_variantish(term):
     t = term.strip()
     return (any(cb in t for cb in lex.COLOR_BASE) or _VARIANTISH_RE.search(t)
-            or _OPT_ADDON_RE.search(t))
+            or _OPT_ADDON_RE.search(t)
+            or bool(re.fullmatch(r"[소중대]|특대|점보", t)))   # 크기 등급(전체일치 — '소파' 오탐 방지)
 
 
 def name_enum_terms(name):
