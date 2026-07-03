@@ -116,9 +116,11 @@ def run_groups(slug, limit=0):
         r = json.loads(l)
         if r["source"]["mall"] != slug:
             continue
-        raw = (r.get("raw_options") or "").strip()
-        if raw and raw != "상세페이지 참고" and "|" in raw:   # 복수 옵션 보유 상품만
-            targets.append((r["attributes"].get("model_no", ""), r["source"]["url"]))
+        # 전 상품 대상 — raw 형식(|/콤마/없음)으로 선별하면 구성 select 를 놓친다
+        # (실측: raw='메이플,그레이,화이트'인 PDP에 10개 구성옵션 select 존재. 2026-07-03)
+        mn = r["attributes"].get("model_no", "")
+        if mn:
+            targets.append((mn, r["source"]["url"]))
     out_path = os.path.join(OUT, f"options_groups_furniture_{slug}.csv")
     done = set()
     if os.path.exists(out_path):
