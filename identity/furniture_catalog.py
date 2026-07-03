@@ -56,6 +56,21 @@ _WATT_OPT_RE = re.compile(r"^(\d{1,3})\s*[Ww]$")
 _CCT_SET = ("주광색", "전구색", "주백색", "주광", "주백")
 
 
+def _strip_type_enum(n):
+    """용도/등류 슬래시 열거군 제거 — 멤버 과반이 용도(_USAGE_RE)·등류(LIGHT_TYPE_ENUM)면
+    사전 밖 멤버(직부등/센서등 등)까지 열거 **전체**를 제거한다.
+
+    열거는 옵션 나열(변형은 옵션군·용도축이 담당) — 단어 단위 제거만 하면 사전 밖
+    꼬리("직부등/센서등")가 모델명에 남는다. "책상/의자 세트"류(과반 비매칭)는 보존."""
+    for m in list(re.finditer(r"[^\s/]+(?:/[^\s/]+)+", n)):
+        mem = [t for t in m.group(0).split("/") if t]
+        hits = sum(1 for t in mem
+                   if _USAGE_RE.fullmatch(t) or t in lex.LIGHT_TYPE_ENUM)
+        if len(mem) >= 2 and hits * 2 > len(mem):
+            n = n.replace(m.group(0), " ")
+    return _WS.sub(" ", n).strip()
+
+
 def _promote_option(opt):
     """옵션 값(슬래시 복합/단일)을 축으로 승격 → {option,color,size,firm,watt,cct}.
 
@@ -290,7 +305,9 @@ def _color_token(t):
 # ── Phase C: 변형축 추출 ──────────────────────────────────────────────────────
 
 _SEAT_RE = re.compile(r"(?<![\d.])([1-6](?:\.5)?)\s*인(?:용)?(?![가-힣])")
-_WATT_RE = re.compile(r"\(?\s*\d+(?:\.\d)?\s*[wW]\b(?:\s*/\s*\d+(?:\.\d)?\s*[wW]\b)*\s*\)?")
+# 와트 런: 슬래시("50W/60W")뿐 아니라 공백·콤마 열거("10W 15W 20W")도 한 덩어리로
+_WATT_RE = re.compile(r"\(?\s*\d+(?:\.\d)?\s*[wW]\b(?:\s*[/,]?\s*\d+(?:\.\d)?\s*[wW]\b)*\s*\)?")
+_WATT_TOK_RE = re.compile(r"\d+(?:\.\d)?\s*[wW]")
 _CCT_RE = re.compile(r"주광색|전구색|주백색|\d{4}[kK]\b")
 _SIZE_BR_RE = re.compile(r"\[([SQKD/,\sEL]+)\]")
 _SIZE_BARE_RE = re.compile(r"(?<![A-Za-z0-9가-힣])(S/SS|Q/K|SS|EK|LK|KK|[SQKD])(?![A-Za-z0-9가-힣])")
@@ -344,7 +361,9 @@ def extract_variants(n, cc, rec):
     if cc == "lighting":
         m = _WATT_RE.search(n)
         if m and "평형" not in n[max(0, m.start()-4):m.end()+4]:
-            va["watt"] = _WS.sub("", m.group(0)).strip("()")
+            # 열거 정규화: "10W 15W 20W"/"50w/60w" → "10W/15W/20W" ("/" = _split_axis 전개 단위)
+            va["watt"] = "/".join(dict.fromkeys(
+                _WS.sub("", t).upper() for t in _WATT_TOK_RE.findall(m.group(0))))
             n = _WATT_RE.sub(" ", n, count=1)
         if _CCT_RE.search(n):
             va["cct"] = "/".join(dict.fromkeys(_CCT_RE.findall(n)))
@@ -477,6 +496,7 @@ def make_key(rec):
         va["module"] = pinfo["module"]
     if pinfo.get("form"):
         va["form"] = pinfo["form"]
+    n = _strip_type_enum(n)   # 용도/등류 슬래시 열거군 통째 제거("방등/주방등/…/센서등")
     um = list(dict.fromkeys(_USAGE_RE.findall(n)))
     if um:   # 설치공간 → 용도 축. 이름엔 첫 용도만 남기고 나머지 열거는 제거(상품명 정리)
         va["usage"] = "|".join(um)
@@ -803,7 +823,7 @@ def title_geo(brand, canonical, l2):
     has_type = any(k in canonical for k in
                    ("소파", "침대", "이불", "조명", "트리", "커버", "베개", "매트",
                     "러그", "등", "스탠드", "블라인드", "책상", "의자", "장",
-                    "테이블", "스툴", "패드"))
+                    "테이블", "스툴", "패드", "램프", "전구"))
     l2_overlap = l2 and any(w in canonical for w in l2.replace("/", " ").split())
     if l2 and l2 != "리퍼/전시/중고" and not has_type and not l2_overlap:
         t += f" {l2}"
