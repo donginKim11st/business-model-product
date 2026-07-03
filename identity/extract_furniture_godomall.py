@@ -8,7 +8,10 @@ SSL 인증서 오류가 있는 사이트가 있어 자체 fetch(unverified conte
 그 외 유틸(HEADER, write_csv, parse_dimensions, parse_bed_size)은
 extract_furniture_base 를 그대로 사용한다.
 """
+import csv
 import html as _html
+import json
+import os
 import re
 import signal
 import socket
@@ -22,7 +25,7 @@ import urllib.request
 socket.setdefaulttimeout(25)
 
 from extract_furniture_base import (  # noqa: F401
-    HEADER, UA, write_csv, parse_dimensions, parse_bed_size,
+    HEADER, OUT, UA, write_csv, parse_dimensions, parse_bed_size,
 )
 
 SLEEP = 0.2          # 요청 간 대기
@@ -268,29 +271,81 @@ def _item_watchdog(signum, frame):
     raise _WatchdogTimeout("PDP 워치독 — 핸드셰이크/파싱 무한 대기 차단")
 
 
+def _load_journal(path):
+    """진행 저널 파싱 → (완료 goodsNo, 독약 goodsNo). 'T g'=시도, 'O g'=처리완료.
+    T 2회+ 인데 O 없음 = 시도 중 2회 죽음(타르핏 행 등) → 독약으로 영구 스킵."""
+    done, tries = set(), {}
+    if os.path.exists(path):
+        for ln in open(path, encoding="utf-8"):
+            tag, _, g = ln.strip().partition(" ")
+            if tag == "O":
+                done.add(g)
+            elif tag == "T":
+                tries[g] = tries.get(g, 0) + 1
+    return done, {g for g, c in tries.items() if c >= 2 and g not in done}
+
+
 def run_brand(slug, brand_ko, base_url, categories, limit=0, title_suffix=None):
-    print(f"[{slug}] 목록 수집 시작 (limit={limit or '전체'})")
-    items = crawl_categories(base_url, categories, limit=limit)
-    print(f"[{slug}] 고유 상품 {len(items)}개 → 상세 수집")
-    rows = []
-    # 아이템당 벽시계 워치독 — 소켓 타임아웃을 비껴가는 SSL 핸드셰이크 루프
-    # (2026-07-04 dongsuh #731 30분+ 행 3회 실측)까지 하드 차단, 해당 상품만 스킵.
-    # 반복 타이머(90s 후 45s 간격) — C 블로킹 중 전달돼 유실돼도 다음 알람이 잡는다.
+    """목록→상세→CSV. 재개형(2026-07-04): 진행 저널·목록 캐시(24h)·증분 .part —
+    타르핏 행(dongsuh #731: 핸드셰이크를 천천히 끄는 안티봇, 소켓 타임아웃·SIGALRM 모두
+    C레벨에서 무력화 실측)은 프로세스 내부에서 못 끊으므로, 외부 감독자가 kill/재시작해도
+    수집분이 보존되고 2회 시도 실패 상품은 독약 스킵되도록 한다."""
+    jr_path = os.path.join(OUT, f"_journal_{slug}.txt")
+    items_cache = os.path.join(OUT, f"_items_{slug}.json")
+    part_path = os.path.join(OUT, f"extract_furniture_{slug}.csv.part")
+
+    done, poison = _load_journal(jr_path)
+
+    items = None
+    if os.path.exists(items_cache) and time.time() - os.path.getmtime(items_cache) < 86400:
+        try:
+            items = [tuple(x) for x in json.load(open(items_cache, encoding="utf-8"))]
+            print(f"[{slug}] 목록 캐시 재사용: {len(items)}개")
+        except ValueError:
+            items = None
+    if items is None:
+        print(f"[{slug}] 목록 수집 시작 (limit={limit or '전체'})")
+        items = crawl_categories(base_url, categories, limit=limit)
+        json.dump(items, open(items_cache, "w", encoding="utf-8"), ensure_ascii=False)
+    if poison:
+        print(f"[{slug}] 독약 상품 {len(poison)}개 영구 스킵: {sorted(poison)[:5]}…")
+    print(f"[{slug}] 고유 상품 {len(items)}개 → 상세 수집 (기수집 {len(done)} 스킵)")
+
+    if os.path.exists(part_path):
+        pf = open(part_path, "a", encoding="utf-8", newline="")
+        pw = csv.DictWriter(pf, fieldnames=HEADER, extrasaction="ignore")
+    else:
+        pf = open(part_path, "w", encoding="utf-8-sig", newline="")
+        pw = csv.DictWriter(pf, fieldnames=HEADER, extrasaction="ignore")
+        pw.writeheader()
+    jf = open(jr_path, "a", encoding="utf-8")
+
     signal.signal(signal.SIGALRM, _item_watchdog)
     for i, (goods_no, cate_name) in enumerate(items, 1):
+        g = str(goods_no)
+        if g in done or g in poison:
+            continue
+        jf.write(f"T {g}\n")
+        jf.flush()
         try:
             signal.setitimer(signal.ITIMER_REAL, 90, 45)
             d = fetch_detail(base_url, goods_no, title_suffix=title_suffix)
         except _WatchdogTimeout as e:
             print(f"  [detail] goodsNo={goods_no} 워치독 스킵: {e}")
+            jf.write(f"O {g}\n")
+            jf.flush()
             continue
         except Exception as e:
             print(f"  [detail] goodsNo={goods_no} 실패: {e}")
+            jf.write(f"O {g}\n")
+            jf.flush()
             continue
         finally:
             signal.setitimer(signal.ITIMER_REAL, 0, 0)
         if d is None:
             print(f"  [detail] goodsNo={goods_no} 구매불가/무효 → 제외")
+            jf.write(f"O {g}\n")
+            jf.flush()
             time.sleep(SLEEP)
             continue
         row = {k: "" for k in HEADER}
@@ -303,9 +358,28 @@ def run_brand(slug, brand_ko, base_url, categories, limit=0, title_suffix=None):
             "assembly": "",
             "installation_service": "",
         })
-        rows.append(row)
+        pw.writerow(row)
+        pf.flush()
+        jf.write(f"O {g}\n")
+        jf.flush()
         if i % 10 == 0 or i == len(items):
             print(f"  [detail] {i}/{len(items)}")
         time.sleep(SLEEP)
+    pf.close()
+    jf.close()
+
+    # 완주 — .part 확정(재시작 경계의 중복 goodsNo dedupe), 저널·캐시 정리
+    rows, seen = [], set()
+    for r in csv.DictReader(open(part_path, encoding="utf-8-sig")):
+        k = r.get("model_no") or r.get("url")
+        if k in seen:
+            continue
+        seen.add(k)
+        rows.append(r)
     write_csv(rows, slug)
+    for p in (jr_path, items_cache, part_path):
+        try:
+            os.remove(p)
+        except OSError:
+            pass
     return rows

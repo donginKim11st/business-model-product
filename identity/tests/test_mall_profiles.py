@@ -67,3 +67,13 @@ def test_dongsuh_bare_enum_prefix():
 def test_profile_noop_for_unlisted_mall():
     r = {"source": {"mall": "jakomo"}, "name": "아그네스 소파", "raw_options": "2-1 값"}
     assert _apply_mall_profile(r)["raw_options"] == "2-1 값"
+
+
+def test_journal_resume_and_poison(tmp_path):
+    # 재개형 크롤 저널: O=완료 스킵, T 2회+무O=독약(타르핏 행 상품) 영구 스킵
+    from extract_furniture_godomall import _load_journal
+    p = tmp_path / "j.txt"
+    p.write_text("T 100\nO 100\nT 200\nT 200\nT 300\n", encoding="utf-8")
+    done, poison = _load_journal(str(p))
+    assert done == {"100"}
+    assert poison == {"200"}   # 2회 시도·미완 — 독약 / 300은 1회라 재시도 대상
