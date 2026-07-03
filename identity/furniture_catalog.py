@@ -42,9 +42,16 @@ def nfkc(s):
 
 # ── 카테고리 클래스 판정 (축 레지스트리 cats 매칭용) ─────────────────────────
 
+_SIZE_ENUM_RE = re.compile(r"(?<![A-Za-z])(?:SS|EK|LK|KK|[SQKD])(?:/(?:SS|EK|LK|KK|[SQKD]))+(?![A-Za-z])")
+
+
 def cat_class(l1, l2, name):
     if "타일" in name or "벽지" in name or "도기" in name:
         return "tile"       # 색상=모델 예외
+    # 침대 사이즈코드 열거(SS/Q 등) + 침대 증거어 → 몰 카테고리(조명/소파)와 무관하게 침대.
+    # (조명몰의 LED 수납 '프레임', 소파 카테고리의 '모션베드' 등 오배치 케이스.)
+    if _SIZE_ENUM_RE.search(name) and re.search(r"침대|베드|벙커|프레임|매트리스", name):
+        return "bed"
     if l2 == "소파" or re.search(r"소파|스툴|등방석", name):
         return "sofa"
     if l1 == "조명":
@@ -708,12 +715,21 @@ def run_group():
                     (colors or [""]), sz_list, seat_list, watt_list, cct_list):
                 va_v = dict(va)
                 # 색상 축 정합성: 조합/코드 섞인 긴 값은 option으로, color엔 토큰만
+                opt_size = ""
                 if c and (len(c) > 12 or re.search(r"\d{4,}|상판|측판|커버|매트리스|프레임|수납장", c)):
                     va_v["option"] = c
                     va_v["color"] = next((cb for cb in lex.COLOR_BASE if cb in c), "")
+                    # 옵션 문구에 사이즈코드가 있으면 그 사이즈가 권위 — 이름축과의 모순 교차 방지
+                    sm = re.search(r"(?<![A-Za-z])(SS|EK|LK|KK|[SQKD])(?![A-Za-z])", c)
+                    if sm:
+                        opt_size = sm.group(1)
                 else:
                     va_v["color"] = c
-                if sz:
+                if opt_size:
+                    if sz and sz != opt_size:
+                        continue          # size=Q × 옵션 'SS…' 같은 모순 조합 스킵
+                    va_v["size"] = opt_size
+                elif sz:
                     va_v["size"] = sz
                 if st:
                     va_v["seat"] = st
