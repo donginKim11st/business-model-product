@@ -134,6 +134,10 @@ def _group_combos(grp_json, cap=100):
             po = _promote_option(v)
             d = {k: po[k] for k in ("color", "size", "firm", "watt", "cct", "form") if po[k]}
             resid = po["option"]
+            # 표 헤더행이 옵션값으로 렌더된 경우("타입 색상 사이즈 가격") — 변형 아님
+            if resid and all(t in ("타입", "색상", "사이즈", "가격", "구분", "선택", "규격")
+                             for t in resid.split()):
+                resid = ""
             if resid:
                 if not d and re.search(r"색상|컬러", label):
                     d["color"] = resid
@@ -1092,9 +1096,13 @@ def run_verify():
         pass
     for r in rows:
         prod_by_url[r["url"]] += 1
-        # 팬아웃과 동일 필터: 카드혜택/은행 열거는 변형이 아님 — 감사 분모에서도 제외
-        n_o = len([o for o in (r.get("options") or "").split("|")
-                   if o and not re.search(r"은행$|카드$|카드혜택", o.strip())])
+        # 팬아웃과 동일 의미론: 옵션군 있으면 군 조합 수, 없으면 평탄 수(비변형 필터 동일)
+        gc = len(_group_combos(r.get("option_groups") or ""))
+        if gc >= 2:
+            n_o = gc
+        else:
+            n_o = len([o for o in (r.get("options") or "").split("|")
+                       if o and not re.search(r"은행$|카드$|카드혜택", o.strip())])
         if n_o >= 2:
             opts_by_url[r["url"]] = max(opts_by_url.get(r["url"], 0), n_o)
     under = [u for u, n in opts_by_url.items()
