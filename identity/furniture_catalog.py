@@ -128,8 +128,16 @@ def _promote_option(opt):
         if not seg:
             continue
         # 다토큰 세그먼트("50W 주광색"·"레체 그레이") — 토큰 단위로 축 분배, 잔여만 option
-        left = []
+        # 융착 사이즈코드("SS침대 프레임") 선분리 — 침대 문맥어 가드("S자형" 오탐 방지)
+        toks = []
         for t in seg.split():
+            m = re.match(r"^(SS|EK|LK|KK|[SQKD])(?=(?:수납|흙|저상|일반)?(?:침대|프레임|매트|평상))", t)
+            if m:
+                toks += [m.group(1), t[m.end():]]
+            else:
+                toks.append(t)
+        left = []
+        for t in toks:
             if not out["watt"] and _WATT_OPT_RE.match(t):
                 out["watt"] = _WATT_OPT_RE.match(t).group(1) + "W"
             elif not out["cct"] and (any(t.startswith(c) for c in _CCT_SET)
@@ -779,7 +787,7 @@ def option_records(r, opts):
 
 
 def run_decompose(in_path=IN_JSONL, out_path=DECOMP_OUT):
-    recs = [json.loads(l) for l in open(in_path, encoding="utf-8")]
+    recs = [_apply_mall_profile(json.loads(l)) for l in open(in_path, encoding="utf-8")]
     # 모델형 옵션 PDP → 옵션별 전개
     expanded = []
     n_optsplit = 0
@@ -874,6 +882,52 @@ def _clean_val(v):
     if _MEANINGLESS_RE.match(v):
         return ""
     return v
+
+
+def _apply_mall_profile(r):
+    """몰 프로파일 전처리(실행순서 ① — lexicon.MALL_PROFILES). 몰 고유 표기만 제거."""
+    prof = lex.MALL_PROFILES.get((r.get("source") or {}).get("mall", ""))
+    if not prof:
+        return r
+    r = dict(r)
+    for pat in prof.get("name_strip", []):
+        r["name"] = _WS.sub(" ", re.sub(pat, " ", r.get("name") or "")).strip()
+    strips = prof.get("opt_strip", [])
+    if strips:
+        if r.get("raw_options"):
+            vals = r["raw_options"].split("|")
+            for pat in strips:
+                vals = [re.sub(pat, "", v) for v in vals]
+            r["raw_options"] = "|".join(vals)
+        g = (r.get("raw_option_groups") or "").strip()
+        if g and g != "[]":
+            try:
+                groups = json.loads(g)
+                for grp in groups:
+                    vv = grp.get("values") or []
+                    for pat in strips:
+                        vv = [re.sub(pat, "", v) for v in vv]
+                    grp["values"] = vv
+                r["raw_option_groups"] = json.dumps(groups, ensure_ascii=False)
+            except ValueError:
+                pass
+    return r
+
+
+def _explode_axis_multi(va_v, cc):
+    """옵션/옵션군 경로에서도 이름 유래 다중값 사이즈("SS/Q")를 교차 전개.
+
+    옵션이 size 를 제공하면 단일값이라 no-op. "SS+Q"(패밀리 세트 구성)는 전개 금지.
+    (동서 침대 70 카탈로그 실측 — 형태/구성은 갈라지는데 사이즈가 통짜로 남던 결함)"""
+    sz = str(va_v.get("size") or "")
+    if "/" in sz and "+" not in sz and cc in ("bed", "bedding"):
+        out = []
+        for s in [t.strip() for t in sz.split("/") if t.strip()]:
+            d = dict(va_v)
+            d["size"] = s
+            out.append(d)
+        return out
+    return [va_v]
 
 
 # ── 속성값 2차 검증 (추출 후 재검사 — 교차축 혼입 분리·노이즈 제거) ──────────
@@ -1046,7 +1100,10 @@ def title_commerce(brand, name_clean, va):
             parts.append(f"{v}{label[k]}")
         else:
             parts.append(str(v))
-    return _clean_title(" ".join(p for p in parts if p))
+    t = _clean_title(" ".join(p for p in parts if p))
+    # 동일 토큰 중복 제거("평상형 침대 침대 프레임" — 모델명↔옵션 겹침), 첫 등장 유지
+    _seen = set()
+    return " ".join(w for w in t.split() if not (w in _seen or _seen.add(w)))
 
 
 def run_group():
@@ -1085,17 +1142,18 @@ def run_group():
                     va_v.update(cv)
                     if va_v.get("color"):
                         all_colors.add(va_v["color"])
-                    va_v = refine_attrs({k: _clean_val(x) for k, x in va_v.items()})
                     vprice = r["price"]
                     if delta and str(vprice).isdigit():
                         vprice = str(max(0, int(vprice) + delta))
-                    variants.append({
-                        "catalog_key": key, "mall": r["mall"], "url": r["url"],
-                        "title_commerce": title_commerce(r["brand"], r["canonical"], va_v),
-                        "variant_attrs": json.dumps(va_v, ensure_ascii=False),
-                        "price": vprice, "name": r["name"],
-                    })
-                    n_var += 1
+                    for va_x in _explode_axis_multi(va_v, r["cat_class"]):
+                        va_x = refine_attrs({k: _clean_val(x) for k, x in va_x.items()})
+                        variants.append({
+                            "catalog_key": key, "mall": r["mall"], "url": r["url"],
+                            "title_commerce": title_commerce(r["brand"], r["canonical"], va_x),
+                            "variant_attrs": json.dumps(va_x, ensure_ascii=False),
+                            "price": vprice, "name": r["name"],
+                        })
+                        n_var += 1
                 continue  # 군 조합이 변형 전체 — 평탄 옵션/교차 전개 생략
             # 비변형 옵션 제거: 카드혜택/은행 열거는 상품 변형이 아님
             opt_list = [o for o in (r.get("options") or "").split("|")
@@ -1124,14 +1182,15 @@ def run_group():
                         sm = re.search(r"(?<![A-Za-z])(SS|EK|LK|KK|[SQKD])(?![A-Za-z])", opt)
                         if sm:
                             va_v["size"] = sm.group(1)
-                    va_v = refine_attrs({k: _clean_val(x) for k, x in va_v.items()})
-                    variants.append({
-                        "catalog_key": key, "mall": r["mall"], "url": r["url"],
-                        "title_commerce": title_commerce(r["brand"], r["canonical"], va_v),
-                        "variant_attrs": json.dumps(va_v, ensure_ascii=False),
-                        "price": r["price"], "name": r["name"],
-                    })
-                    n_var += 1
+                    for va_x in _explode_axis_multi(va_v, r["cat_class"]):
+                        va_x = refine_attrs({k: _clean_val(x) for k, x in va_x.items()})
+                        variants.append({
+                            "catalog_key": key, "mall": r["mall"], "url": r["url"],
+                            "title_commerce": title_commerce(r["brand"], r["canonical"], va_x),
+                            "variant_attrs": json.dumps(va_x, ensure_ascii=False),
+                            "price": r["price"], "name": r["name"],
+                        })
+                        n_var += 1
                 continue  # 옵션 열거가 조합 전체 — 아래 교차 전개 생략
             # ── 다중값 축 교차 전개 (2026-07-02: 구성 옵션 전부 분해) ──
             # 사이즈: 침대=슬래시 개별, 침구=콤마 옵션그룹

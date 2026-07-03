@@ -22,7 +22,8 @@
 ## 3. 모듈 맵 (identity/)
 **스포츠**: `catalog_lexicon.py`(사전: 브랜드30·유형·TYPE_ALIASES·COLOR_KO·STYLECODE_SUFFIX) → `catalog_decompose.py`(Stage1+사이즈전개) → `catalog_group.py`(모델롤업+`entity_rollup`) → `catalog_llm_gate.py`(needs_llm 보정, OFF) → `run_catalog.py`
 **가구**: `catalog_lexicon_furniture.py` → `map_geo_furniture.py`(GEO매핑+오버레이 3종: options/option_groups/OCR) → `furniture_catalog.py`(decompose→group→verify; `_promote_option` 축승격, `_group_combos` 군교차, cat_class, title 2종) → `qa_geo_mapping.py`
-**공용**: `catalog_geo.py`(canonical LLM 배치 — 파라미터: `--in --store --brand-col --name-col --type-col --stage-key --batch 0=전량 --workers --redo-collisions`)
+**몰 프로파일**: lexicon `MALL_PROFILES`(몰 고유 표기 선행 strip — dongsuh 무점순번, flora NEW_/BEST_) → `_apply_mall_profile`이 decompose 진입 시 적용(실행순서 ①). 몰 고유 패턴 추가는 여기에만.
+**공용**: `catalog_geo.py`(canonical LLM 배치 — 파라미터: `--in --store --brand-col --name-col --type-col --stage-key --batch 0=전량 --workers --redo-collisions --redo-long N`)
 **수집**: `refetch_options.py` — `<slug|all> [N]` 옵션 재수집 · `--groups` 군구조 수집 · `--cascade` godomall 종속 2·3차(goods_ps.php mode=option_select→nextOption; `_CASCADE_BASE`에 몰 추가)
 **리뷰차원**: `catalog_review_dims.py`(카테고리별, driver=size_fit 등 — 비정형용, 아직 미사용)
 
@@ -59,6 +60,7 @@ python3 refetch_options.py dongsuh --cascade  # 종속 2·3차 병합
 - **엔티티 해상도**: 콜라보/에디션 보존 프롬프트 + `--redo-collisions`. 스포츠 과병합 7.7→4.9%.
 - 모음전(옵션=서로 다른 상품 열거)은 모델분해 합성행(`_opt_src`) — options 비는 게 정상.
 - `_is_variantish`에 한글 사이즈(슈퍼싱글/퀸/소중대) 필수 — 없으면 사이즈 옵션이 모델분해로 오판.
+- **몰 프로파일 계층 + 동서 침대 결함 2종**(7/3) — ① 융착 사이즈코드("SS침대 프레임"→size SS, 침대 문맥어 가드로 "S자형" 오탐 방지) ② 사이즈 열거("SS/Q") 교차 전개를 옵션/옵션군 경로에도(`_explode_axis_multi`, bed/bedding 한정·"SS+Q" 세트 보존) — 미분화 70→1 카탈로그. ③ title_commerce 토큰 중복("침대 침대") dedup — 0/190K.
 - **옵션 소비층 결함 4종 수정**(7/3, 패턴 마이닝 도출) — ① `_OPT_ADDON_RE`의 `+N원|★` 통드롭 해제: 가격병기는 `_split_delta`(표기 4종+중첩괄호 꼬리형)로 분리, **변형가=상품가+Σ군델타**(`_delta` 합산). 단 **모음전 판정(model_options)에선 델타 보유 값 제외**(델타=변형 신호 — flora 구성옵션 과분해 +5.2K키 방지). ② wooree 은행 결제 select 군 드롭(`_BANK_GROUP_RE`). ③ 모음전 합성행에 순수 SKU축 군(`_pure_axis_groups`: color/size/firm/watt/cct 완전해석 군만) 승계 — W/색상 군 소실 복구. ④ 조합 cap 100→400. +색온도 동의어(lexicon `CCT_SYNONYM`: 하얀불→주광색 등, 켈빈 토큰)·placeholder('참조/잠조') null화·색상 배송문구(운임|착불)·더미가(999999) 차단.
 - **긴 제목 LLM 재산출**(7/3) — canonical 프롬프트에 SEO 키워드 나열 절단·수량/행사 제거·"2~5어절 명사구" 지시 추가, `catalog_geo.py --redo-long N`(값 N자+ 키 무효화→재계산) 신설. 가구 26자+ 2,879키 재산출(~$0.1) → 40자+ 제목 800→0. 백업 `_catalog_canonical_furniture.bak-0703.json`. 스포츠 스토어는 미적용(원하면 동일 명령).
 - **title 전수 패턴 감사 교정**(7/3) — 브랜드중복(콜라보 X표기는 보존)·열거자(N1.)·~형 슬래시열거(form축 승격+변형 전개)·실링팬 치수(cm 추출, 인치→cm 환산, 카테고리 무관 키워드 가드)·개입/1+1(pack·offer축)·동일토큰중복 = 전항목 0. LLM canonical 캐시 잔존 노이즈는 title_geo 조립부에서 최종 scrub. 비조명 와트(충전기 65W)·시리즈명(베스트)은 정당 스펙으로 보존.
@@ -67,7 +69,7 @@ python3 refetch_options.py dongsuh --cascade  # 종속 2·3차 병합
 
 ## 7. 현재 수치(재빌드 시 변동)
 스포츠: 유형커버 75% · 성별 84% · needs_llm 2.5% · 과병합 4.9%
-가구(7/3 결함수정 후): 카탈로그 **21,198** · 변형 **182,844**(가격병기 변형 회복 +δ) · 변형가 분화 508 PDP(델타 반영) · title 패턴감사·속성오염 전항목 0 · 긴제목(40+) 0
+가구(7/3 결함수정 후): 카탈로그 **21,198** · 변형 **190,423**(가격병기 회복+사이즈 전개) · 변형가 분화 508 PDP(델타 반영) · title 패턴감사·속성오염 전항목 0 · 긴제목(40+) 0
 패턴 마이닝 보고서: `outputs/_pattern_report.md`(9몰×6축 실측, 룰 후보 27 우선순위 + 3계층 아키텍처 판정)
 
 ## 8. 남은 일 (우선순위)
