@@ -77,7 +77,7 @@ python3 refetch_options.py dongsuh --cascade  # 종속 2·3차 병합
 2. ~~Mongo 적재~~ **완료(7/3)** — insights DB(47017): sports_products/catalogs/variants(61K/36K/264K) · furniture_products/variants/catalogs(19K/46K/20K) · **furniture_catalog_variants(156K, title_commerce SKU 층 신설, _id=내용해시 멱등)**. 재빌드 후 두 로더 재실행이 갱신 절차(run_furniture_pipeline.py가 가구 로더 호출).
 3. OCR 백필 — 지원 6몰 잔여 소진(7/3): flora 220·wooree 175 옵션 수집 완료, bflamp 18 이미지fetch실패·vittz 2 soft-block만 잔존. 미지원 몰(dongsuh/godomall계)은 `ocr_gosi_furniture.py` BRAND_CFG 추가 필요.
 4. 가격편차 리뷰 큐 340건(needs_review=price_spread).
-5. ~~재추출(크롤) 스케줄~~ **완료(7/3)** — furniture_extract 스테이지(§4) + n8n 주1회(월 06:00) 워크플로우 **활성**(사용자 승인). 첫 전량 재추출 7/3 13:24 기동.
+5. ~~재추출(크롤) 스케줄~~ **완료(7/3)** — furniture_extract 스테이지(§4) + n8n 주1회(월 06:00) 워크플로우 **활성**(사용자 승인). 첫 전량 재추출 7/3 기동, dongsuh 재크롤 7/4 완주(타르핏 대응: 재개형 저널+감독자 outputs/_supervise_dongsuh.sh, SLEEP_OVERRIDE 감속).
 6. 가구 신규 canonical 키 잔여분 — n8n furniture_geo가 증분 처리 중(또는 §5 수동).
 
 ## 9. 규칙(반드시)
