@@ -152,6 +152,13 @@ def test_build_and_upsert_mongo_down_file_fallback(tmp_path, monkeypatch):
     assert os.path.exists(os.path.join(str(tmp_path), "profiles", "vittz.json"))
 
 
+def test_engine_uses_crawl_profile_delay():
+    import extract_furniture_engine as eng
+    # 엔진에 프로파일 기반 딜레이 결정 헬퍼가 있어야 함
+    assert eng.resolve_delay("dongsuh") == 1.2
+    assert eng.resolve_delay("dotoro") == 0.5  # cafe24 기본
+
+
 def test_profile_all_skips_missing_csv(tmp_path, monkeypatch):
     import mongomock
     client = mongomock.MongoClient()
