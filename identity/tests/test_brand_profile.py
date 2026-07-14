@@ -150,3 +150,15 @@ def test_build_and_upsert_mongo_down_file_fallback(tmp_path, monkeypatch):
     doc = bp.build_and_upsert("vittz", str(csv_path), run_log=None)
     assert doc["stats"]["count"] == 3
     assert os.path.exists(os.path.join(str(tmp_path), "profiles", "vittz.json"))
+
+
+def test_profile_all_skips_missing_csv(tmp_path, monkeypatch):
+    import mongomock
+    client = mongomock.MongoClient()
+    monkeypatch.setattr(bp, "_get_db", lambda: client["insights_demo"])
+    monkeypatch.setattr(bp, "OUT_DIR", str(tmp_path))
+    # dongsuh CSV만 존재
+    csv_path = os.path.join(str(tmp_path), "extract_furniture_dongsuh.csv")
+    _write_csv(csv_path, SAMPLE_ROWS)
+    done = bp.profile_all(only={"dongsuh", "flora"})  # flora CSV 없음 → 스킵
+    assert done == ["dongsuh"]

@@ -167,3 +167,20 @@ def build_and_upsert(slug, harvest_csv, run_log=None):
         print(f"[brand_profile] Mongo 실패: {e}")
         _fallback_write(doc)
     return doc
+
+
+def profile_all(only=None, run_logs=None):
+    """모든(또는 only) 브랜드의 산출 CSV로 build_and_upsert. CSV 없으면 스킵. 처리한 slug 리스트."""
+    run_logs = run_logs or {}
+    done = []
+    for b in _load_registry()["brands"]:
+        slug = b["slug"]
+        if only and slug not in only:
+            continue
+        csv_path = os.path.join(OUT_DIR, f"extract_furniture_{slug}.csv")
+        if not os.path.exists(csv_path):
+            print(f"[brand_profile] {slug}: CSV 없음 — 스킵")
+            continue
+        build_and_upsert(slug, csv_path, run_log=run_logs.get(slug))
+        done.append(slug)
+    return done
