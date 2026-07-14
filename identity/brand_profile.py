@@ -1,6 +1,7 @@
 """브랜드 프로필 스토어 — A층(brands_furniture.json crawl_profile) 읽기 +
 B층(Mongo brand_profiles) 계산/조회. 설계: docs/superpowers/specs/2026-07-14-brand-profile-store-design.md
 """
+import csv
 import json
 import os
 from collections import Counter
@@ -100,3 +101,69 @@ def compute_stats(rows, prev, run_log):
         "throttle_hits": run_log.get("throttle_hits", 0),
         "regression": regression,
     }
+
+
+OUT_DIR = os.path.join(HERE, "outputs")
+HISTORY_MAX = 20
+URI = os.environ.get("MONGO_URI", "mongodb://localhost:47017/?directConnection=true")
+
+
+def _read_rows(csv_path):
+    with open(csv_path, encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
+def _get_db():
+    from pymongo import MongoClient
+    dbname = os.environ.get("INSIGHTS_DB", "insights")
+    return MongoClient(URI, serverSelectionTimeoutMS=5000)[dbname]
+
+
+def get_profile(slug):
+    try:
+        return _get_db()["brand_profiles"].find_one({"_id": slug})
+    except Exception as e:  # 연결 실패 시 조회는 None
+        print(f"[brand_profile] get_profile({slug}) Mongo 실패: {e}")
+        return None
+
+
+def _fallback_write(doc):
+    d = os.path.join(OUT_DIR, "profiles")
+    os.makedirs(d, exist_ok=True)
+    path = os.path.join(d, f"{doc['_id']}.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(doc, f, ensure_ascii=False, indent=2)
+    print(f"[brand_profile] Mongo 폴백 → {path}")
+
+
+def build_and_upsert(slug, harvest_csv, run_log=None):
+    """산출 CSV → schema/domain/stats 계산 → brand_profiles upsert(+history). Mongo 실패 시 파일 폴백."""
+    b = _brand(slug)
+    rows = _read_rows(harvest_csv)
+    crawl_profile = load_crawl_profile(slug)
+    prev = get_profile(slug)
+
+    schema = compute_schema(rows)
+    domain = compute_domain(rows, b.get("note", ""), crawl_profile.get("gosi_in_image", False))
+    stats = compute_stats(rows, prev, run_log)
+    harvest_id = (run_log or {}).get("harvest_id", "")
+
+    history = list((prev or {}).get("history", []))
+    history.append({"harvest_id": harvest_id, "count": stats["count"]})
+    history = history[-HISTORY_MAX:]
+
+    doc = {
+        "_id": slug, "slug": slug, "name_ko": b.get("name_ko", ""),
+        "last_harvest_id": harvest_id,
+        "crawl_profile": crawl_profile,
+        "schema": schema, "domain": domain, "stats": stats, "history": history,
+    }
+    try:
+        db = _get_db()
+        db["brand_profiles"].replace_one({"_id": slug}, doc, upsert=True)
+        print(f"[brand_profile] upsert {slug} · count={stats['count']} "
+              f"· regression={stats['regression']} (brand_profiles)")
+    except Exception as e:
+        print(f"[brand_profile] Mongo 실패: {e}")
+        _fallback_write(doc)
+    return doc

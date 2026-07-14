@@ -96,3 +96,57 @@ def test_compute_stats_no_regression_below_threshold():
     rows = [{"source": "x", "name": f"n{i}"} for i in range(9)]  # 10 -> 9 = 10% drop, below 20%
     st = bp.compute_stats(rows, prev=prev, run_log=None)
     assert st["regression"] is False
+
+
+import csv as _csv
+
+
+def _write_csv(path, rows):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = _csv.DictWriter(f, fieldnames=bp.HEADER)
+        w.writeheader()
+        for r in rows:
+            w.writerow({k: r.get(k, "") for k in bp.HEADER})
+
+
+def test_build_and_upsert_with_mongomock(tmp_path, monkeypatch):
+    import mongomock
+    client = mongomock.MongoClient()
+    monkeypatch.setattr(bp, "_get_db", lambda: client["insights_demo"])
+
+    csv_path = tmp_path / "extract_furniture_dongsuh.csv"
+    _write_csv(csv_path, SAMPLE_ROWS)
+
+    doc = bp.build_and_upsert("dongsuh", str(csv_path), run_log={"failed_urls": 1})
+    assert doc["_id"] == "dongsuh"
+    assert doc["stats"]["count"] == 3
+    assert doc["stats"]["failed_urls"] == 1
+    assert doc["schema"]["fields"]["material"]["coverage"] == 1.0
+    assert doc["crawl_profile"]["delay_s"] == 1.2
+
+    got = bp.get_profile("dongsuh")
+    assert got["stats"]["count"] == 3
+
+
+def test_history_ring_buffer(tmp_path, monkeypatch):
+    import mongomock
+    client = mongomock.MongoClient()
+    monkeypatch.setattr(bp, "_get_db", lambda: client["insights_demo"])
+    csv_path = tmp_path / "extract_furniture_flora.csv"
+    _write_csv(csv_path, SAMPLE_ROWS)
+    for i in range(bp.HISTORY_MAX + 5):
+        bp.build_and_upsert("flora", str(csv_path), run_log={"harvest_id": f"h{i}"})
+    doc = bp.get_profile("flora")
+    assert len(doc["history"]) == bp.HISTORY_MAX  # 링버퍼 상한
+
+
+def test_build_and_upsert_mongo_down_file_fallback(tmp_path, monkeypatch):
+    def _boom():
+        raise RuntimeError("mongo down")
+    monkeypatch.setattr(bp, "_get_db", _boom)
+    monkeypatch.setattr(bp, "OUT_DIR", str(tmp_path))
+    csv_path = tmp_path / "extract_furniture_vittz.csv"
+    _write_csv(csv_path, SAMPLE_ROWS)
+    doc = bp.build_and_upsert("vittz", str(csv_path), run_log=None)
+    assert doc["stats"]["count"] == 3
+    assert os.path.exists(os.path.join(str(tmp_path), "profiles", "vittz.json"))
