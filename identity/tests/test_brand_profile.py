@@ -159,6 +159,43 @@ def test_engine_uses_crawl_profile_delay():
     assert eng.resolve_delay("dotoro") == 0.5  # cafe24 기본
 
 
+def test_read_rows_handles_bom(tmp_path):
+    p = tmp_path / "bom.csv"
+    # write with utf-8-sig (BOM), exactly like production write_csv
+    import csv as _csv
+    with open(p, "w", encoding="utf-8-sig", newline="") as f:
+        w = _csv.DictWriter(f, fieldnames=bp.HEADER)
+        w.writeheader()
+        row = {k: "" for k in bp.HEADER}
+        row["source"] = "dongsuh"
+        row["name"] = "침대 A"
+        row["category"] = "침대"
+        w.writerow(row)
+    rows = bp._read_rows(str(p))
+    assert rows[0]["source"] == "dongsuh"        # not "﻿source"
+    sch = bp.compute_schema(rows)
+    assert sch["fields"]["source"]["coverage"] == 1.0
+
+
+def test_dongsuh_delay_floor_consistent_across_crawl_paths():
+    import extract_furniture_godomall as god
+    # dongsuh IP-tarpit guard (>=1.2s) must hold on BOTH the dedicated godomall path and the engine floor
+    assert god.SLEEP_OVERRIDE["dongsuh"] >= 1.2
+    assert bp.DELAY_FLOORS["dongsuh"] >= 1.2
+    # and they must not silently diverge
+    assert god.SLEEP_OVERRIDE["dongsuh"] == bp.DELAY_FLOORS["dongsuh"]
+
+
+def test_unknown_platform_warns_not_silent(monkeypatch, capsys):
+    fake = {"brands": [{"slug": "typo", "name_ko": "X", "base_url": "u", "platform": "godomal", "status": "active", "note": ""}]}
+    monkeypatch.setattr(bp, "_load_registry", lambda: fake)
+    prof = bp.load_crawl_profile("typo")
+    assert prof["platform"] == "godomal"          # value preserved
+    assert prof["delay_s"] == 0.5                  # cafe24 fallback behavior
+    err = capsys.readouterr().err
+    assert "미인식 platform" in err and "godomal" in err
+
+
 def test_profile_all_skips_missing_csv(tmp_path, monkeypatch):
     import mongomock
     client = mongomock.MongoClient()

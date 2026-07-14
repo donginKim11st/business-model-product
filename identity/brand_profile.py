@@ -4,6 +4,7 @@ B층(Mongo brand_profiles) 계산/조회. 설계: docs/superpowers/specs/2026-07
 import csv
 import json
 import os
+import sys
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -17,6 +18,9 @@ PLATFORM_DEFAULTS = {
     "imweb":     {"delay_s": 0.5, "resumable": False, "watchdog_s": 60},
 }
 # slug별 delay 하한 — 타르핏 가드(CLAUDE.md). 임의 단축 방지.
+# dongsuh는 실제로는 이 엔진 경로가 아니라 전용 godomall 크롤러(extract_furniture_godomall.SLEEP_OVERRIDE)를
+# 사용하며 동일 하한(1.2s)을 독립적으로 강제한다 — 드리프트는 테스트로 잠겨 있다
+# (test_dongsuh_delay_floor_consistent_across_crawl_paths).
 DELAY_FLOORS = {"dongsuh": 1.2}
 
 
@@ -35,7 +39,11 @@ def _brand(slug):
 def load_crawl_profile(slug):
     """brands_furniture.json → crawl_profile. 없으면 platform 기본값. DB 무의존."""
     b = _brand(slug)
-    platform = b.get("platform", "cafe24")
+    raw_platform = b.get("platform")
+    platform = raw_platform or "cafe24"
+    if raw_platform and raw_platform not in PLATFORM_DEFAULTS:
+        print(f"[brand_profile] 경고: 미인식 platform '{raw_platform}' (brand={b.get('slug')}) "
+              f"— cafe24 기본값으로 대체. crawl_profile 오타 확인.", file=sys.stderr)
     prof = dict(PLATFORM_DEFAULTS.get(platform, PLATFORM_DEFAULTS["cafe24"]))
     prof.update(b.get("crawl_profile", {}))
     prof["platform"] = platform
@@ -109,7 +117,9 @@ URI = os.environ.get("MONGO_URI", "mongodb://localhost:47017/?directConnection=t
 
 
 def _read_rows(csv_path):
-    with open(csv_path, encoding="utf-8") as f:
+    # utf-8-sig: 운영 CSV는 BOM 포함으로 기록됨(extract_furniture_base.write_csv) — 그대로 utf-8로 읽으면
+    # 첫 컬럼 헤더가 "﻿source"가 되어 source coverage가 0.0으로 집계됨.
+    with open(csv_path, encoding="utf-8-sig") as f:
         return list(csv.DictReader(f))
 
 

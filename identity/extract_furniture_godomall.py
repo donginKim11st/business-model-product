@@ -30,6 +30,9 @@ from extract_furniture_base import (  # noqa: F401
 
 SLEEP = 0.2          # 요청 간 대기
 # 몰별 감속 — dongsuh: ~300요청마다 타르핏(IP 스로틀) 실측(2026-07-04) → 1.2s 로 순항
+# 이 값은 dongsuh 전용 godomall 크롤 경로(실제 운영 경로)의 하한이다. 반드시
+# brand_profile.DELAY_FLOORS["dongsuh"](엔진 경로 가드)와 같거나 그 이상으로 유지할 것 —
+# 서로 독립된 두 상수이며 드리프트 방지 테스트(test_dongsuh_delay_floor_consistent_across_crawl_paths)로 잠겨 있다.
 SLEEP_OVERRIDE = {"dongsuh": 1.2}
 RETRIES = 2          # 재시도 횟수
 PAGE_CAP = 100       # 카테고리당 페이지 상한
