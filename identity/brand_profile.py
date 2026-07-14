@@ -90,7 +90,7 @@ def compute_stats(rows, prev, run_log):
     new = max(0, count - prev_count) if prev else count
     dropped = max(0, prev_count - count)
     coverage_delta = 0.0
-    regression = bool(prev_count) and count < prev_count * (1 - _REGRESSION_DROP)
+    regression = bool(prev_count) and count <= prev_count * (1 - _REGRESSION_DROP)
     return {
         "count": count, "new": new, "dropped": dropped,
         "coverage_delta": coverage_delta,

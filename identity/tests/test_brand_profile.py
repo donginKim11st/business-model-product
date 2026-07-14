@@ -81,3 +81,18 @@ def test_compute_stats_delta_and_regression():
 def test_compute_stats_no_prev():
     st = bp.compute_stats(SAMPLE_ROWS, prev=None, run_log=None)
     assert st["count"] == 3 and st["new"] == 3 and st["regression"] is False
+
+
+def test_compute_stats_regression_exact_20pct():
+    prev = {"stats": {"count": 10}, "schema": {}}
+    rows = [{"source": "x", "name": f"n{i}"} for i in range(8)]  # 10 -> 8 = exactly 20% drop
+    st = bp.compute_stats(rows, prev=prev, run_log=None)
+    assert st["count"] == 8
+    assert st["regression"] is True
+
+
+def test_compute_stats_no_regression_below_threshold():
+    prev = {"stats": {"count": 10}, "schema": {}}
+    rows = [{"source": "x", "name": f"n{i}"} for i in range(9)]  # 10 -> 9 = 10% drop, below 20%
+    st = bp.compute_stats(rows, prev=prev, run_log=None)
+    assert st["regression"] is False
