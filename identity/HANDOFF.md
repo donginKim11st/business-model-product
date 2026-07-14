@@ -80,6 +80,29 @@ python3 refetch_options.py dongsuh --cascade  # 종속 2·3차 병합
 5. ~~재추출(크롤) 스케줄~~ **완료(7/3)** — furniture_extract 스테이지(§4) + n8n 주1회(월 06:00) 워크플로우 **활성**(사용자 승인). 첫 전량 재추출 7/3 기동, dongsuh 재크롤 7/4 완주(타르핏 대응: 재개형 저널+감독자 outputs/_supervise_dongsuh.sh, SLEEP_OVERRIDE 감속).
 6. 가구 신규 canonical 키 잔여분 — n8n furniture_geo가 증분 처리 중(또는 §5 수동).
 
+## 8b. 브랜드 프로필 스토어
+
+브랜드별(가구 9몰) 크롤 설정 + 수집 산출 통계를 두 층으로 분리 관리.
+- **A층**: `brands_furniture.json` 각 브랜드의 `crawl_profile`(딜레이·재개형 여부·워치독 등 크롤 설정) — git 버전관리, 크롤러 부트스트랩 값.
+- **B층**: Mongo `brand_profiles` 컬렉션(`_id`=slug) — harvest 산출(schema coverage, domain, stats, history) upsert.
+- 모듈 `identity/brand_profile.py`:
+  - `load_crawl_profile(slug) -> dict` — A층 crawl_profile 읽기. platform 기본값 폴백(godomall/cafe24/makeshop/imweb), dongsuh는 `delay_s` 하한 1.2(타르핏 가드) 강제.
+  - `compute_schema(rows)` / `compute_domain(rows, note, gosi_in_image)` / `compute_stats(rows, prev, run_log)` — 순수 계산(DB 무의존).
+  - `build_and_upsert(slug, harvest_csv, run_log=None) -> dict` — 계산 결과를 `brand_profiles`에 upsert(+history 최근 20건). Mongo 실패 시 `outputs/profiles/<slug>.json` 파일 폴백.
+  - `get_profile(slug) -> dict | None` — `brand_profiles.find_one({_id: slug})`. 연결 실패 시 None.
+  - `profile_all(only=None, run_logs=None) -> list[str]` — 브랜드별 `outputs/extract_furniture_<slug>.csv` → `build_and_upsert` 호출. CSV 없는 브랜드는 스킵. 처리한 slug 리스트 반환.
+  - `extract_furniture_engine.py`의 `resolve_delay(slug) -> float`가 `load_crawl_profile(slug)["delay_s"]`를 읽어 크롤 딜레이에 사용(레지스트리 미등록 slug는 엔진 자체 `SLEEP` 폴백).
+- **자동 축적**: `run_furniture_pipeline.py` 단계 2b(병합 직후)가 `profile_all()` 호출. `--no-mongo`면 스킵, 실패해도 파이프라인은 계속 진행(try/except로 감쌈).
+- **조회 예시**:
+  ```
+  # MCP mongodb-insights
+  brand_profiles.find({_id: "dongsuh"})
+
+  # CLI
+  python3 -c "import brand_profile as b; print(b.get_profile('dongsuh')['stats'])"
+  ```
+- DB 위치: env `INSIGHTS_DB`(기본 `insights`), 컬렉션 `brand_profiles`.
+
 ## 9. 규칙(반드시)
 - 커밋에 **Claude-Session 트레일러 금지**. 원격=business-model-product. 브랜치 feat/canonical-identity-join.
 - outputs/ gitignore — 산출물 커밋 금지. 코드는 conventional commit(scope catalog/furniture).
