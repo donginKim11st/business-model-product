@@ -26,3 +26,20 @@ def test_load_crawl_profile_unknown_slug():
 def test_delay_floor_enforced():
     # dongsuh delay가 하한(1.2) 미만으로 등록돼 있으면 하한으로 끌어올림
     assert bp.DELAY_FLOORS["dongsuh"] == 1.2
+
+
+def test_registry_integrity():
+    reg = bp._load_registry()
+    slugs = {b["slug"] for b in reg["brands"]}
+    assert {"jakomo", "dongsuh", "flora", "mothershome"} <= slugs
+    for b in reg["brands"]:
+        prof = bp.load_crawl_profile(b["slug"])
+        assert prof["delay_s"] > 0
+        assert prof["platform"] in {"godomall", "cafe24", "makeshop", "imweb"}
+
+
+def test_dongsuh_and_godomall_profiles():
+    d = bp.load_crawl_profile("dongsuh")
+    assert d["delay_s"] == 1.2 and d["resumable"] is True and d["gosi_in_image"] is True
+    j = bp.load_crawl_profile("jakomo")  # godomall
+    assert j["resumable"] is True

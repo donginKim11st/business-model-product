@@ -1,0 +1,86 @@
+{
+  "_comment": "가구/인테리어 브랜드 레지스트리. onboard_brand.py 로 추가, extract_all_furniture.py 가 읽음.",
+  "brands": [
+    {
+      "slug": "jakomo",
+      "name_ko": "자코모",
+      "base_url": "https://www.jakomo.co.kr",
+      "platform": "godomall",
+      "status": "active",
+      "note": "소파 전문. jacomo.co.kr(c)은 배드민턴몰이므로 주의",
+      "crawl_profile": {"category_codes": [], "delay_s": 1.0, "resumable": true, "watchdog_s": 90, "gosi_in_image": false}
+    },
+    {
+      "slug": "bflamp",
+      "name_ko": "번개표",
+      "base_url": "https://www.kumholamp.com",
+      "platform": "cafe24",
+      "status": "active",
+      "note": "금호전기 번개표 MALL(kumholamp.com), cafe24 — 범용 엔진 사용",
+      "crawl_profile": {"category_codes": [], "delay_s": 0.5, "resumable": false, "watchdog_s": 60, "gosi_in_image": false}
+    },
+    {
+      "slug": "wooree",
+      "name_ko": "장수램프",
+      "base_url": "https://wooree-mall.co.kr",
+      "platform": "cafe24",
+      "status": "active",
+      "note": "우리조명 자사몰. cate_no 157=전체상품",
+      "crawl_profile": {"category_codes": ["157"], "category_note": "157=전체상품", "delay_s": 0.5, "resumable": false, "watchdog_s": 60, "gosi_in_image": false}
+    },
+    {
+      "slug": "vittz",
+      "name_ko": "비츠온",
+      "base_url": "https://www.vittz.co.kr",
+      "platform": "makeshop",
+      "status": "active",
+      "note": "조명",
+      "crawl_profile": {"category_codes": [], "delay_s": 0.5, "resumable": false, "watchdog_s": 60, "gosi_in_image": false}
+    },
+    {
+      "slug": "flora",
+      "name_ko": "플로라",
+      "base_url": "https://www.flora.co.kr",
+      "platform": "godomall",
+      "status": "active",
+      "note": "침구",
+      "crawl_profile": {"category_codes": [], "delay_s": 1.0, "resumable": true, "watchdog_s": 90, "gosi_in_image": false}
+    },
+    {
+      "slug": "mothershome",
+      "name_ko": "마더스홈",
+      "base_url": "https://mothershome.co.kr",
+      "platform": "imweb",
+      "status": "active",
+      "note": "imweb. sitemap /shop_view/{id} 64개 — 전용 스크립트 완성(64행)",
+      "crawl_profile": {"category_codes": [], "entry_hint": "sitemap /shop_view/{id}", "delay_s": 0.5, "resumable": false, "watchdog_s": 60, "gosi_in_image": false}
+    },
+    {
+      "slug": "prielle",
+      "name_ko": "쁘리엘르",
+      "base_url": "https://www.prielle.co.kr",
+      "platform": "makeshop",
+      "status": "active",
+      "note": "침구",
+      "crawl_profile": {"category_codes": [], "delay_s": 0.5, "resumable": false, "watchdog_s": 60, "gosi_in_image": false}
+    },
+    {
+      "slug": "dongsuh",
+      "name_ko": "동서가구",
+      "base_url": "https://www.dongsuhfurniture.co.kr",
+      "platform": "godomall",
+      "status": "active",
+      "note": "종합가구. cateCd 019=BEST(중복 제외)",
+      "crawl_profile": {"category_codes": ["019"], "category_note": "019=BEST 중복 제외", "delay_s": 1.2, "resumable": true, "watchdog_s": 90, "gosi_in_image": true}
+    },
+    {
+      "slug": "dotoro",
+      "name_ko": "도토로",
+      "base_url": "https://do-toro.com",
+      "platform": "cafe24",
+      "status": "active",
+      "note": "",
+      "crawl_profile": {"category_codes": [], "delay_s": 0.5, "resumable": false, "watchdog_s": 60, "gosi_in_image": false}
+    }
+  ]
+}
