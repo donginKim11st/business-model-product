@@ -35,6 +35,21 @@
 - 가구 재추출: `identity/run_furniture_extract.sh`(락 /tmp/furniture_extract.lock, 로그 furniture_extract.log) ← `step_furniture_extract.sh`가 비동기 킥(step 동기 900s 상한 회피). 수동: `curl -X POST -H "X-Token:…" localhost:8766/step/furniture_extract`
 - OPENAI 키: **gitignore된 `insight/run.sh`** (root run.sh는 심링크). 절대 커밋 금지.
 
+## 4b. claude 구독 비정형 인사이트 + 원격 동기화 (7/20 셋업)
+비정형 SKU 인사이트를 n8n/OpenAI API 루프 대신 **claude -p 헤드리스(Max 구독, API 비용 0원)**로 상시 추출하고, 결과를 원격 공용 Mongo에 준실시간 동기화하는 3프로세스 구성. 전부 `insight/` 기준.
+- **추출 루프**: `db/run_claude_insight_loop.sh` — `INSIGHT_LLM=claude`로 `catalog_insight_backfill.py`(워커 5·패스 50건) 반복. 기본 야간(22~08시) 게이트, 7/20은 `SP_CLAUDE_FROM=0 SP_CLAUDE_TO=24`(상시)로 가동. 구독 5시간 한도 감지 시(쿼터미처리>워커수) 1h 대기. 로그 `db/claude_insight_pipeline.log`, 중지 `pkill -f run_claude_insight_loop`.
+  - **동시 가동 금지**: 같은 큐를 쓰는 API 루프(`run_unstructured_loop.sh`)와 n8n `비정형 추출 (배치 드라이버)`(unstructdriver1)를 꺼 둘 것 — 7/20 unstructdriver1 **비활성화**함(복구는 n8n 토글).
+- **원격 동기화 루프**: `db/run_remote_push_loop.sh` — 1시간마다(`SP_PUSH_INTERVAL`) `push_unstructured_remote.py` 재실행. 로컬 `insights_demo.products.catalogs[].insight` → **원격 `10xtf.aiCatalogUnstructuredAttribute`**(_id=ctlg_no upsert, 재실행 안전). 7/20 초회 54,379건 적재 완료(원격 ~54K). 로그 `db/remote_push.log`.
+  - REMOTE_URI: `~/.10xtf_creds`(600, export REMOTE_URI=…)를 루프가 자동 source. env로 직접 줘도 됨. **리포 안에 저장 금지.**
+- **실시간 대시보드**: `db/claude_insight_dashboard.py` — HTTP :8767(`DASH_PORT`). JS 10초 폴링으로 전체/완료/잔여·최근 1h/24h·**평균 시간당(오늘/24h)**·**일자별 처리 건수**·원격 적재 건수(REMOTE_URI 시)·루프 가동 상태·로그 요약. 기동 `source ~/.10xtf_creds && python3 db/claude_insight_dashboard.py`, 중지 `pkill -f claude_insight_dashboard`.
+- 재부팅 후 재기동(3줄, insight/에서):
+  ```bash
+  SP_CLAUDE_FROM=0 SP_CLAUDE_TO=24 nohup zsh db/run_claude_insight_loop.sh >/dev/null 2>&1 &
+  nohup zsh db/run_remote_push_loop.sh >/dev/null 2>&1 &        # ~/.10xtf_creds 자동 로드
+  source ~/.10xtf_creds && nohup python3 db/claude_insight_dashboard.py >/dev/null 2>&1 &
+  ```
+- 수치(7/20 실측): 전체 SKU 330,170 · 인사이트 완료 54,371(16.5%) · claude 루프 처리량 시간당 ~65건(워커 5).
+
 ## 5. 실행 치트시트
 ```bash
 cd ~/Work/business-model/identity
