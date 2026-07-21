@@ -3,6 +3,7 @@ import json
 import os
 from dataclasses import asdict
 
+import run_batch
 from insight_engine import engine
 from insight_engine.types import InsightResult
 
@@ -40,6 +41,7 @@ def submit(targets, cfg, store, *, extract=engine.extract_insight,
     state = {"job_id": job_id, "total": len(targets), "done": 0,
              "empty": 0, "errors": 0, "quota_paused": False, "cost_usd": 0.0}
     _JOBS[job_id] = state
+    baseline = run_batch.usd()  # 프로세스 누적 비용 기준선 — 잡별 델타 계산용
 
     for t in targets:
         if t.key() in done:
@@ -50,7 +52,7 @@ def submit(targets, cfg, store, *, extract=engine.extract_insight,
             break
         store.append(r)
         state["done"] += 1
-        state["cost_usd"] = r.cost_usd
+        state["cost_usd"] = max(0.0, r.cost_usd - baseline)
         if r.error:
             state["errors"] += 1
         elif r.block is None:
