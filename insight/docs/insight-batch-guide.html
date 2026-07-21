@@ -493,5 +493,87 @@
     <div class="ct"><b>실전 교훈.</b> 실데이터의 <code>ctlg_no</code>는 정수(int)였다(테스트는 문자열 가정). 첫 배치가 <code>TypeError</code>로 즉시 실패 → custom_id는 str, Mongo 매칭은 원래 타입으로 고정 완료. 새 데이터 소스 붙일 땐 타입을 먼저 확인할 것.</div>
   </div>
 
+  <!-- 10. 하이브리드 실행 -->
+  <h2><span class="num">10</span> 실행 모드 — sync ↔ batch 혼용</h2>
+  <p class="section-sub">배치 하나만이 아니다. 같은 API에서 <code>execution</code>으로 실시간(sync)과 배치(batch)를 골라 혼용한다.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>모드</th><th>지연</th><th>비용</th><th>용도</th></tr></thead>
+      <tbody>
+        <tr><td><code>sync</code> (기본)</td><td>즉시</td><td class="num">정가</td><td>실시간 단건·소량</td></tr>
+        <tr class="hi"><td><code>batch</code></td><td>최대 24h</td><td class="num">50%↓</td><td>대량 백필</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flow" style="margin-top:22px">
+    <div class="stage">
+      <p class="st-key">router.submit</p>
+      <p class="st-title">단일 진입점</p>
+      <ol>
+        <li><code>cfg.execution</code>으로 분기</li>
+        <li>급한 단건·소량 → sync</li>
+        <li>대량·비용민감 → batch</li>
+      </ol>
+      <div class="st-out">→ 호출자가 모드만 지정</div>
+    </div>
+    <div class="stage">
+      <p class="st-key">sync</p>
+      <p class="st-title">실시간</p>
+      <ol>
+        <li>인프로세스 잡 큐 드레인</li>
+        <li>즉시 결과 반환</li>
+        <li>Mongo 불필요(파일 상태)</li>
+      </ol>
+      <div class="st-out">→ {mode, job_id, state}</div>
+    </div>
+    <div class="stage async">
+      <span class="badge">50% ↓</span>
+      <p class="st-key">batch</p>
+      <p class="st-title">비동기</p>
+      <ol>
+        <li>크롤 → 요청빌드 → OpenAI 제출</li>
+        <li>batch_openai lazy import</li>
+        <li>staging 반환(호출자 영속화)</li>
+      </ol>
+      <div class="st-out">→ {mode, batch_ids, staging}</div>
+    </div>
+  </div>
+
+  <div class="steps" style="margin-top:22px">
+    <div class="step">
+      <div>
+        <div class="sh">REST — execution 으로 모드 선택</div>
+        <pre><span class="c"># 실시간 단건</span>
+<span class="k">curl</span> -XPOST :8770/extract -d '{"keyword":"아식스 젤카야노"}'
+
+<span class="c"># 잡 — sync(즉시) vs batch(저렴·비동기)</span>
+<span class="k">curl</span> -XPOST :8770/jobs -d '{"execution":"sync",  "targets":[{"keyword":"a","uid":"C1"}]}'
+<span class="k">curl</span> -XPOST :8770/jobs -d '{"execution":"batch", "targets":[{"keyword":"a","uid":"C1"}]}'
+
+<span class="c"># 배치 진행 조회 · 관측</span>
+<span class="k">curl</span> -XPOST :8770/batch/status -d '{"batch_ids":["batch_..."]}'
+<span class="k">curl</span> :8770/metrics</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <div class="sh">라이브러리 — router.submit</div>
+        <pre><span class="k">from</span> insight_engine <span class="k">import</span> router
+<span class="k">from</span> insight_engine.types <span class="k">import</span> ExtractTarget, EngineConfig
+
+r = router.submit(targets, EngineConfig(execution=<span class="c">"sync"</span>))    <span class="c"># 즉시</span>
+r = router.submit(targets, EngineConfig(execution=<span class="c">"batch"</span>),  <span class="c"># 50%↓</span>
+                  client=client, creds={<span class="c">"nid"</span>:..,<span class="c">"nsec"</span>:..})</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout note">
+    <div class="cico">🧩</div>
+    <div class="ct"><b>sync-only 배포는 가볍다.</b> <code>batch_openai</code>는 batch 경로에서만 lazy import → 실시간 REST만 쓰면 Mongo·배치 의존 없이 <code>openai·pydantic·requests</code>만으로 돈다.</div>
+  </div>
+
   <footer>insight-engine · 비정형 인사이트 Batch 파이프라인 · 인수인계 문서 · 2026-07-21</footer>
 </div>
