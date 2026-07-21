@@ -29,6 +29,8 @@ import run_batch
 import naver_review_geo as nrg  # noqa
 import load_mongo
 from pymongo import MongoClient
+from insight_engine.versioning import build_run_meta
+from insight_engine.types import EngineConfig
 
 _JUNK = re.compile(r"★[^★]*★|\[[^\]]*\]|[（(][^)）]*[)）]")
 
@@ -142,6 +144,9 @@ def main():
         ins = (to_insight(block, len(items)) if block else
                {"dims": [], "faqs": [], "n_sources": len(items or []), "attempts": prev_attempts + 1,
                 "fetched_at": now_iso(), "source": "naver_review"})
+        # 재현성: 이 인사이트가 어떤 엔진·프롬프트·모델 버전으로 나왔는지 기록(정직하게 실제 모델명).
+        real_model = "claude(subscription)" if use_claude else os.environ.get("INSIGHT_MODEL", "gpt-4o-mini")
+        ins["run_meta"] = build_run_meta(EngineConfig(model=real_model))
         try:
             db.products.update_one({"_id": pkg_uid}, {"$set": {"catalogs.$[c].insight": ins}},
                                    array_filters=[{"c.ctlg_no": ctlg}])
