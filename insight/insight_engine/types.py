@@ -25,6 +25,7 @@ class EngineConfig:
         default_factory=lambda: {"blog": True, "danawa": False, "youtube": False})
     lexicon_version: str = "v1"
     retries: int = 3
+    execution: str = "sync"   # "sync"(즉시) | "batch"(OpenAI Batch·비동기·50%↓)
 
 
 @dataclass

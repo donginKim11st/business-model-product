@@ -3,14 +3,21 @@ import json
 import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from insight_engine import sync, jobs, metrics
+from insight_engine import sync, jobs, metrics, router
 from insight_engine.types import ExtractTarget, EngineConfig
 
 _DEFAULT_STORE_DIR = "insight_engine_jobs"
 
 
 def _cfg(body: dict) -> EngineConfig:
-    return EngineConfig(model=body.get("model", "gpt-4o-mini"))
+    return EngineConfig(model=body.get("model", "gpt-4o-mini"),
+                        execution=body.get("execution", "sync"))
+
+
+def _openai_client():
+    """OpenAI 클라이언트 생성(테스트에서 monkeypatch 지점)."""
+    from openai import OpenAI
+    return OpenAI()
 
 
 def route(method: str, path: str, body: dict):
@@ -20,13 +27,23 @@ def route(method: str, path: str, body: dict):
         return 200, {"result": r.__dict__}
 
     if method == "POST" and path == "/jobs":
-        import os, tempfile
-        os.makedirs(_DEFAULT_STORE_DIR, exist_ok=True)
-        store = jobs.JobStore(tempfile.mktemp(dir=_DEFAULT_STORE_DIR, suffix=".jsonl"))
+        cfg = _cfg(body)
         targets = [ExtractTarget(keyword=t["keyword"], uid=t.get("uid", ""))
                    for t in body.get("targets", [])]
-        job_id = jobs.submit(targets, _cfg(body), store)
-        return 202, {"job_id": job_id}
+        if cfg.execution == "batch":
+            result = router.submit(targets, cfg, client=_openai_client())
+        else:
+            import os, tempfile
+            os.makedirs(_DEFAULT_STORE_DIR, exist_ok=True)
+            store = jobs.JobStore(tempfile.mktemp(dir=_DEFAULT_STORE_DIR, suffix=".jsonl"))
+            result = router.submit(targets, cfg, sync_store=store)
+        return 202, result
+
+    if method == "POST" and path == "/batch/status":
+        client = _openai_client()
+        rows = [{"batch_id": i, "status": client.batches.retrieve(i).status}
+                for i in body.get("batch_ids", [])]
+        return 200, {"batches": rows}
 
     if method == "GET" and path.startswith("/jobs/"):
         jid = path[len("/jobs/"):]

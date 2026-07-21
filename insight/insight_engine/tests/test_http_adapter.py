@@ -41,3 +41,41 @@ def test_resolve_bind_env_override(monkeypatch):
 def test_resolve_bind_explicit_args_win(monkeypatch):
     monkeypatch.setenv("INSIGHT_HTTP_HOST", "127.0.0.1")
     assert ha.resolve_bind("0.0.0.0", 8080) == ("0.0.0.0", 8080)
+
+
+def test_jobs_sync_routes_via_router(monkeypatch):
+    captured = {}
+    def fake_submit(targets, cfg, **k):
+        captured["exec"] = cfg.execution; captured["kw"] = k
+        return {"mode": "sync", "job_id": "job-x"}
+    monkeypatch.setattr(ha.router, "submit", fake_submit)
+    code, body = ha.route("POST", "/jobs", {"targets": [{"keyword": "a", "uid": "1"}]})
+    assert code == 202 and body["mode"] == "sync"
+    assert captured["exec"] == "sync" and "sync_store" in captured["kw"]
+
+
+def test_jobs_batch_routes_with_client(monkeypatch):
+    monkeypatch.setattr(ha, "_openai_client", lambda: object())
+    captured = {}
+    def fake_submit(targets, cfg, **k):
+        captured["exec"] = cfg.execution; captured["kw"] = k
+        return {"mode": "batch", "batch_ids": ["b1"]}
+    monkeypatch.setattr(ha.router, "submit", fake_submit)
+    code, body = ha.route("POST", "/jobs",
+                          {"execution": "batch", "targets": [{"keyword": "a", "uid": "C1"}]})
+    assert code == 202 and body["batch_ids"] == ["b1"]
+    assert captured["exec"] == "batch" and "client" in captured["kw"]
+
+
+def test_batch_status(monkeypatch):
+    class FakeBatch:
+        def __init__(self, s): self.status = s
+    class FakeBatches:
+        def retrieve(self, i): return FakeBatch("completed")
+    class FakeClient:
+        batches = FakeBatches()
+    monkeypatch.setattr(ha, "_openai_client", lambda: FakeClient())
+    code, body = ha.route("POST", "/batch/status", {"batch_ids": ["b1", "b2"]})
+    assert code == 200
+    assert body["batches"] == [{"batch_id": "b1", "status": "completed"},
+                               {"batch_id": "b2", "status": "completed"}]
