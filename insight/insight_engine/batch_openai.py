@@ -3,14 +3,8 @@ from openai.lib._parsing._completions import type_to_response_format_param
 
 import naver_review_geo as nrg
 
-# Normalize EXTRACT_SOURCED_PROMPT to remove trailing text after "--- 끝 ---"
-# so all three prompts have consistent format for batch processing
-_sourced_prompt = nrg.EXTRACT_SOURCED_PROMPT
-if "\n\n답변 근거가" in _sourced_prompt:
-    _sourced_prompt = _sourced_prompt.split("\n\n답변 근거가")[0] + "\n"
-
 SCHEMAS = {
-    "sourced": (nrg.SourcedInsights, _sourced_prompt),
+    "sourced": (nrg.SourcedInsights, nrg.EXTRACT_SOURCED_PROMPT),
     "context": (nrg.SourcedContext, nrg.EXTRACT_CONTEXT_PROMPT),
     "aspect": (nrg.SourcedAspectVerdict, nrg.EXTRACT_ASPECT_VERDICT_PROMPT),
 }

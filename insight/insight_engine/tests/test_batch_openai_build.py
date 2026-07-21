@@ -1,4 +1,3 @@
-import json
 import pytest
 import naver_review_geo as nrg
 from insight_engine import batch_openai as bo
@@ -23,7 +22,10 @@ def test_build_request_lines_three_schemas_with_custom_ids():
 
 def test_same_snippets_across_three_calls():
     lines = bo.build_request_lines("C1", "kw", ITEMS, "gpt-4o-mini")
-    snips = {l["body"]["messages"][0]["content"].split("--- 수집 데이터 ---")[-1] for l in lines}
+    snips = set()
+    for l in lines:
+        c = l["body"]["messages"][0]["content"]
+        snips.add(c.split("--- 수집 데이터 ---")[1].split("--- 끝 ---")[0])
     # 세 콜의 snippets(수집데이터 부분)가 동일해야 id_map 일관
     assert len(snips) == 1
 
