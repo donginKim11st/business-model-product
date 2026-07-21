@@ -145,6 +145,7 @@ def fetch(db, client, run_dir):
     staging = load_staging(run_dir)
     parsed = []
     pending = 0
+    malformed = 0
     for bid in m["batch_ids"]:
         b = client.batches.retrieve(bid)
         if b.status != "completed":
@@ -153,8 +154,16 @@ def fetch(db, client, run_dir):
         raw = client.files.content(b.output_file_id).read()
         for line in raw.decode("utf-8").splitlines():
             line = line.strip()
-            if line:
-                parsed.append(bo.parse_output_line(json.loads(line)))
+            if not line:
+                continue
+            try:
+                item = bo.parse_output_line(json.loads(line))
+            except (json.JSONDecodeError, ValueError):
+                item = None
+            if item is None:
+                malformed += 1      # 잘린/실패 응답 — 이 SKU만 건너뜀
+            else:
+                parsed.append(item)
     grouped = bo.regroup_by_sku(parsed)
     loaded = skipped = 0
     for ctlg, trio in grouped.items():
@@ -174,7 +183,8 @@ def fetch(db, client, run_dir):
                                {"$set": {"catalogs.$[c].insight": ins}},
                                array_filters=[{"c.ctlg_no": orig_ctlg}])
         loaded += 1
-    return {"loaded": loaded, "skipped": skipped, "pending_batches": pending}
+    return {"loaded": loaded, "skipped": skipped, "pending_batches": pending,
+            "malformed": malformed}
 
 
 # mini 정가(1M): in $0.15 / out $0.60. batch = 50%. 요청당 평균 토큰은 보수적 추정.

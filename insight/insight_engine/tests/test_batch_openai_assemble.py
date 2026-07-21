@@ -54,3 +54,21 @@ def test_assemble_insight_produces_insight_with_run_meta():
     assert "dims" in ins and "faqs" in ins
     assert ins["run_meta"]["execution"] == "openai_batch"
     assert ins["run_meta"]["model"] == "gpt-4o-mini"
+
+
+def test_parse_output_line_truncated_json_returns_none():
+    # 잘린 JSON(모델 출력 length 초과) → None (전체 중단 방지)
+    line = {"custom_id": "C1|context",
+            "response": {"body": {"choices": [{"message": {"content": '{"who_age":[],"who'}}]}}}
+    assert bo.parse_output_line(line) is None
+
+
+def test_parse_output_line_failed_request_returns_none():
+    line = {"custom_id": "C1|sourced", "response": {"status_code": 500, "body": {}}}
+    assert bo.parse_output_line(line) is None
+
+
+def test_parse_output_line_bad_custom_id_returns_none():
+    assert bo.parse_output_line({"custom_id": "nopipe", "response": {}}) is None
+    assert bo.parse_output_line({"custom_id": "C1|unknown",
+                                 "response": {"body": {"choices": [{"message": {"content": "{}"}}]}}}) is None

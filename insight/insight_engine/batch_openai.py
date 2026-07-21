@@ -1,5 +1,6 @@
 """OpenAI Batch API 백엔드 — 순수 로직(요청빌드·스키마변환·출력파싱·조립). I/O 없음."""
 from openai.lib._parsing._completions import type_to_response_format_param
+from pydantic import ValidationError
 import sys, os, json
 
 import naver_review_geo as nrg
@@ -50,11 +51,23 @@ def chunk_requests(lines: list, max_per_batch: int = 40000) -> list:
 
 
 def parse_output_line(line: dict):
-    cid = line["custom_id"]
+    cid = line.get("custom_id", "")
+    if "|" not in cid:
+        return None
     ctlg, key = cid.rsplit("|", 1)
-    model_cls, _ = SCHEMAS[key]
-    content = line["response"]["body"]["choices"][0]["message"]["content"]
-    return ctlg, key, model_cls.model_validate_json(content)
+    if key not in SCHEMAS:
+        return None
+    resp = line.get("response") or {}
+    # 배치 개별 요청 실패(status != 200)는 건너뜀
+    if resp.get("status_code") not in (None, 200):
+        return None
+    try:
+        content = resp["body"]["choices"][0]["message"]["content"]
+        model = SCHEMAS[key][0].model_validate_json(content)
+    except (KeyError, IndexError, TypeError, ValidationError):
+        # 잘린/불완전 JSON(모델 출력 length 초과 등) → 이 응답만 폐기, 나머지는 계속
+        return None
+    return ctlg, key, model
 
 
 def regroup_by_sku(parsed: list) -> dict:
