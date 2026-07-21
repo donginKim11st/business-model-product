@@ -24,3 +24,20 @@ def test_get_metrics_shape(monkeypatch):
     assert code == 200
     assert "snapshot" in body and "alerts" in body
     assert body["snapshot"]["done"] == 2
+
+
+def test_resolve_bind_defaults_to_all_interfaces(monkeypatch):
+    monkeypatch.delenv("INSIGHT_HTTP_HOST", raising=False)
+    monkeypatch.delenv("INSIGHT_HTTP_PORT", raising=False)
+    assert ha.resolve_bind() == ("0.0.0.0", 8770)
+
+
+def test_resolve_bind_env_override(monkeypatch):
+    monkeypatch.setenv("INSIGHT_HTTP_HOST", "127.0.0.1")
+    monkeypatch.setenv("INSIGHT_HTTP_PORT", "9001")
+    assert ha.resolve_bind() == ("127.0.0.1", 9001)
+
+
+def test_resolve_bind_explicit_args_win(monkeypatch):
+    monkeypatch.setenv("INSIGHT_HTTP_HOST", "127.0.0.1")
+    assert ha.resolve_bind("0.0.0.0", 8080) == ("0.0.0.0", 8080)

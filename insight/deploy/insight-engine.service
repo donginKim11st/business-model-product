@@ -1,0 +1,15 @@
+[Unit]
+Description=insight-engine REST service (비정형 인사이트 추출)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/insight-engine
+EnvironmentFile=/opt/insight-engine/.env
+ExecStart=/opt/insight-engine/.venv/bin/python -m insight_engine.http_adapter
+Restart=on-failure
+RestartSec=5
+# User=insight        # 전용 계정 권장
+
+[Install]
+WantedBy=multi-user.target

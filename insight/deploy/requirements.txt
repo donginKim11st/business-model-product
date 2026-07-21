@@ -1,0 +1,5 @@
+# insight-engine REST 서비스 런타임 의존성 (playwright 불필요 — 배치/REST 경로는 requests 기반)
+openai>=1.60,<2
+pydantic>=2.5,<3
+requests>=2.31
+pymongo>=4.6      # 배치 오케스트레이터(Mongo 적재)용. sync REST 만 쓰면 없어도 됨.

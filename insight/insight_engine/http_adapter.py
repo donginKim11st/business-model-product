@@ -1,5 +1,6 @@
 """HTTP 어댑터 — 순수 route() 디스패치 + 얇은 stdlib 서버 껍데기."""
 import json
+import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from insight_engine import sync, jobs, metrics
@@ -62,5 +63,20 @@ class _Handler(BaseHTTPRequestHandler):
         self._dispatch("POST")
 
 
-def serve(port: int = 8767):
-    HTTPServer(("127.0.0.1", port), _Handler).serve_forever()
+def resolve_bind(host=None, port=None):
+    """서버 바인딩 호스트·포트를 결정. 서버 배포용으로 env 우선(기본 0.0.0.0)."""
+    host = host or os.environ.get("INSIGHT_HTTP_HOST", "0.0.0.0")
+    port = int(port if port is not None else os.environ.get("INSIGHT_HTTP_PORT", "8770"))
+    return host, port
+
+
+def serve(host=None, port=None):
+    """REST 서비스 기동. 외부 요청을 받으려면 0.0.0.0 바인딩(기본).
+    로컬만 열려면 INSIGHT_HTTP_HOST=127.0.0.1."""
+    host, port = resolve_bind(host, port)
+    print(f"insight-engine REST on http://{host}:{port}  (/extract · /jobs · /metrics)", flush=True)
+    HTTPServer((host, port), _Handler).serve_forever()
+
+
+if __name__ == "__main__":
+    serve()
