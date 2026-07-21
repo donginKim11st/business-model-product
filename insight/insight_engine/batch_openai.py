@@ -1,6 +1,6 @@
 """OpenAI Batch API 백엔드 — 순수 로직(요청빌드·스키마변환·출력파싱·조립). I/O 없음."""
 from openai.lib._parsing._completions import type_to_response_format_param
-import sys, os
+import sys, os, json
 
 import naver_review_geo as nrg
 
@@ -72,3 +72,20 @@ def assemble_insight(items: list, trio: dict, model: str) -> dict:
     ins["run_meta"] = build_run_meta(EngineConfig(model=model))
     ins["run_meta"]["execution"] = "openai_batch"
     return ins
+
+
+def chunk_by_size(lines, max_bytes=180_000_000, max_count=50_000):
+    """OpenAI Batch 입력 파일 한도(200MB/파일·50k요청)에 맞춰 바이트+건수 이중 기준 분할.
+    각 요청에 네이버 스니펫이 통째 들어가 요청 건수만으론 파일이 200MB를 넘길 수 있다.
+    한 줄이 max_bytes보다 커도 자기 청크로 격리(드롭·무한루프 방지)."""
+    chunks, cur, cur_bytes = [], [], 0
+    for l in lines:
+        sz = len(json.dumps(l, ensure_ascii=False).encode("utf-8")) + 1  # +개행
+        if cur and (cur_bytes + sz > max_bytes or len(cur) >= max_count):
+            chunks.append(cur)
+            cur, cur_bytes = [], 0
+        cur.append(l)
+        cur_bytes += sz
+    if cur:
+        chunks.append(cur)
+    return chunks

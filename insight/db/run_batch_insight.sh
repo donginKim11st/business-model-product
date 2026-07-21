@@ -47,6 +47,14 @@ case "$CMD" in
     echo "[submit] PID=$!  · 진행: wc -l $RUNDIR/staging.jsonl  · 완료: $RUNDIR/manifest.json"
     ;;
 
+  resubmit)
+    # 재크롤 없이 기존 run-dir 의 staging 으로 배치만 재제출(제출 실패/파일초과 복구용)
+    RUNDIR="${BATCH_RUNDIR:-$(cat "$STATE" 2>/dev/null)}"
+    [ -n "$RUNDIR" ] || { echo "run-dir 없음 — 먼저 submit 하세요"; exit 1; }
+    echo "[resubmit] DB=$INSIGHTS_DB · run-dir=$RUNDIR (재크롤 없음)"
+    $PY db/run_insight_batch_openai.py --resubmit --run-dir "$RUNDIR" --yes
+    ;;
+
   status)
     RUNDIR="${BATCH_RUNDIR:-$(cat "$STATE" 2>/dev/null)}"
     [ -n "$RUNDIR" ] || { echo "run-dir 없음 — 먼저 submit 하세요"; exit 1; }
@@ -62,9 +70,10 @@ case "$CMD" in
     ;;
 
   *)
-    echo "사용: db/run_batch_insight.sh {submit [SKU수] | status | fetch}"
-    echo "  submit  네이버 크롤 → OpenAI Batch 제출(백그라운드)"
-    echo "  status  배치 진행 상태 조회"
+    echo "사용: db/run_batch_insight.sh {submit [SKU수] | resubmit | status | fetch}"
+    echo "  submit    네이버 크롤 → OpenAI Batch 제출(백그라운드)"
+    echo "  resubmit  재크롤 없이 기존 staging 으로 배치만 재제출(제출 실패 복구)"
+    echo "  status    배치 진행 상태 조회"
     echo "  fetch   완료 배치 회수 → Mongo 적재(멱등, 완료까지 반복 호출)"
     exit 1
     ;;

@@ -46,3 +46,22 @@ def test_build_request_lines_accepts_int_ctlg_no():
     lines = bo.build_request_lines(12345, "kw", ITEMS, "gpt-4o-mini")
     cids = {l["custom_id"] for l in lines}
     assert cids == {"12345|sourced", "12345|context", "12345|aspect"}
+
+
+def test_chunk_by_size_splits_on_bytes():
+    lines = [{"custom_id": f"c{i}", "body": {"pad": "x" * 50}} for i in range(6)]
+    chunks = bo.chunk_by_size(lines, max_bytes=140, max_count=10000)
+    assert len(chunks) > 1
+    assert sum(len(c) for c in chunks) == 6          # 드롭 없음
+
+
+def test_chunk_by_size_splits_on_count():
+    lines = [{"custom_id": f"c{i}"} for i in range(10)]
+    chunks = bo.chunk_by_size(lines, max_bytes=10**9, max_count=4)
+    assert [len(c) for c in chunks] == [4, 4, 2]
+
+
+def test_chunk_by_size_oversized_single_line_isolated():
+    lines = [{"custom_id": "big", "body": {"pad": "x" * 1000}}]
+    chunks = bo.chunk_by_size(lines, max_bytes=10, max_count=1000)
+    assert len(chunks) == 1 and len(chunks[0]) == 1   # 드롭·무한루프 없음

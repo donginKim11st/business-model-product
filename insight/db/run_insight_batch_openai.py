@@ -72,18 +72,22 @@ def submit(db, client, run_dir, nid, nsec, model, limit=0, max_per_batch=40000, 
             sf.write(json.dumps(rec, ensure_ascii=False) + "\n")
             all_lines.extend(lines)
 
-    chunks = bo.chunk_requests(all_lines, max_per_batch)
+    return _upload_and_submit(client, all_lines, model, run_dir, staging_path)
+
+
+def _upload_and_submit(client, all_lines, model, run_dir, staging_path,
+                       max_bytes=180_000_000, max_count=50_000):
+    """요청 라인들을 OpenAI Batch 파일 한도(200MB/50k)에 맞춰 바이트 청킹 →
+    메모리(BytesIO) 업로드 → 배치 생성 → manifest 기록. 디스크 temp 없음."""
+    import io
+    chunks = bo.chunk_by_size(all_lines, max_bytes=max_bytes, max_count=max_count)
     batch_ids, chunk_meta = [], []
-    for i, chunk in enumerate(chunks):
-        tmp = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8")
-        for l in chunk:
-            tmp.write(json.dumps(l, ensure_ascii=False) + "\n")
-        tmp.close()
-        with open(tmp.name, "rb") as fh:
-            up = client.files.create(file=fh, purpose="batch")
+    for chunk in chunks:
+        data = ("\n".join(json.dumps(l, ensure_ascii=False) for l in chunk)).encode("utf-8")
+        buf = io.BytesIO(data); buf.name = "requests.jsonl"
+        up = client.files.create(file=buf, purpose="batch")
         b = client.batches.create(input_file_id=up.id, endpoint="/v1/chat/completions",
-                                  completion_window="24h")
-        os.unlink(tmp.name)
+                                   completion_window="24h")
         batch_ids.append(b.id)
         chunk_meta.append({"batch_id": b.id, "file_id": up.id, "n": len(chunk)})
 
@@ -91,6 +95,26 @@ def submit(db, client, run_dir, nid, nsec, model, limit=0, max_per_batch=40000, 
                 "model": model, "batch_ids": batch_ids, "staging_path": staging_path,
                 "request_count": len(all_lines), "chunks": chunk_meta, "status": "submitted"}
     write_manifest(run_dir, manifest)
+    return manifest
+
+
+def submit_from_staging(client, run_dir, model=None):
+    """이미 크롤된 staging.jsonl 로 재크롤 없이 배치만 (재)제출. 파일 초과 실패 후 재개용."""
+    staging_path = os.path.join(run_dir, "staging.jsonl")
+    if model is None:
+        mpath = os.path.join(run_dir, "manifest.json")
+        model = (read_manifest(run_dir).get("model") if os.path.exists(mpath) else None) \
+                or os.environ.get("INSIGHT_MODEL", "gpt-4o-mini")
+    lines = []
+    with open(staging_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            if rec.get("items"):
+                lines.extend(bo.build_request_lines(rec["ctlg_no"], rec["kw"], rec["items"], model))
+    return _upload_and_submit(client, lines, model, run_dir, staging_path)
     return manifest
 
 
@@ -171,6 +195,8 @@ def main():
     ap.add_argument("--submit", action="store_true")
     ap.add_argument("--status", action="store_true")
     ap.add_argument("--fetch", action="store_true")
+    ap.add_argument("--resubmit", action="store_true",
+                    help="재크롤 없이 기존 run-dir 의 staging.jsonl 로 배치만 재제출")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--model", default=os.environ.get("INSIGHT_MODEL", "gpt-4o-mini"))
     ap.add_argument("--run-dir", default=os.path.join(HERE, "insight_engine_batch", "run"))
@@ -192,6 +218,16 @@ def main():
             print("취소"); return
         m = submit(db, client, args.run_dir, nid, nsec, args.model, args.limit)
         print(f"제출완료 · 배치 {len(m['batch_ids'])}개 · 요청 {m['request_count']} · run_dir={args.run_dir}")
+    elif args.resubmit:
+        staging = os.path.join(args.run_dir, "staging.jsonl")
+        n = sum(1 for _ in open(staging, encoding="utf-8")) if os.path.exists(staging) else 0
+        est = estimate_cost(n * 3, args.model)
+        print(f"[재제출] staging {n} SKU × 3콜 = {est['request_count']}요청 · "
+              f"예상 ≈ ${est['usd']} (≈₩{est['krw']}) · run_dir={args.run_dir}")
+        if not args.yes and input("진행? [y/N] ").strip().lower() != "y":
+            print("취소"); return
+        m = submit_from_staging(client, args.run_dir, args.model)
+        print(f"재제출완료 · 배치 {len(m['batch_ids'])}개 · 요청 {m['request_count']}")
     elif args.status:
         print(json.dumps(status(client, args.run_dir), ensure_ascii=False, indent=2))
     elif args.fetch:
