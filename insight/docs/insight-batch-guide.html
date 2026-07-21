@@ -254,8 +254,69 @@
     </div>
   </div>
 
+  <!-- 2. 사용방법 -->
+  <h2><span class="num">02</span> 사용방법 — 설치와 3가지 사용</h2>
+  <p class="section-sub">공개 repo는 자족(self-contained)이다. clone → 설치 → 테스트까지 그대로 돌아간다.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div>
+        <div class="sh">설치</div>
+        <pre><span class="k">git</span> clone https://github.com/10xtf/insight-engine
+<span class="k">cd</span> insight-engine
+<span class="k">python3</span> -m venv .venv && <span class="k">.</span> .venv/bin/activate
+<span class="k">pip</span> install -r requirements.txt
+<span class="k">python</span> -m pytest insight_engine/        <span class="c"># 50 passed</span></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <div class="sh">키 설정 (실행에 필요 — §05 참고)</div>
+        <pre><span class="k">export</span> NAVER_CLIENT_ID=<span class="c">...</span>  NAVER_CLIENT_SECRET=<span class="c">...</span>  OPENAI_API_KEY=<span class="c">...</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-sub" style="margin:26px 0 12px">쓰는 방법은 세 가지 — 상황에 맞게 고른다.</p>
+  <div class="flow">
+    <div class="stage">
+      <p class="st-key">A · 라이브러리</p>
+      <p class="st-title">코드에서 직접</p>
+      <pre style="font-size:11.5px; margin-top:6px"><span class="k">from</span> insight_engine.sync <span class="k">import</span> extract_one
+<span class="k">from</span> insight_engine.types <span class="k">import</span> \
+    ExtractTarget, EngineConfig
+
+r = extract_one(
+  ExtractTarget(keyword=<span class="c">"젤카야노"</span>),
+  EngineConfig(model=<span class="c">"gpt-4o-mini"</span>))
+print(r.block, r.run_meta)</pre>
+      <div class="st-out">→ 단건 실시간</div>
+    </div>
+    <div class="stage">
+      <p class="st-key">B · REST</p>
+      <p class="st-title">서비스로</p>
+      <pre style="font-size:11.5px; margin-top:6px"><span class="k">python</span> -m insight_engine.http_adapter
+<span class="c"># :8770 (§11 하이브리드)</span>
+<span class="k">curl</span> -XPOST :8770/extract \
+  -d '{"keyword":"젤카야노"}'
+<span class="k">curl</span> -XPOST :8770/jobs \
+  -d '{"execution":"batch",...}'</pre>
+      <div class="st-out">→ 실시간·배치 혼용</div>
+    </div>
+    <div class="stage async">
+      <span class="badge">50% ↓</span>
+      <p class="st-key">C · 배치 CLI</p>
+      <p class="st-title">대량 백필</p>
+      <pre style="font-size:11.5px; margin-top:6px"><span class="c"># Mongo 필요 (§06)</span>
+db/run_batch_insight.sh <span class="k">submit</span> 25000
+db/run_batch_insight.sh <span class="k">status</span>
+db/run_batch_insight.sh <span class="k">fetch</span></pre>
+      <div class="st-out">→ 수만 SKU 저비용</div>
+    </div>
+  </div>
+
   <!-- 2. 3단계 파이프라인 -->
-  <h2><span class="num">02</span> 3단계 파이프라인</h2>
+  <h2><span class="num">03</span> 3단계 파이프라인</h2>
   <p class="section-sub">제출과 회수 사이는 최대 24시간 — 상태는 로컬 manifest·staging에 남아 세션·재시작을 넘어 이어진다.</p>
 
   <div class="flow">
@@ -297,7 +358,7 @@
   </div>
 
   <!-- 3. 데이터 흐름 -->
-  <h2><span class="num">03</span> 데이터 흐름</h2>
+  <h2><span class="num">04</span> 데이터 흐름</h2>
   <p class="section-sub">한 SKU가 네이버에서 출발해 Mongo 인사이트로 도착하기까지.</p>
   <div class="rail">
     <div class="node"><div class="ic">🛒</div><div class="nm">SKU</div><div class="dsc">카탈로그명</div></div>
@@ -314,7 +375,7 @@
   </div>
 
   <!-- 4. 환경 설정 -->
-  <h2><span class="num">04</span> 환경 설정 (env)</h2>
+  <h2><span class="num">05</span> 환경 설정 (env)</h2>
   <p class="section-sub">키는 <code>run.sh</code> 한 파일에 모으고, 스크립트가 자동으로 읽어들인다. 직접 export 하거나 한 줄 오버라이드도 가능하다.</p>
 
   <h3 style="font-size:15px;margin:0 0 10px">필요한 변수</h3>
@@ -372,16 +433,16 @@
   </div>
 
   <!-- 5. 실행 방법 -->
-  <h2><span class="num">05</span> 실행 방법</h2>
+  <h2><span class="num">06</span> 실행 방법</h2>
   <p class="section-sub">환경이 준비되면 래퍼 <code>db/run_batch_insight.sh</code> 하나로 세 단계를 돌린다. (작업 디렉토리 = <code>insight/</code>)</p>
 
   <div class="steps">
     <div class="step">
       <div>
-        <div class="sh">선행 준비 — Mongo 기동 (env는 §04에서 완료)</div>
+        <div class="sh">선행 준비 — Mongo 기동 (env는 §05에서 완료)</div>
         <pre><span class="c"># MongoDB(pig-mongo) 기동</span>
 <span class="k">open</span> -a Docker && <span class="k">docker</span> start pig-mongo
-<span class="c"># 키는 §04 run.sh 에 있고 래퍼가 자동 로드 — 추가 작업 없음</span></pre>
+<span class="c"># 키는 §05 run.sh 에 있고 래퍼가 자동 로드 — 추가 작업 없음</span></pre>
       </div>
     </div>
     <div class="step">
@@ -419,7 +480,7 @@
   </div>
 
   <!-- 5. 비용·규모 -->
-  <h2><span class="num">06</span> 비용 · 규모</h2>
+  <h2><span class="num">07</span> 비용 · 규모</h2>
   <p class="section-sub">gpt-4o-mini · Batch 50% 할인 기준. 크롤이 네이버 일일쿼터(~25,000/일)에 묶여 자연히 일 단위로 쪼개진다.</p>
   <div class="tbl-wrap">
     <table>
@@ -434,7 +495,7 @@
   <p class="section-sub" style="margin-top:14px">비용 가정: 요청당 입력 4,000 · 출력 900 토큰(보수적). 실측 mini 단가(₩약 5.2/건)와 정합 — Batch 반값 ≈ ₩2.6/건.</p>
 
   <!-- 6. 현재 상태 -->
-  <h2><span class="num">07</span> 현재 상태</h2>
+  <h2><span class="num">08</span> 현재 상태</h2>
   <div class="callout live">
     <div class="cico">🟢</div>
     <div class="ct"><b>오늘 하루치 제출 완료 — 6개 배치 처리 중(24h).</b> <code>insights_demo</code> 대상. 크롤 <b>19,474 SKU</b> → 첫 제출은 파일 200MB 초과로 실패 → <b>바이트 청킹으로 수정</b> 후 재크롤 없이 재제출 → 요청 <b>53,709건</b>을 6개 배치(8.3k~10.5k씩)로 분할 제출. 다음: 수시간~24h 후 <code>status</code> 확인 → <code>fetch</code>로 Mongo 적재.</div>
@@ -442,7 +503,7 @@
   <p class="section-sub" style="margin-top:12px">run-dir <code>db/insight_engine_batch/run_20260721_132658/</code> · batch_ids 6개 manifest에 기록. 스모크 배치(15요청)도 회수 대기.</p>
 
   <!-- 7. 산출물 지도 -->
-  <h2><span class="num">08</span> 파일 지도</h2>
+  <h2><span class="num">09</span> 파일 지도</h2>
   <ul class="plain">
     <li><code>run.sh</code> — API 키 보관(NAVER·OPENAI). <code>run.sh.example</code> 복사해 작성. gitignore·커밋 금지.</li>
     <li><code>db/run_batch_insight.sh</code> — 실행 래퍼(submit/status/fetch). 키 로드·run-dir 관리.</li>
@@ -453,7 +514,7 @@
   </ul>
 
   <!-- 9. 인수인계 노트 -->
-  <h2><span class="num">09</span> 인수인계 노트</h2>
+  <h2><span class="num">10</span> 인수인계 노트</h2>
   <p class="section-sub">이어받는 사람이 알아야 할 재개·문제해결·한계·검증.</p>
 
   <h3 style="font-size:15px;margin:0 0 8px">재개 — 어디서 멈춰도 이어진다</h3>
@@ -494,7 +555,7 @@
   </div>
 
   <!-- 10. 하이브리드 실행 -->
-  <h2><span class="num">10</span> 실행 모드 — sync ↔ batch 혼용</h2>
+  <h2><span class="num">11</span> 실행 모드 — sync ↔ batch 혼용</h2>
   <p class="section-sub">배치 하나만이 아니다. 같은 API에서 <code>execution</code>으로 실시간(sync)과 배치(batch)를 골라 혼용한다.</p>
 
   <div class="tbl-wrap">
