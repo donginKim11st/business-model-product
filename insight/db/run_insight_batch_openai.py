@@ -149,3 +149,55 @@ def fetch(db, client, run_dir):
                                array_filters=[{"c.ctlg_no": ctlg}])
         loaded += 1
     return {"loaded": loaded, "skipped": skipped, "pending_batches": pending}
+
+
+# mini 정가(1M): in $0.15 / out $0.60. batch = 50%. 요청당 평균 토큰은 보수적 추정.
+_AVG_IN_TOK = 4000   # snippets 포함 프롬프트 평균(보수적)
+_AVG_OUT_TOK = 900
+
+
+def estimate_cost(request_count, model="gpt-4o-mini"):
+    price = {"gpt-4o-mini": (0.15, 0.60)}.get(model, (0.15, 0.60))
+    usd_full = request_count * (_AVG_IN_TOK / 1e6 * price[0] + _AVG_OUT_TOK / 1e6 * price[1])
+    usd = usd_full * 0.5  # Batch API 50% 할인
+    return {"request_count": request_count, "model": model, "usd": round(usd, 2),
+            "krw": round(usd * 1380), "discounted": True}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--submit", action="store_true")
+    ap.add_argument("--status", action="store_true")
+    ap.add_argument("--fetch", action="store_true")
+    ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--model", default=os.environ.get("INSIGHT_MODEL", "gpt-4o-mini"))
+    ap.add_argument("--run-dir", default=os.path.join(HERE, "insight_engine_batch", "run"))
+    ap.add_argument("--yes", action="store_true", help="비용 확인 프롬프트 생략")
+    args = ap.parse_args()
+
+    from openai import OpenAI
+    client = OpenAI()
+    dbname = os.environ.get("INSIGHTS_DB", "insights")
+    db = MongoClient(os.environ.get("MONGO_URI", "mongodb://localhost:47017/?directConnection=true"))[dbname]
+
+    if args.submit:
+        nid = os.environ["NAVER_CLIENT_ID"]; nsec = os.environ["NAVER_CLIENT_SECRET"]
+        q = build_queue(db, args.limit)
+        est = estimate_cost(len(q) * 3, args.model)
+        print(f"[대상 DB={dbname}] 미처리 SKU {len(q)} × 3콜 = {est['request_count']}요청 · "
+              f"예상 ≈ ${est['usd']} (≈₩{est['krw']}, Batch 50%할인 반영)")
+        if not args.yes and input("진행? [y/N] ").strip().lower() != "y":
+            print("취소"); return
+        m = submit(db, client, args.run_dir, nid, nsec, args.model, args.limit)
+        print(f"제출완료 · 배치 {len(m['batch_ids'])}개 · 요청 {m['request_count']} · run_dir={args.run_dir}")
+    elif args.status:
+        print(json.dumps(status(client, args.run_dir), ensure_ascii=False, indent=2))
+    elif args.fetch:
+        print(f"[대상 DB={dbname}] FETCH")
+        print(json.dumps(fetch(db, client, args.run_dir), ensure_ascii=False))
+    else:
+        ap.error("--submit | --status | --fetch 중 하나")
+
+
+if __name__ == "__main__":
+    main()

@@ -63,3 +63,34 @@ def test_fetch_assembles_and_updates(tmp_path, monkeypatch):
     assert "catalogs.$[c].insight" in updated["u"]["$set"]
     ins = updated["u"]["$set"]["catalogs.$[c].insight"]
     assert ins["run_meta"]["execution"] == "openai_batch"
+
+
+def test_fetch_skips_existing_insight(tmp_path, monkeypatch):
+    run_dir = str(tmp_path / "r2"); _write(run_dir)
+    out_bytes = ("\n".join(json.dumps(_out_line("C1", k)) for k in ("sourced", "context", "aspect"))).encode()
+
+    class FakeBatch:
+        status = "completed"; output_file_id = "of1"
+    class FakeBatches:
+        def retrieve(self, i): return FakeBatch()
+    class FakeContent:
+        def __init__(self, b): self._b = b
+        def read(self): return self._b
+    class FakeFiles:
+        def content(self, i): return FakeContent(out_bytes)
+    class FakeClient:
+        batches = FakeBatches(); files = FakeFiles()
+
+    update_calls = []
+    class FakeCol:
+        def find_one(self, q, *a, **k):
+            # 이미 insight 있는 카탈로그(멱등 skip 대상)
+            return {"_id": "p1", "catalogs": [{"insight": {"dims": [1]}}]}
+        def update_one(self, q, u, array_filters=None):
+            update_calls.append((q, u))
+    class FakeDB: products = FakeCol()
+
+    res = orch.fetch(FakeDB(), FakeClient(), run_dir)
+    assert res["skipped"] == 1
+    assert res["loaded"] == 0
+    assert update_calls == []
