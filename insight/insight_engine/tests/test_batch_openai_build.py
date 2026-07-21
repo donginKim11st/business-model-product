@@ -39,3 +39,10 @@ def test_chunk_requests_splits_over_max():
     lines = [{"custom_id": f"c{i}"} for i in range(95)]
     chunks = bo.chunk_requests(lines, max_per_batch=40)
     assert [len(c) for c in chunks] == [40, 40, 15]
+
+
+def test_build_request_lines_accepts_int_ctlg_no():
+    # 실데이터 ctlg_no는 int → custom_id는 str(int)로 나와야 하고 TypeError 없어야 함.
+    lines = bo.build_request_lines(12345, "kw", ITEMS, "gpt-4o-mini")
+    cids = {l["custom_id"] for l in lines}
+    assert cids == {"12345|sourced", "12345|context", "12345|aspect"}

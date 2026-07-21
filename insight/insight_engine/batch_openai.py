@@ -21,7 +21,10 @@ def response_format_for(schema_key: str) -> dict:
     return type_to_response_format_param(model_cls)
 
 
-def build_request_lines(ctlg_no: str, keyword: str, items: list, model: str) -> list:
+def build_request_lines(ctlg_no, keyword: str, items: list, model: str) -> list:
+    # 실데이터 ctlg_no는 int일 수 있다 → custom_id(문자열)용으로 str 강제.
+    # (원래 타입은 staging/Mongo 매칭에서 보존; 여긴 custom_id 표기만)
+    ctlg_no = str(ctlg_no)
     if "|" in ctlg_no:
         raise ValueError(f"ctlg_no에 '|' 불가(custom_id 구분자 충돌): {ctlg_no}")
     snippets, _id_map, _dropped = nrg._build_sourced_snippets(items)

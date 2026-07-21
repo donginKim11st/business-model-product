@@ -111,7 +111,8 @@ def load_staging(run_dir):
             line = line.strip()
             if line:
                 rec = json.loads(line)
-                out[rec["ctlg_no"]] = rec
+                # custom_id는 str이므로 staging도 str 키로 매칭(원래 타입은 rec 안에 보존).
+                out[str(rec["ctlg_no"])] = rec
     return out
 
 
@@ -136,8 +137,9 @@ def fetch(db, client, run_dir):
         rec = staging.get(ctlg)
         if not rec:
             continue
-        # 멱등: 이미 insight 있으면 skip
-        doc = db.products.find_one({"_id": rec["pkg_uid"], "catalogs.ctlg_no": ctlg},
+        # 멱등: 이미 insight 있으면 skip. Mongo 매칭은 원래 타입(int 가능) 유지.
+        orig_ctlg = rec["ctlg_no"]
+        doc = db.products.find_one({"_id": rec["pkg_uid"], "catalogs.ctlg_no": orig_ctlg},
                                    {"catalogs.$": 1})
         existing = ((doc or {}).get("catalogs") or [{}])[0].get("insight") if doc else None
         if existing:
@@ -146,7 +148,7 @@ def fetch(db, client, run_dir):
         ins = bo.assemble_insight(rec["items"], trio, m["model"])
         db.products.update_one({"_id": rec["pkg_uid"]},
                                {"$set": {"catalogs.$[c].insight": ins}},
-                               array_filters=[{"c.ctlg_no": ctlg}])
+                               array_filters=[{"c.ctlg_no": orig_ctlg}])
         loaded += 1
     return {"loaded": loaded, "skipped": skipped, "pending_batches": pending}
 
