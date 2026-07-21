@@ -71,9 +71,10 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
+    use_claude = os.environ.get("INSIGHT_LLM") == "claude"  # claude -p 헤드리스(구독) 어댑터
     nid = os.environ.get("NAVER_CLIENT_ID"); nsec = os.environ.get("NAVER_CLIENT_SECRET")
-    if not args.dry_run and not (nid and nsec and os.environ.get("OPENAI_API_KEY")):
-        sys.exit("✗ NAVER_CLIENT_ID/SECRET, OPENAI_API_KEY 필요")
+    if not args.dry_run and not (nid and nsec and (use_claude or os.environ.get("OPENAI_API_KEY"))):
+        sys.exit("✗ NAVER_CLIENT_ID/SECRET, OPENAI_API_KEY 필요(INSIGHT_LLM=claude 면 OPENAI 불필요)")
 
     db = MongoClient(os.environ.get("MONGO_URI", "mongodb://localhost:47017/?directConnection=true"))[
         os.environ.get("INSIGHTS_DB", "insights")]
@@ -99,14 +100,21 @@ def main():
     if args.limit:
         queue = queue[:args.limit]
     N = len(queue)
-    print(f"카탈로그 인사이트 추출 {N}개 · 병렬 워커 {args.workers} · {os.environ['INSIGHT_MODEL']}")
+    llm_name = "claude(구독)" if use_claude else os.environ["INSIGHT_MODEL"]
+    print(f"카탈로그 인사이트 추출 {N}개 · 병렬 워커 {args.workers} · {llm_name}")
     print("=" * 64)
     if args.dry_run:
         for pk, ct, dp in queue[:15]:
             print(f"  {ct}  '{clean(dp)[:44]}'")
         return
 
-    llm = run_batch.make_client()
+    if use_claude:
+        import claude_llm
+        llm = claude_llm.make_client()
+        extract_fn = claude_llm.extract_full_combo  # 3콜→1콜 통합(스니펫 1회 전송, 구독 절약)
+    else:
+        llm = run_batch.make_client()
+        extract_fn = run_batch.extract_full
     lock = threading.Lock()
     st = {"i": 0, "ok": 0, "empty": 0, "err": 0, "quota": 0}
     t0 = time.time()
@@ -118,7 +126,7 @@ def main():
         for attempt in range(args.retries + 1):
             try:
                 items = run_batch.collect(kw, nid, nsec, raise_blog_quota=True)
-                block = run_batch.extract_full(kw, items, llm) if items else None
+                block = extract_fn(kw, items, llm) if items else None
                 break
             except run_batch.QuotaStop:
                 # 네이버 쿼터(429) — insight 미기록(큐 유지). 오염 없이 다음 패스가 이어받음.
@@ -151,10 +159,15 @@ def main():
 
     with ThreadPoolExecutor(max_workers=args.workers) as ex:
         list(ex.map(work, queue))
-    cost = run_batch.usd()
     print("=" * 64)
-    print(f"완료 · 인사이트 {st['ok']} · 빈것 {st['empty']} · 오류 {st['err']} · 쿼터미처리 {st['quota']} · "
-          f"{time.time()-t0:.0f}s · LLM ≈ ${cost:.3f} (≈₩{cost*1380:.0f})")
+    if use_claude:
+        import claude_llm
+        print(f"완료 · 인사이트 {st['ok']} · 빈것 {st['empty']} · 오류 {st['err']} · 쿼터미처리 {st['quota']} · "
+              f"{time.time()-t0:.0f}s · {claude_llm.summary()}")
+    else:
+        cost = run_batch.usd()
+        print(f"완료 · 인사이트 {st['ok']} · 빈것 {st['empty']} · 오류 {st['err']} · 쿼터미처리 {st['quota']} · "
+              f"{time.time()-t0:.0f}s · LLM ≈ ${cost:.3f} (≈₩{cost*1380:.0f})")
 
 
 if __name__ == "__main__":
