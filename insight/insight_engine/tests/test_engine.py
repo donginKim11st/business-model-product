@@ -3,6 +3,7 @@ from insight_engine.types import ExtractTarget, EngineConfig
 
 
 def test_extract_insight_stamps_run_meta_and_block(monkeypatch):
+    monkeypatch.setattr(engine.nrg, "MODEL", "gpt-4o-mini")
     monkeypatch.setattr(engine.run_batch, "collect",
                         lambda kw, nid, nsec, **k: [{"title": "좋아요", "desc": "발볼 넉넉"}])
     monkeypatch.setattr(engine.run_batch, "extract_full",
@@ -20,6 +21,23 @@ def test_extract_insight_stamps_run_meta_and_block(monkeypatch):
     assert "prompt_version" in r.run_meta
     assert r.cost_usd == 0.0038
     assert r.error == ""
+
+
+def test_run_meta_records_actual_model_not_cfg(monkeypatch):
+    # nrg.MODEL(실제 추출 모델)이 cfg.model과 달라도 run_meta는 nrg.MODEL을 따라야 함
+    monkeypatch.setattr(engine.nrg, "MODEL", "gpt-4o")
+    monkeypatch.setattr(engine.run_batch, "collect",
+                        lambda kw, nid, nsec, **k: [{"title": "t", "desc": "d"}])
+    monkeypatch.setattr(engine.run_batch, "extract_full",
+                        lambda kw, items, llm: {"faqs": [], "strengths": []})
+    monkeypatch.setattr(engine.run_batch, "usd", lambda: 0.01)
+
+    r = engine.extract_insight(
+        ExtractTarget(keyword="아식스 젤카야노", uid="u4"),
+        EngineConfig(model="gpt-4o-mini"),
+        llm=object(), creds={"nid": "x", "nsec": "y"})
+
+    assert r.run_meta["model"] == "gpt-4o"
 
 
 def test_extract_insight_empty_items_returns_block_none_with_run_meta(monkeypatch):

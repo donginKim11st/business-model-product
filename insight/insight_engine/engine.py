@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 
 import run_batch
+import naver_review_geo as nrg
 from insight_engine.types import ExtractTarget, EngineConfig, InsightResult
 from insight_engine import versioning
 
@@ -18,9 +19,10 @@ def _creds(creds: dict | None) -> tuple[str, str]:
 def extract_insight(target: ExtractTarget, cfg: EngineConfig, *,
                     llm=None, creds: dict | None = None) -> InsightResult:
     run_meta = versioning.build_run_meta(cfg)
+    # 실제 추출에 쓰이는 모델을 정직하게 기록(cfg.model이 아닌 nrg.MODEL)
+    run_meta["model"] = getattr(nrg, "MODEL", cfg.model)
     nid, nsec = _creds(creds)
     if llm is None:
-        os.environ.setdefault("INSIGHT_MODEL", cfg.model)
         llm = run_batch.make_client()
 
     try:
